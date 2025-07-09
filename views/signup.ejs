@@ -1,0 +1,244 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <link
+      rel="stylesheet"
+      href="https://cdn.jsdelivr.net/npm/flatpickr/dist/flatpickr.min.css"
+    />
+    <title>Signup</title>
+    <link
+      rel="stylesheet"
+      href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.2.1/css/all.min.css"
+    />
+    <link rel="icon" href="/logo.png" type="image/x-icon" />
+    <link rel="stylesheet" href="/css/style.css">
+    <link rel="stylesheet" href="/css/styles2.css">
+    <link rel="stylesheet" href="/css/styles3.css">
+    <link rel="icon" type="image/x-icon" href="/logo.png">
+    </head>
+  <body class="signup-body">
+    <!-- <img class="mask" src="logo.png" alt="" /> -->
+    <img
+      src="logo.png"
+      class="background-image"
+      alt="Background"
+      style="margin: auto;"
+    />
+    <div class="form-container">
+      <!-- <img src="/Images/calicare logo.png" alt="Logo" class="logo" /> -->
+      <div class="log-details">
+        <h2>Welcome Onboard!</h2>
+        <p>PLEASE ENTER YOUR DETAILS</p>
+      </div>
+
+      <form
+        id="signup-form"
+        action="/signup"
+        method="post"
+        enctype="multipart/form-data"
+      >
+        <!-- <input type="email" name="email" required placeholder="Email" /> -->
+        <div class="container">
+          <input type="text" name="email" placeholder="Email" required />
+          <span class="toggle-password">
+            <i class="fa fa-envelope"></i>
+          </span>
+        </div>
+
+        <!-- <input type="text" name="username" required placeholder="Username" />
+        -->
+        <div class="container">
+          <input type="text" name="username" placeholder="Full name" required />
+          <span class="toggle-password">
+            <i class="fa fa-user"></i>
+          </span>
+        </div>
+
+        <!-- <input type="number" name="phone" required placeholder="Phone" /> -->
+        <div class="container">
+          <input type="number" name="phone" placeholder="Phone" required />
+          <span class="toggle-password">
+            <i class="fa fa-phone"></i>
+          </span>
+        </div>
+
+        <div class="container">
+          <!-- <label for="">Date of Birth</label> -->
+          <input type="date" name="dob" placeholder="Date of birth"/>
+          <span class="toggle-password">
+            <!-- <i class="fa fa-calendar"></i> -->
+          </span>
+        </div>
+
+        <div class="gender-box">
+          <!-- <label style="font-size: 13px; color: grey; padding: 4px;" for=""
+            >Gender</label
+          > -->
+          <select class="gender-details" name="gender" required>
+            <option>Male</option>
+            <option>Female</option>
+            <option>Not Specified</option>
+          </select>
+        </div>
+
+        <div class="password-container">
+          <input
+            id="password"
+            type="password"
+            name="password"
+            placeholder="Password"
+            required
+          />
+          <span id="togglePassword" class="toggle-password">
+            <i class="fa fa-eye"></i>
+          </span>
+        </div>
+
+        <!-- File input for image upload -->
+        <label style="font-size: 12px" for="profile-pic"
+          >Upload Profile Picture:</label
+        >
+        <input
+          type="file"
+          id="file-input"
+          name="profile_picture"
+          accept="image/*"
+          
+        />
+
+        <!-- Preview image container -->
+        <div class="preview-container" id="preview-container">
+          <img id="preview-image" alt="Image Preview" />
+        </div>
+
+        <!-- <label class="checkbox-label">
+          <input type="checkbox" name="remember" />
+          Remember me
+        </label> -->
+        <!-- <div class="terms">
+          <label class="checkbox-label">
+            <input type="checkbox" name="remember" />
+            I agree to the
+            <a href="terms.html" style="color: #1270b0">Terms and Conditions</a>
+          </label>
+        </div> -->
+        <button style="width: 100%;" type="submit">Sign Up</button>
+      </form>
+      <p style="text-align: center;">Already have an account? <a href="/admin/login">Login</a></p>
+
+      <!-- OTP Modal -->
+      <div id="otp-modal" class="otp-modal" style="display: none">
+        <div
+         
+        >
+          <p style="color: #218838">
+            Please check your email for verification OTP sent and enter it
+            below.
+          </p>
+          <p style="color: #e73f07">
+            you can also check your spam folder if you don't see it in your
+            inbox.
+          </p>
+          <!-- <input id="email-input" type="text" name="email" placeholder="Email" required />
+          <span class="toggle-password">
+            <i class="fa fa-envelope"></i>
+          </span> -->
+          <input id="otp-input" placeholder="Enter OTP" />
+          <button onclick="verifyOtp()">Verify OTP</button>
+        </div>
+      </div>
+    </div>
+
+    <script>
+      // document.getElementById("signup-form").onsubmit = async (e) => {
+      //   e.preventDefault();
+      //   const formData = new FormData(e.target);
+      //   const payload = Object.fromEntries(formData.entries());
+
+      //   const res = await fetch("/signup", {
+      //     method: "POST",
+      //     headers: { "Content-Type": "application/json" },
+      //     body: JSON.stringify(payload),
+      //   });
+
+      //   if (res.ok) {
+      //     document.getElementById("otp-modal").style.display = "block";
+      //   } else {
+      //     alert("Signup failed: " + await res.text());
+      //   }
+      // };
+
+      document.getElementById("signup-form").onsubmit = async (e) => {
+        e.preventDefault();
+        const formData = new FormData(e.target); // Don't convert it to JSON
+
+        const res = await fetch("/signup", {
+          method: "POST",
+          body: formData, // ✅ Send raw FormData
+        });
+
+        if (res.ok) {
+          document.getElementById("otp-modal").style.display = "block";
+          document.getElementById("signup-form").style.display = "none"; // Hide the signup form
+        } else {
+          alert("Signup failed: " + (await res.text()));
+        }
+      };
+
+      async function verifyOtp() {
+        const otp = document.getElementById("otp-input").value;
+        const email = document.querySelector("input[name='email']").value;
+
+        const res = await fetch("/verify-otp", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ email, otp }),
+        });
+
+        const result = await res.text();
+        alert(result);
+
+        if (result.includes("success")) {
+          // Wait 2 seconds and redirect to login
+          setTimeout(() => {
+            window.location.href = "/admin/login";
+          }, 1000);
+        }
+      }
+
+      const passwordInput = document.getElementById("password");
+      const togglePassword = document.getElementById("togglePassword");
+      const icon = togglePassword.querySelector("i");
+
+      togglePassword.addEventListener("click", () => {
+        const isHidden = passwordInput.type === "password";
+        passwordInput.type = isHidden ? "text" : "password";
+
+        // swap the icon
+        icon.classList.toggle("fa-eye");
+        icon.classList.toggle("fa-eye-slash");
+      });
+
+      // Handle image preview
+      const fileInput = document.getElementById("file-input");
+      const previewContainer = document.getElementById("preview-container");
+      const previewImage = document.getElementById("preview-image");
+
+      fileInput.addEventListener("change", function () {
+        const file = this.files[0];
+        if (file) {
+          const reader = new FileReader();
+          reader.onload = function (e) {
+            previewContainer.style.display = "flex"; // Display the preview container
+            previewImage.src = e.target.result; // Set the image source to the selected file
+          };
+          reader.readAsDataURL(file); // Read the file as a data URL
+        } else {
+          previewContainer.style.display = "none"; // Hide the preview if no file is selected
+        }
+      });
+    </script>
+  </body>
+</html>
