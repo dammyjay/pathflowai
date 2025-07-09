@@ -148,7 +148,8 @@ exports.login = async (req, res) => {
       return res.redirect("/admin/dashboard");
     } else {
       console.log("User login successful");
-      return res.redirect("/home2");
+      // return res.redirect("/home2");
+      return res.redirect("/");
     }
   } catch (err) {
     console.error("Login error:", err);
@@ -172,7 +173,7 @@ exports.dashboard = async (req, res) => {
     const { gender, role, email } = req.query;
     // Step 1: Get Ministry Info
     const infoResult = await pool.query(
-      "SELECT * FROM ministry_info ORDER BY id DESC LIMIT 1"
+      "SELECT * FROM company_info ORDER BY id DESC LIMIT 1"
     );
     const info = infoResult.rows[0];
 
@@ -211,10 +212,10 @@ exports.dashboard = async (req, res) => {
     const percentageNew =
       totalUsers > 0 ? Math.round((recentUsers / totalUsers) * 100) : 0;
 
-    const pendingFaqResult = await pool.query(
-      "SELECT COUNT(*) FROM faqs WHERE answer IS NULL OR TRIM(answer) = ''"
-    );
-    const pendingFaqCount = parseInt(pendingFaqResult.rows[0].count);
+    // const pendingFaqResult = await pool.query(
+    //   "SELECT COUNT(*) FROM faqs WHERE answer IS NULL OR TRIM(answer) = ''"
+    // );
+    // const pendingFaqCount = parseInt(pendingFaqResult.rows[0].count);
 
     const profilePic = req.session.user
       ? req.session.user.profile_picture
@@ -224,7 +225,7 @@ exports.dashboard = async (req, res) => {
       info,
       users,
       profilePic,
-      pendingFaqCount,
+      // pendingFaqCount,
       totalUsers,
       recentUsers,
       percentageNew,
@@ -240,6 +241,10 @@ exports.dashboard = async (req, res) => {
 
 exports.editUserForm = async (req, res) => {
   const userId = req.params.id;
+  const infoResult = await pool.query(
+    "SELECT * FROM company_info ORDER BY id DESC LIMIT 1"
+  );
+  const info = infoResult.rows[0];
 
   try {
     const result = await pool.query("SELECT * FROM users2 WHERE id = $1", [
@@ -250,7 +255,7 @@ exports.editUserForm = async (req, res) => {
       return res.status(404).send("User not found");
     }
 
-    res.render("admin/editUser", { user });
+    res.render("admin/editUser", { info, user });
   } catch (error) {
     console.error("Error loading user edit form:", error);
     res.status(500).send("Server error");

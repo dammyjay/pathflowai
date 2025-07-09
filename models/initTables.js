@@ -64,9 +64,44 @@ async function createTables() {
             marquee_message TEXT,
             created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP  
         );`
-      );
+    );
+    
+    await pool.query(
+      `CREATE TABLE IF NOT EXISTS pending_users(
+        id SERIAL PRIMARY KEY,
+        fullname TEXT NOT NULL,
+        email TEXT UNIQUE NOT NULL,
+        phone TEXT,
+        gender TEXT,
+        password TEXT NOT NULL,
+        otp_code TEXT,
+        otp_expires TIMESTAMP,
+        profile_picture TEXT,
+        role TEXT DEFAULT 'user',
+        created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+        dob DATE
+        
+        )`
+    );
+
+    await pool.query(
+      `CREATE TABLE IF NOT EXISTS users2(
+        id SERIAL PRIMARY KEY,
+        fullname TEXT NOT NULL,
+        email TEXT UNIQUE NOT NULL,
+        phone TEXT,
+        gender TEXT,
+        password TEXT NOT NULL,
+        profile_picture TEXT,
+        role TEXT DEFAULT 'user',
+        created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+        reset_token TEXT,
+        reset_token_expires TIMESTAMP,
+        dob DATE
+      )`
+    );
     console.log(
-      "✅ likes, comments and push_subscriptions are ready tables are ready."
+      "✅ All tables are updated and ready."
     );
   } catch (err) {
     console.error("❌ Error creating tables:", err.message);
