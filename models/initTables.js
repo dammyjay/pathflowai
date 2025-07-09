@@ -100,6 +100,29 @@ async function createTables() {
         dob DATE
       )`
     );
+
+    await pool.query(
+      `CREATE TABLE IF NOT EXISTS career_pathways(
+        id SERIAL PRIMARY KEY,
+        title TEXT NOT NULL,
+        description TEXT,
+        thumbnail_url TEXT,
+        created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+      )`
+    );
+
+    await pool.query(
+      `CREATE TABLE IF NOT EXISTS courses (
+        id SERIAL PRIMARY KEY,
+        title TEXT NOT NULL,
+        description TEXT,
+        level TEXT CHECK (level IN ('Beginner', 'Intermediate', 'Advanced')),
+        career_pathway_id INTEGER REFERENCES career_pathways(id) ON DELETE SET NULL,
+        thumbnail_url TEXT,
+        sort_order INTEGER DEFAULT 0, 
+        created_at TIMESTAMP DEFAULT NOW()
+      );`
+    );
     console.log(
       "✅ All tables are updated and ready."
     );

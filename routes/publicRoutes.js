@@ -7,9 +7,9 @@ const pool = require("../models/db");
 
 // router.get("/", async (req, res) => {
 //   try {
-//     const [infoResult, articlesResult, videosResult] = await Promise.all([
+//     const [infoResult, career_pathwaysResult, videosResult] = await Promise.all([
 //       pool.query("SELECT * FROM company_info ORDER BY id DESC LIMIT 1"),
-//       pool.query("SELECT * FROM articles ORDER BY created_at3 DESC LIMIT 3"),
+//       pool.query("SELECT * FROM career_pathways ORDER BY created_at3 DESC LIMIT 3"),
 //       pool.query("SELECT * FROM videos4 ORDER BY created_at3 DESC LIMIT 3"),
 //     ]);
 //     const faqsResult = await pool.query(
@@ -19,7 +19,7 @@ const pool = require("../models/db");
 //     //   "SELECT url FROM gallery_images ORDER BY RANDOM() LIMIT 5"
 //     // );
 //     const info = infoResult.rows[0];
-//     const articles = articlesResult.rows;
+//     const career_pathways = career_pathwaysResult.rows;
 //     const faqs = faqsResult.rows;
 //     const annResult = await pool.query(
 //       // "SELECT * FROM announcements ORDER BY event_date DESC LIMIT 1"
@@ -122,7 +122,7 @@ const pool = require("../models/db");
 //     res.render("home", {
 //       info,
 //       title: "Company Home",
-//       articles,
+//       career_pathways,
 //       videos,
 //       faqs,
 //       demoVideos,
@@ -141,9 +141,9 @@ const pool = require("../models/db");
 
 router.get("/", async (req, res) => {
     try {
-      const [infoResult, articlesResult, videosResult] = await Promise.all([
+      const [infoResult, career_pathwaysResult, videosResult] = await Promise.all([
         pool.query("SELECT * FROM company_info ORDER BY id DESC LIMIT 1"),
-        // pool.query("SELECT * FROM articles ORDER BY created_at3 DESC LIMIT 3"),
+        pool.query("SELECT * FROM career_pathways ORDER BY created_at"),
         // pool.query("SELECT * FROM videos4 ORDER BY created_at3 DESC LIMIT 3"),
       ]);
   
@@ -155,7 +155,7 @@ router.get("/", async (req, res) => {
       //   "SELECT url FROM gallery_images ORDER BY RANDOM() LIMIT 5"
       // );
       const info = infoResult.rows[0];
-      // const articles = articlesResult.rows;
+      const career_pathways = career_pathwaysResult.rows;
       // const faqs = faqsResult.rows;
       // const annResult = await pool.query(
       //   // "SELECT * FROM announcements ORDER BY event_date DESC LIMIT 1"
@@ -207,6 +207,7 @@ router.get("/", async (req, res) => {
       console.log("Is user logged in:", isLoggedIn);
       res.render("home", {
         info,
+        career_pathways,
         title: "Company Home",
         profilePic,
         isLoggedIn: !!req.session.user,

@@ -15,11 +15,11 @@ exports.showSearchArticles = async (req, res) => {
   try {
     const search = req.query.search;
     const infoResult = await pool.query(
-      "SELECT * FROM ministry_info ORDER BY id DESC LIMIT 1"
+      "SELECT * FROM company_info ORDER BY id DESC LIMIT 1"
     );
     const info = infoResult.rows[0] || {};
     // Step 3: Stats
-    const totalResult = await pool.query("SELECT COUNT(*) FROM articles");
+    const totalResult = await pool.query("SELECT COUNT(*) FROM pathways");
     const totalArticle = parseInt(totalResult.rows[0].count);
     let articlesResult;
 

@@ -81,6 +81,25 @@ router.post(
 );
 router.post("/articles/delete/:id", articleController.deleteArticle);
 
+// Career Pathways
+router.get("/pathways", adminController.showPathways);
+// router.post("/admin/pathways", adminController.createPathway);
+router.post(
+  "/pathways",
+  upload.single("thumbnail"),
+  adminController.createPathway
+);
+
+router.post("/pathways/:id/delete", adminController.deletePathway);
+
+// Courses
+router.get("/courses", adminController.showCourses);
+router.post("/courses", upload.single("thumbnail"), adminController.createCourse);
+router.post("/courses/:id/delete", adminController.deleteCourse);
+
+
+
+
 // // Temporary route to add `created_at` column
 // router.get("/fix-created-at", async (req, res) => {
 //   try {

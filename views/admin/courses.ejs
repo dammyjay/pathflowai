@@ -1,0 +1,194 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <title>Manage Articles</title>
+    <link rel="stylesheet" href="/css/style.css" />
+    <link rel="stylesheet" href="/css/styles2.css" />
+    <link rel="stylesheet" href="/css/styles3.css" />
+    <link rel="icon" type="image/x-icon" href="/images/JKT logo.png" />
+    <script src="https://cdn.ckeditor.com/4.22.1/standard/ckeditor.js"></script>
+  </head>
+  <body>
+    <!-- Header -->
+    <header class="header">
+      <div class="logo-title">
+        <% info = info || {}; %> <% if (info.logo_url) { %>
+        <img src="<%= info.logo_url %>" alt="Logo" />
+        <% } %>
+        <p><%= info?.company_name || 'JKT Hub' %></p>
+      </div>
+      <button class="nav-toggle" onclick="toggleNav()">☰</button>
+      <nav id="main-nav">
+        <a href="/admin/dashboard">Dashboard</a>
+        <a class="active" href="/admin/articles">Articles</a>
+        <a href="/admin/videos">Videos</a>
+        
+        <div class="dropdown">
+          <button class="dropbtn" onclick="toggleDropdown('galleryMenu')">Gallery ▾</button>
+          <div class="dropdown-content" id="galleryMenu">
+            <a href="/admin/gallery">Images</a>
+            <a href="/admin/gallery/categories">Categories</a>
+            <a href="/admin/demo-videos">Demo</a>
+          </div>
+        </div>
+        
+        <div class="dropdown">
+          <button class="dropbtn" onclick="toggleDropdown('ministryMenu')">Ministry ▾</button>
+          <div class="dropdown-content" id="ministryMenu">
+            <a href="/admin/ministry">About Us</a>
+            <a href="/admin/faqs">FAQ</a>
+            <a href="/admin/devotionals">Devotionals</a>
+            <a href="/admin/announcements">Announcements</a>
+            <a href="/admin/newsletter">Newsletter</a>
+          </div>
+        </div>
+      
+        <a href="/profile">Profile</a>
+        <a href="/admin/logout" class="logout-button">Logout</a>
+      </nav>
+    </header>
+    <h2>Create Course</h2>
+<form action="/admin/courses" method="POST" enctype="multipart/form-data">
+    <div class="container">
+        <input type="text" name="title" placeholder="Course Title" required><br>
+    </div>
+  <textarea name="description" id="content" placeholder="Description"></textarea><br>
+
+  <div class="container">
+    <select class="gender-details" name="level" required>
+        <option value="">Select Level</option>
+        <option value="Beginner">Beginner</option>
+        <option value="Intermediate">Intermediate</option>
+        <option value="Advanced">Advanced</option>
+    </select><br>
+</div>
+
+  <div class="container">
+  <select class="gender-details name="career_pathway_id">
+    <option value="">-- Career Pathway --</option>
+    <% careerPathways.forEach(path => { %>
+      <option value="<%= path.id %>"><%= path.title %></option>
+    <% }) %>
+  </select><br>
+</div>
+
+  <input type="number" name="sort_order" placeholder="Sort Order"><br>
+  <input type="file" name="thumbnail"><br>
+  <button type="submit">Create Course</button>
+</form>
+
+<h3>All Courses</h3>
+      
+
+    <form method="GET" action="/admin/pathways" style="margin-top: 20px">
+      <input
+        type="text"
+        name="search"
+        placeholder="Search by title..."
+        value="<%= search || '' %>"
+      />
+      <button type="submit">Search</button>
+    </form>
+    <h2>Existing Pathways</h2>
+    <section class="article-grid">
+        <% courses.forEach(course => { %>
+          <div class="article-card">
+            <% if (course.thumbnail_url) { %>
+              <img
+                src="<%= course.thumbnail_url %>"
+                alt="Course Thumbnail"
+                style="object-fit: contain; height: 300px; width: 100%;"
+              />
+            <% } %>
+            <h3><%= course.title %></h3>
+            
+      
+            <div class="article-body" id="desc-<%= pathway.id %>">
+                <strong><%= course.title %></strong> | <%= course.level %> | Pathway: <%= course.pathway_name || 'None' %>
+            </div>
+      
+            <a
+              href="javascript:void(0);"
+              class="toggle-article"
+              onclick="togglePathway(<%= pathway.id %>)"
+            >Show More</a>
+      
+            <div class="article-buttons">
+              <a href="/admin/pathways/edit/<%= pathway.id %>">Edit</a>
+              <form
+                action="/admin/pathways/delete/<%= pathway.id %>"
+                method="POST"
+                onsubmit="return confirm('Delete this pathway?');"
+              >
+                <button type="submit">Delete</button>
+              </form>
+            </div>
+          </div>
+        <% }) %>
+      </section>
+      
+
+    <a href="/admin/dashboard">Back to Dashboard</a>
+    <script>
+      CKEDITOR.replace("content");
+    </script>
+
+    <!-- script to toggle navigation menu -->
+    <script>
+      function toggleNav() {
+        var nav = document.getElementById("main-nav");
+        nav.classList.toggle("open");
+      }
+    </script>
+
+    <!-- Script not to be able to copy content from article body -->
+    <script>
+      document.querySelectorAll(".article-body").forEach(function (el) {
+        el.addEventListener("contextmenu", function (e) {
+          e.preventDefault();
+        });
+        el.addEventListener("copy", function (e) {
+          e.preventDefault();
+        });
+      });
+    </script>
+
+    <!-- script to preview image before upload -->
+    <script>
+      document
+        .getElementById("imageInput")
+        .addEventListener("change", function () {
+          const preview = document.getElementById("imagePreview");
+          const file = this.files[0];
+          if (file) {
+            const reader = new FileReader();
+            reader.onload = function (e) {
+              preview.src = e.target.result;
+              preview.style.display = "block";
+            };
+            reader.readAsDataURL(file);
+          } else {
+            preview.src = "#";
+            preview.style.display = "none";
+          }
+        });
+    </script>
+
+    <!-- script for checking content like link in article -->
+    
+</body>
+</html>
+
+
+
+
+<ul>
+  <% courses.forEach(course => { %>
+    <li>
+      <strong><%= course.title %></strong> | <%= course.level %> | Pathway: <%= course.pathway_name || 'None' %>
+      <form action="/admin/courses/<%= course.id %>/delete" method="POST" style="display:inline;">
+        <button type="submit">Delete</button>
+      </form>
+    </li>
+  <% }) %>
+</ul>

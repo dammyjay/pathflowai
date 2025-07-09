@@ -556,17 +556,15 @@ form button {
     font-size: 0.9rem;   }
 
 
-        .article-grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
-            gap: 20px;
-            padding: 20px;
-            max-width: 1500px;
-            width: 100%;
-            box-sizing: border-box;   }
+    .article-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+        gap: 20px;    
+        margin-top: 20px;
+    }
 
 /* Article cards container */
-.article-card {
+/* .article-card {
     border: 1px solid #ddd;
     border-radius: 8px;
     box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
@@ -576,7 +574,13 @@ form button {
     max-width: 700px;
     width: 100%;
     box-sizing: border-box;
-}
+} */
+
+.article-card {
+    background: white;
+    border-radius: 10px;
+    padding: 15px;
+    box-shadow: 0 0 5px rgba(0, 0, 0, 0.1); }
 
 
 .article-card-page{
@@ -611,19 +615,23 @@ form button {
 /* Article title */
 .article-card h3 {
     margin-top: 0;
-    color: #4d3b00;
+    color: #05004d;
     /* dark gold/brown */
 }
 
 /* Article image styling */
-.article-card img {
+/* .article-card img {
     max-width: 100%;
     width: 100%;
     height: 300px;
     margin: 10px 0;
     border-radius: 6px;
     object-fit: cover;
-}
+} */
+
+.article-card img {
+    border-radius: 8px;
+    margin-bottom: 10px; }
 
 /* Article content */
 .article-card p {
@@ -921,7 +929,7 @@ nav a:hover {
 /* Card Grid */
 .card-grid {
     display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(270px, 1fr));
+    grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
     gap: 2rem;
     margin-top: 1rem;
     margin-bottom: 5rem;
@@ -971,11 +979,11 @@ nav a:hover {
     /* dark gold */
 }
 
-.card-grid {
+/* .card-grid {
     display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+    grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
     gap: 20px;
-    }
+    } */
     
     .card {
     background-color: #fff;

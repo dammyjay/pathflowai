@@ -35,3 +35,31 @@
     margin: 10px;
     padding: 4px;
 }
+
+.form-button {
+    width: 300px;
+    padding: 10px;
+    background-color: #000000;
+    color: white;
+    border: none;
+    border-radius: 5px;
+    cursor: pointer;
+    font-size: 16px;
+}
+
+.btn-create {
+    background-color: #000000;
+    color: white;
+    padding: 10px 16px;
+    border: none;
+    border-radius: 6px;
+    margin: 10px 0;
+    cursor: pointer; 
+}
+
+.container2 {
+    position: relative;
+    width: 100%;
+    padding-left: 10px;
+    text-align: right;
+}

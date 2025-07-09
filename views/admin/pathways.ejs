@@ -1,0 +1,210 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <title>Manage Articles</title>
+    <link rel="stylesheet" href="/css/style.css" />
+    <link rel="stylesheet" href="/css/styles2.css" />
+    <link rel="stylesheet" href="/css/styles3.css" />
+    <link rel="icon" type="image/x-icon" href="/images/JKT logo.png" />
+    <script src="https://cdn.ckeditor.com/4.22.1/standard/ckeditor.js"></script>
+  </head>
+  <body>
+    <!-- Header -->
+    <header class="header">
+      <div class="logo-title">
+        <% info = info || {}; %> <% if (info.logo_url) { %>
+        <img src="<%= info.logo_url %>" alt="Logo" />
+        <% } %>
+        <p><%= info?.company_name || 'JKT Hub' %></p>
+      </div>
+      <button class="nav-toggle" onclick="toggleNav()">☰</button>
+      <nav id="main-nav">
+        <a href="/admin/dashboard">Dashboard</a>
+        <a class="active" href="/admin/articles">Articles</a>
+        <a href="/admin/videos">Videos</a>
+
+        <div class="dropdown">
+          <button class="dropbtn" onclick="toggleDropdown('galleryMenu')">
+            Gallery ▾
+          </button>
+          <div class="dropdown-content" id="galleryMenu">
+            <a href="/admin/gallery">Images</a>
+            <a href="/admin/gallery/categories">Categories</a>
+            <a href="/admin/demo-videos">Demo</a>
+          </div>
+        </div>
+
+        <div class="dropdown">
+          <button class="dropbtn" onclick="toggleDropdown('ministryMenu')">
+            Ministry ▾
+          </button>
+          <div class="dropdown-content" id="ministryMenu">
+            <a href="/admin/ministry">About Us</a>
+            <a href="/admin/faqs">FAQ</a>
+            <a href="/admin/devotionals">Devotionals</a>
+            <a href="/admin/announcements">Announcements</a>
+            <a href="/admin/newsletter">Newsletter</a>
+          </div>
+        </div>
+
+        <a href="/profile">Profile</a>
+        <a href="/admin/logout" class="logout-button">Logout</a>
+      </nav>
+    </header>
+
+    <form method="GET" action="/admin/pathways" style="margin-top: 20px">
+      <input
+        type="text"
+        name="search"
+        placeholder="Search by title..."
+        value="<%= search || '' %>"
+      />
+      <button type="submit">Search</button>
+    </form>
+
+    <h2>Existing Pathways</h2>
+    
+    <div class="container2">
+        <button onclick="openModal()" class="btn-create">
+        + Create New Pathway
+        </button>
+    </div>
+
+    <section class="article-grid">
+        <% pathways.forEach(pathway => { %>
+          <div class="article-card">
+            <h3><%= pathway.name %></h3>
+      
+            <% if (pathway.thumbnail_url) { %>
+              <img
+                src="<%= pathway.thumbnail_url %>"
+                alt="Pathway Thumbnail"
+                style="object-fit: cover; height: 300px; width: 100%;"
+              />
+            <% } %>
+      
+            <div class="article-body" id="desc-<%= pathway.id %>">
+              <%- pathway.description.substring(0, 100) %>...
+            </div>
+      
+            <a
+              href="javascript:void(0);"
+              class="toggle-article"
+              onclick="togglePathway(<%= pathway.id %>)"
+            >Show More</a>
+      
+            <div class="article-buttons">
+              <a href="/admin/pathways/edit/<%= pathway.id %>">Edit</a>
+              <form
+                action="/admin/pathways/delete/<%= pathway.id %>"
+                method="POST"
+                onsubmit="return confirm('Delete this pathway?');"
+              >
+                <button type="submit">Delete</button>
+              </form>
+            </div>
+          </div>
+        <% }) %>
+      </section>
+      
+    <!-- Create Pathway Modal -->
+    <div id="createModal" class="modal">
+      <div class="modal-content">
+        <span class="close" onclick="closeModal()">&times;</span>
+        <h2>Create New Pathway</h2>
+        <form
+          
+          action="/admin/pathways"
+          method="POST"
+          enctype="multipart/form-data"
+        >
+          <input
+            type="text"
+            name="title"
+            placeholder="Pathway Name"
+            required
+          /><br />
+          <textarea
+            name="description"
+            id="content"
+            placeholder="Description"
+          ></textarea
+          ><br />
+          <input type="file" name="thumbnail" accept="image/*" /><br />
+
+          <!-- Preview image container -->
+          <div class="preview-container">
+            <img id="preview-image" alt="Image Preview" />
+          </div>
+
+          <button type="submit">Create Pathway</button>
+        </form>
+      </div>
+    </div>
+
+    <a href="/admin/dashboard">Back to Dashboard</a>
+    <script>
+      CKEDITOR.replace("content");
+    </script>
+
+    <!-- script to toggle navigation menu -->
+    <script>
+      function toggleNav() {
+        var nav = document.getElementById("main-nav");
+        nav.classList.toggle("open");
+      }
+    </script>
+
+    <!-- Script not to be able to copy content from article body -->
+    <script>
+      document.querySelectorAll(".article-body").forEach(function (el) {
+        el.addEventListener("contextmenu", function (e) {
+          e.preventDefault();
+        });
+        el.addEventListener("copy", function (e) {
+          e.preventDefault();
+        });
+      });
+    </script>
+
+    <!-- script to preview image before upload -->
+    <script>
+        document.querySelector("input[name='thumbnail']").addEventListener("change", function () {
+          const preview = document.getElementById("preview-image");
+          const file = this.files[0];
+          if (file) {
+            const reader = new FileReader();
+            reader.onload = function (e) {
+              preview.src = e.target.result;
+              preview.style.display = "block";
+            };
+            reader.readAsDataURL(file);
+          } else {
+            preview.src = "#";
+            preview.style.display = "none";
+          }
+        });
+      </script>
+      
+
+    <!-- script for opening and closing the modal -->
+    <script>
+        function openModal() {
+          document.getElementById("createModal").style.display = "block";
+        }
+      
+        function closeModal() {
+          document.getElementById("createModal").style.display = "none";
+        }
+      
+        // Close modal when clicking outside the modal content
+        window.onclick = function (event) {
+          const modal = document.getElementById("createModal");
+          if (event.target == modal) {
+            modal.style.display = "none";
+          }
+        };
+      </script>
+      
+  </body>
+</html>
