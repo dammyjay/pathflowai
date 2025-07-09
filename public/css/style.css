@@ -1405,6 +1405,7 @@ nav a:hover {
     height: 100%;
     overflow: auto;
     background-color: rgba(0, 0, 0, 0.5);
+    display: none;
 }
 
 
