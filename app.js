@@ -74,6 +74,10 @@ app.use("/admin", adminRoutes);
 const userRoutes = require("./routes/userRoutes");
 app.use("/", userRoutes);
 
+app.get("/test", (req, res) => {
+  res.send("✅ Test route works");
+});
+
 // const subscribeRoutes = require("./routes/subscribeRoutes");
 // app.use("/", subscribeRoutes);
 

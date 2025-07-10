@@ -1,6 +1,7 @@
 const express = require("express");
 const router = express.Router();
 const pool = require("../models/db");
+const axios = require("axios");
 // const articleController = require("../controllers/articleController");
 
 // Homepage Route
@@ -141,10 +142,10 @@ const pool = require("../models/db");
 
 router.get("/", async (req, res) => {
     try {
-      const [infoResult, career_pathwaysResult, videosResult] = await Promise.all([
+      const [infoResult, career_pathwaysResult, usersResult] = await Promise.all([
         pool.query("SELECT * FROM company_info ORDER BY id DESC LIMIT 1"),
         pool.query("SELECT * FROM career_pathways ORDER BY created_at"),
-        // pool.query("SELECT * FROM videos4 ORDER BY created_at3 DESC LIMIT 3"),
+        pool.query("SELECT * FROM users2"),
       ]);
   
       // const faqsResult = await pool.query(
@@ -155,6 +156,7 @@ router.get("/", async (req, res) => {
       //   "SELECT url FROM gallery_images ORDER BY RANDOM() LIMIT 5"
       // );
       const info = infoResult.rows[0];
+      const users = usersResult.rows;
       const career_pathways = career_pathwaysResult.rows;
       // const faqs = faqsResult.rows;
       // const annResult = await pool.query(
@@ -198,25 +200,150 @@ router.get("/", async (req, res) => {
       //   return arr.slice(0, count);
       // }
   
-      
+      // wallet balance code
+      let walletBalance = 0;
+      if (req.session.user) {
+        const walletResult = await pool.query(
+          "SELECT wallet_balance2 FROM users2 WHERE email = $1",
+          [req.session.user.email]
+        );
+        walletBalance = walletResult.rows[0]?.wallet_balance2 || 0;
+      }
+
   
       // Add this line to pass login status to EJS
       const isLoggedIn = !!req.session.user; // or whatever property you use for login
-      const profilePic = req.session.user ? req.session.user.profile_pic : null;
+      const profilePic = req.session.user ? req.session.user.profile_picture : null;
       console.log("User session:", req.session.user);
       console.log("Is user logged in:", isLoggedIn);
       res.render("home", {
         info,
+        users,
+        walletBalance,
         career_pathways,
         title: "Company Home",
         profilePic,
         isLoggedIn: !!req.session.user,
         subscribed: req.query.subscribed,
-        
       });
     } catch (err) {
       console.error("Error fetching homepage data:", err);
       res.status(500).send("Server Error");
     }
-  });
+});
+  
+// router.get("/make-payment", (req, res) => {
+//   if (!req.session.user) {
+//     return res.redirect("/admin/login");
+//   }
+
+//   const fullname = req.session.user.fullname;
+//   const email = req.session.user.email;
+//   res.render("payment", {
+//     title: "Make Payment",
+//     fullname,
+//     email,
+//     profilePic: req.session.user.profile_pic || null,
+//   });
+// });
+
+// PAYSTACK PAYMENT VERIFICATION
+
+router.get("/make-payment", async (req, res) => {
+  if (!req.session.user || !req.session.user.email) {
+    return res.redirect("/admin/login"); // Redirect if not logged in
+  }
+
+  try {
+    const userEmail = req.session.user.email;
+
+    // Fetch user details from database
+    const result = await pool.query(
+      "SELECT fullname, email, profile_picture FROM users2 WHERE email = $1",
+      [userEmail]
+    );
+
+    if (result.rows.length === 0) {
+      return res.status(404).send("User not found");
+    }
+
+    const user = result.rows[0];
+
+    res.render("payment", {
+      title: "Make Payment",
+      fullname: user.fullname,
+      email: user.email,
+      profilePic: user.profile_picture || null,
+    });
+  } catch (err) {
+    console.error("Error fetching user for payment:", err);
+    res.status(500).send("Server error");
+  }
+});
+
+
+router.post("/verify-payment", async (req, res) => {
+  const { reference, email, fullName } = req.body;
+
+  try {
+    console.log(
+      "🔍 Verifying payment with ref:",
+      reference,
+      "Email:",
+      email,
+      "Full Name:",
+      fullName
+    );
+
+    const response = await axios.get(
+      `https://api.paystack.co/transaction/verify/${reference}`,
+      {
+        headers: {
+          Authorization: `Bearer ${process.env.PAYSTACK_SECRET_KEY}`, // Make sure this is set in your .env file
+        },
+      }
+    );
+    console.log("✅ Paystack Response:", response.data);
+
+    const payment = response.data.data;
+
+    if (payment.status === "success") {
+      const amount = payment.amount / 100;
+
+      // Save transaction to DB
+      await pool.query(
+        `INSERT INTO transactions (fullname, email, amount, reference, status)
+         VALUES ($1, $2, $3, $4, $5)`,
+        [fullName, email, amount, reference, "success"]
+      );
+
+      // ✅ Update user's wallet balance
+      await pool.query(
+        `UPDATE users2 SET wallet_balance2 = wallet_balance2 + $1 WHERE email = $2`,
+        [amount, email]
+      );
+
+      return res.json({
+        success: true,
+        message: "Payment verified successfully and wallet updated",
+      });
+    } else {
+      return res
+        .status(400)
+        .json({ success: false, message: "Payment verification failed" });
+    }
+  } catch (error) {
+    console.error(
+      "❌ Error verifying payment:",
+      error.response?.data || error.message
+    );
+    return res.status(500).json({
+      success: false,
+      message:
+        error.response?.data?.message ||
+        "Server error during payment verification",
+    });
+  }
+});
+
   module.exports = router;

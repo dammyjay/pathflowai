@@ -50,10 +50,10 @@ async function createTables() {
     //     image_url TEXT,
     //     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
     //   );
-      // `);
-      
-      await pool.query(
-          `CREATE TABLE IF NOT EXISTS company_info(
+    // `);
+
+    await pool.query(
+      `CREATE TABLE IF NOT EXISTS company_info(
             id SERIAL PRIMARY KEY,
             logo_url TEXT NOT NULL,
             vision TEXT,
@@ -65,7 +65,7 @@ async function createTables() {
             created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP  
         );`
     );
-    
+
     await pool.query(
       `CREATE TABLE IF NOT EXISTS pending_users(
         id SERIAL PRIMARY KEY,
@@ -97,7 +97,8 @@ async function createTables() {
         created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
         reset_token TEXT,
         reset_token_expires TIMESTAMP,
-        dob DATE
+        dob DATE,
+        wallet_balance NUMERIC DEFAULT 0
       )`
     );
 
@@ -123,9 +124,19 @@ async function createTables() {
         created_at TIMESTAMP DEFAULT NOW()
       );`
     );
-    console.log(
-      "✅ All tables are updated and ready."
+
+    await pool.query(
+      `CREATE TABLE IF NOT EXISTS transactions (
+        id SERIAL PRIMARY KEY,
+        fullname TEXT,
+        email TEXT,
+        amount NUMERIC,
+        reference TEXT UNIQUE,
+        status TEXT,
+        created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+      );`
     );
+    console.log("✅ All tables are updated and ready.");
   } catch (err) {
     console.error("❌ Error creating tables:", err.message);
   }
