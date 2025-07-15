@@ -80,6 +80,87 @@
     border-radius: 50%;
     animation: spin 1s linear infinite;
 }
+.pathway-nav {
+    width: 100%;
+    display: flex;
+    overflow-x: auto;
+    gap: 0.75rem;
+    padding: 10px 0;
+    white-space: nowrap;
+    scroll-behavior: smooth;
+    border-bottom: 1px solid #ccc;
+    scrollbar-width: thin;
+}
+
+
+.pathway-nav::-webkit-scrollbar {
+    height: 6px;
+}
+
+.pathway-nav::-webkit-scrollbar-thumb {
+    background-color: #a9712f;
+    border-radius: 4px;
+}
+
+.pathway-nav button {
+    flex: 0 0 auto;
+    background-color: #f8f6f3;
+    border: 1px solid #a9712f;
+    color: #a9712f;
+    padding: 6px 12px;
+    border-radius: 5px;
+    cursor: pointer;
+    white-space: nowrap;
+    transition: background-color 0.3s;
+}
+
+.pathway-nav button:hover {
+    background-color: #a9712f;
+    color: white;
+}
+
+.course-scroll-container {
+    display: flex;
+    overflow-x: auto;
+    scroll-behavior: smooth;
+    gap: 1rem;
+    padding-bottom: 10px;
+    margin-bottom: 1rem;
+    scrollbar-width: thin;
+}
+
+.scroll-card {
+    flex: 0 0 300px;
+    /* fixed width */
+    background-color: #fff;
+    border-radius: 8px;
+    padding: 1rem;
+    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+    min-height: 350px;
+}
+
+.scroll-card img {
+    width: 100%;
+    height: 200px;
+    object-fit: contain;
+}
+
+.pathway-group {
+    width: 100%;
+}
+
+.course-level-section{
+    width: 100%;
+}
+
+.course-scroll-container::-webkit-scrollbar {
+    height: 8px;
+}
+
+.course-scroll-container::-webkit-scrollbar-thumb {
+    background-color: #a9712f;
+    border-radius: 4px;
+}
 
 @keyframes spin {
     to {

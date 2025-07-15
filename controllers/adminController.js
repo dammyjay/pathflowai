@@ -694,27 +694,66 @@ exports.deletePathway = async (req, res) => {
 };
 
 // --- COURSES ---
+// exports.showCourses = async (req, res) => {
+//   const infoResult = await pool.query(
+//     "SELECT * FROM company_info ORDER BY id DESC LIMIT 1"
+//   );
+//   const info = infoResult.rows[0] || {};
+//   const coursesResult = await pool.query(
+//     `SELECT courses.*, cp.title AS pathway_name
+//      FROM courses
+//      LEFT JOIN career_pathways cp ON cp.id = courses.career_pathway_id
+//      ORDER BY sort_order ASC, title ASC`
+//   );
+  
+//   const pathwaysResult = await pool.query("SELECT * FROM career_pathways");
+//   res.render("admin/courses", {
+//     courses: coursesResult.rows,
+//     info,
+//     search: req.query.search || "",
+//     careerPathways: pathwaysResult.rows,
+//   });
+// };
+
 exports.showCourses = async (req, res) => {
   const infoResult = await pool.query(
     "SELECT * FROM company_info ORDER BY id DESC LIMIT 1"
   );
   const info = infoResult.rows[0] || {};
-  const coursesResult = await pool.query(
-    `SELECT courses.*, cp.title AS pathway_name 
-     FROM courses 
-     LEFT JOIN career_pathways cp ON cp.id = courses.career_pathway_id 
-     ORDER BY sort_order ASC, title ASC`
-  );
+
+  const coursesResult = await pool.query(`
+    SELECT courses.*, cp.title AS pathway_name
+    FROM courses
+    LEFT JOIN career_pathways cp ON cp.id = courses.career_pathway_id
+    ORDER BY cp.title ASC, courses.level ASC, sort_order ASC
+  `);
+
   const pathwaysResult = await pool.query("SELECT * FROM career_pathways");
+
+  // Group courses by pathway and level
+  const groupedCourses = {};
+
+  coursesResult.rows.forEach((course) => {
+    const pathway = course.pathway_name || "Unassigned";
+    const level = course.level || "Unspecified";
+
+    if (!groupedCourses[pathway]) groupedCourses[pathway] = {};
+    if (!groupedCourses[pathway][level]) groupedCourses[pathway][level] = [];
+
+    groupedCourses[pathway][level].push(course);
+  });
+
   res.render("admin/courses", {
-    courses: coursesResult.rows,
     info,
     search: req.query.search || "",
     careerPathways: pathwaysResult.rows,
+    groupedCourses,
   });
 };
 
+
 exports.createCourse = async (req, res) => {
+    console.log("Creating course with:", req.body);
   const { title, description, level, career_pathway_id, sort_order } = req.body;
   let thumbnail_url = null;
 
@@ -725,6 +764,8 @@ exports.createCourse = async (req, res) => {
     thumbnail_url = result.secure_url;
     if (fs.existsSync(req.file.path)) fs.unlinkSync(req.file.path);
   }
+
+
 
   await pool.query(
     `INSERT INTO courses (title, description, level, career_pathway_id, thumbnail_url, sort_order)

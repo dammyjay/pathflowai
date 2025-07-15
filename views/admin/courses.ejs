@@ -19,10 +19,10 @@
       </div>
       <button class="nav-toggle" onclick="toggleNav()">☰</button>
       <nav id="main-nav">
-        <a href="/admin/dashboard">Dashboard</a>
-        <a class="active" href="/admin/articles">Articles</a>
-        <a href="/admin/videos">Videos</a>
-        
+        <a class="active" href="/admin/dashboard">Dashboard</a>
+        <a href="/admin/courses">Courses</a>
+        <a href="/admin/pathways">Pathways</a>
+      
         <div class="dropdown">
           <button class="dropbtn" onclick="toggleDropdown('galleryMenu')">Gallery ▾</button>
           <div class="dropdown-content" id="galleryMenu">
@@ -47,40 +47,103 @@
         <a href="/admin/logout" class="logout-button">Logout</a>
       </nav>
     </header>
-    <h2>Create Course</h2>
-<form action="/admin/courses" method="POST" enctype="multipart/form-data">
-    <div class="container">
-        <input type="text" name="title" placeholder="Course Title" required><br>
+    <!-- <h2>Create Course</h2> -->
+    <!-- <form action="/admin/courses" method="POST" enctype="multipart/form-data">
+      <div class="container">
+        <input
+          type="text"
+          name="title"
+          placeholder="Course Title"
+          required
+        /><br />
+      </div>
+      <textarea
+        name="description"
+        id="content"
+        placeholder="Description"
+      ></textarea
+      ><br />
+
+      <div class="container">
+        <select class="gender-details" name="level" required>
+          <option value="">Select Level</option>
+          <option value="Beginner">Beginner</option>
+          <option value="Intermediate">Intermediate</option>
+          <option value="Advanced">Advanced</option></select
+        ><br />
+      </div>
+
+      <div class="container">
+        <select class="gender-details" name="career_pathway_id">
+          <option value="">-- Career Pathway --</option>
+          <% careerPathways.forEach(path => { %>
+          <option value="<%= path.id %>"><%= path.title %></option>
+          <% }) %></select
+        ><br />
+      </div>
+
+      <input type="number" name="sort_order" placeholder="Sort Order" /><br />
+      <input type="file" name="thumbnail" /><br />
+      <button type="submit">Create Course</button>
+    </form> -->
+
+
+    <!-- Create Pathway Modal -->
+    <div id="createModal" class="modal">
+      <div class="modal-content">
+        <span class="close" onclick="closeModal()">&times;</span>
+        <h2>Create New Course</h2>
+        <form action="/admin/courses" method="POST" enctype="multipart/form-data">
+      <div class="container">
+        <input
+          type="text"
+          name="title"
+          placeholder="Course Title"
+          required
+        /><br />
+      </div>
+      <textarea
+        name="description"
+        id="content"
+        placeholder="Description"
+      ></textarea
+      ><br />
+
+      <div class="container">
+        <select class="gender-details" name="level" required>
+          <option value="">Select Level</option>
+          <option value="Beginner">Beginner</option>
+          <option value="Intermediate">Intermediate</option>
+          <option value="Advanced">Advanced</option></select
+        ><br />
+      </div>
+
+      <div class="container">
+        <select class="gender-details" name="career_pathway_id">
+          <option value="">-- Career Pathway --</option>
+          <% careerPathways.forEach(path => { %>
+          <option value="<%= path.id %>"><%= path.title %></option>
+          <% }) %></select
+        ><br />
+      </div>
+
+      <input type="number" name="sort_order" placeholder="Sort Order" /><br />
+      <input type="file" name="thumbnail" /><br />
+      <button type="submit">Create Course</button>
+    </form>
+      </div>
     </div>
-  <textarea name="description" id="content" placeholder="Description"></textarea><br>
 
-  <div class="container">
-    <select class="gender-details" name="level" required>
-        <option value="">Select Level</option>
-        <option value="Beginner">Beginner</option>
-        <option value="Intermediate">Intermediate</option>
-        <option value="Advanced">Advanced</option>
-    </select><br>
-</div>
+    <div class="container2">
+        <button onclick="openModal()" class="btn-create">
+        + Create New Course
+        </button>
+    </div>
 
-  <div class="container">
-  <select class="gender-details name="career_pathway_id">
-    <option value="">-- Career Pathway --</option>
-    <% careerPathways.forEach(path => { %>
-      <option value="<%= path.id %>"><%= path.title %></option>
-    <% }) %>
-  </select><br>
-</div>
 
-  <input type="number" name="sort_order" placeholder="Sort Order"><br>
-  <input type="file" name="thumbnail"><br>
-  <button type="submit">Create Course</button>
-</form>
+    <!-- <h3>All Courses</h3> -->
 
-<h3>All Courses</h3>
-      
-
-    <form method="GET" action="/admin/pathways" style="margin-top: 20px">
+    <form method="GET" action="/admin/courses" style="margin-top: 20px">
       <input
         type="text"
         name="search"
@@ -89,46 +152,56 @@
       />
       <button type="submit">Search</button>
     </form>
-    <h2>Existing Pathways</h2>
-    <section class="article-grid">
-        <% courses.forEach(course => { %>
-          <div class="article-card">
-            <% if (course.thumbnail_url) { %>
-              <img
-                src="<%= course.thumbnail_url %>"
-                alt="Course Thumbnail"
-                style="object-fit: contain; height: 300px; width: 100%;"
-              />
-            <% } %>
-            <h3><%= course.title %></h3>
-            
-      
-            <div class="article-body" id="desc-<%= pathway.id %>">
-                <strong><%= course.title %></strong> | <%= course.level %> | Pathway: <%= course.pathway_name || 'None' %>
+    <h2>Existing Courses</h2>
+
+    
+<div class="pathway-nav">
+  <button class="path-nav-btn" onclick="filterByPathway('All')">All Pathways</button>
+  <% careerPathways.forEach(path => { %>
+    <button onclick="filterByPathway('<%= path.title %>')"><%= path.title %></button>
+  <% }) %>
+</div>
+
+
+
+  <% for (let pathway in groupedCourses) { %>
+  <div class="pathway-group" data-pathway="<%= pathway %>">
+    <h2 style="margin-top: 2rem; color: goldenrod;"><%= pathway %></h2>
+
+    <% for (let level in groupedCourses[pathway]) { %>
+      <div class="course-level-section" data-level="<%= level %>">
+        <h3 style="margin-top: 1rem; color: #444;"><%= level %> Level</h3>
+        <section class="course-scroll-container">
+          <% groupedCourses[pathway][level].forEach(course => { %>
+            <div class="article-card scroll-card">
+              <% if (course.thumbnail_url) { %>
+                <img src="<%= course.thumbnail_url %>" alt="Course Thumbnail"  />
+              <% } %>
+
+              <h4><%= course.title %></h4>
+              <div class="article-body" id="desc-<%= course.id %>" data-full="<%- course.description.replace(/"/g, '&quot;') %>">
+                <%- course.description.substring(0, 30) %>...
+              </div>
+
+              <a href="javascript:void(0);" class="toggle-article" onclick="togglePathway(<%= course.id %>)">Show More</a>
+
+              <div class="article-buttons">
+                <a href="/admin/courses/edit/<%= course.id %>">Edit</a>
+                <form action="/admin/courses/delete/<%= course.id %>" method="POST" onsubmit="return confirm('Delete this course?');">
+                  <button type="submit">Delete</button>
+                </form>
+              </div>
             </div>
-      
-            <a
-              href="javascript:void(0);"
-              class="toggle-article"
-              onclick="togglePathway(<%= pathway.id %>)"
-            >Show More</a>
-      
-            <div class="article-buttons">
-              <a href="/admin/pathways/edit/<%= pathway.id %>">Edit</a>
-              <form
-                action="/admin/pathways/delete/<%= pathway.id %>"
-                method="POST"
-                onsubmit="return confirm('Delete this pathway?');"
-              >
-                <button type="submit">Delete</button>
-              </form>
-            </div>
-          </div>
-        <% }) %>
-      </section>
-      
+          <% }) %>
+        </section>
+      </div>
+    <% } %>
+  </div>
+<% } %>
+
 
     <a href="/admin/dashboard">Back to Dashboard</a>
+
     <script>
       CKEDITOR.replace("content");
     </script>
@@ -174,21 +247,54 @@
         });
     </script>
 
-    <!-- script for checking content like link in article -->
-    
-</body>
+    <!-- script to filter level for each career pathway -->
+     <!-- <script>
+  function filterByLevel() {
+    const selected = document.getElementById("levelFilter").value;
+    const sections = document.querySelectorAll(".course-level-section");
+
+    sections.forEach(section => {
+      const level = section.getAttribute("data-level");
+      if (selected === "All" || level === selected) {
+        section.style.display = "block";
+      } else {
+        section.style.display = "none";
+      }
+    });
+  }
+</script> -->
+    <script>
+  function filterByPathway(pathway) {
+    const groups = document.querySelectorAll(".pathway-group");
+    groups.forEach(group => {
+      const groupName = group.getAttribute("data-pathway");
+      if (pathway === "All" || groupName === pathway) {
+        group.style.display = "block";
+      } else {
+        group.style.display = "none";
+      }
+    });
+  }
+</script>
+
+<!-- script for opening and closing the modal -->
+    <script>
+        function openModal() {
+          document.getElementById("createModal").style.display = "block";
+        }
+      
+        function closeModal() {
+          document.getElementById("createModal").style.display = "none";
+        }
+      
+        // Close modal when clicking outside the modal content
+        window.onclick = function (event) {
+          const modal = document.getElementById("createModal");
+          if (event.target == modal) {
+            modal.style.display = "none";
+          }
+        };
+      </script>
+
+  </body>
 </html>
-
-
-
-
-<ul>
-  <% courses.forEach(course => { %>
-    <li>
-      <strong><%= course.title %></strong> | <%= course.level %> | Pathway: <%= course.pathway_name || 'None' %>
-      <form action="/admin/courses/<%= course.id %>/delete" method="POST" style="display:inline;">
-        <button type="submit">Delete</button>
-      </form>
-    </li>
-  <% }) %>
-</ul>
