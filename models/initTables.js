@@ -136,6 +136,16 @@ async function createTables() {
         created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
       );`
     );
+
+    await pool.query(
+      `CREATE TABLE IF NOT EXISTS benefits (
+        id SERIAL PRIMARY KEY,
+        title TEXT,
+        description TEXT,
+        icon TEXT,
+        created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+      );`
+    );
     console.log("✅ All tables are updated and ready.");
   } catch (err) {
     console.error("❌ Error creating tables:", err.message);

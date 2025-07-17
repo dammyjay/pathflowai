@@ -201,6 +201,20 @@ router.get("/", async (req, res) => {
       // }
   
       // wallet balance code
+     
+      const benefitsRes = await pool.query(
+        "SELECT * FROM benefits ORDER BY created_at ASC"
+      );
+
+      const coursesResult = await pool.query(
+        `
+          SELECT courses.*, cp.title AS pathway_name
+          FROM courses
+          LEFT JOIN career_pathways cp ON cp.id = courses.career_pathway_id
+          ORDER BY cp.title ASC, courses.level ASC, sort_order ASC LIMIT 10
+        `
+      );
+
       let walletBalance = 0;
       if (req.session.user) {
         const walletResult = await pool.query(
@@ -223,6 +237,8 @@ router.get("/", async (req, res) => {
         career_pathways,
         title: "Company Home",
         profilePic,
+        benefits: benefitsRes.rows,
+        courses: coursesResult.rows,
         isLoggedIn: !!req.session.user,
         subscribed: req.query.subscribed,
       });

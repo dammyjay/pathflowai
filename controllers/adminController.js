@@ -725,7 +725,7 @@ exports.showCourses = async (req, res) => {
     SELECT courses.*, cp.title AS pathway_name
     FROM courses
     LEFT JOIN career_pathways cp ON cp.id = courses.career_pathway_id
-    ORDER BY cp.title ASC, courses.level ASC, sort_order ASC
+    ORDER BY cp.title ASC, courses.level ASC, sort_order ASC 
   `);
 
   const pathwaysResult = await pool.query("SELECT * FROM career_pathways");
@@ -776,9 +776,156 @@ exports.createCourse = async (req, res) => {
   res.redirect("/admin/courses");
 };
 
+exports.editCourse = async (req, res) => {
+  const { id } = req.params;
+  const { title, description, level, career_pathway_id, sort_order } = req.body;
+
+  try {
+    let thumbnail_url = null;
+
+    if (req.file) {
+      const result = await cloudinary.uploader.upload(req.file.path, {
+        folder: "courses",
+      });
+      thumbnail_url = result.secure_url;
+      if (fs.existsSync(req.file.path)) fs.unlinkSync(req.file.path);
+    }
+
+    // Update course
+    const existing = await pool.query("SELECT * FROM courses WHERE id = $1", [
+      id,
+    ]);
+
+    const updatedThumbnail = thumbnail_url || existing.rows[0]?.thumbnail_url;
+
+    await pool.query(
+      `UPDATE courses
+       SET title = $1,
+           description = $2,
+           level = $3,
+           career_pathway_id = $4,
+           thumbnail_url = $5,
+           sort_order = $6
+       WHERE id = $7`,
+      [
+        title,
+        description,
+        level,
+        career_pathway_id || null,
+        updatedThumbnail,
+        sort_order || null,
+        id,
+      ]
+    );
+
+    res.redirect("/admin/courses");
+  } catch (err) {
+    console.error("❌ Error editing course:", err.message);
+    res.status(500).send("Server Error");
+  }
+};
+
 exports.deleteCourse = async (req, res) => {
   const { id } = req.params;
-  await pool.query("DELETE FROM courses WHERE id = $1", [id]);
-  res.redirect("/admin/courses");
+
+  try {
+    await pool.query("DELETE FROM courses WHERE id = $1", [id]);
+    res.redirect("/admin/courses");
+  } catch (err) {
+    console.error("❌ Error deleting course:", err.message);
+    res.status(500).send("Server Error");
+  }
 };
+
+
+exports.showBenefits = async (req, res) => {
+  const infoResult = await pool.query(
+    "SELECT * FROM company_info ORDER BY id DESC LIMIT 1"
+  );
+  const info = infoResult.rows[0] || {};
+  const benefitsResult = await pool.query(
+    "SELECT * FROM benefits ORDER BY created_at DESC"
+  );
+  res.render("admin/benefits", {
+    info,
+    benefits: benefitsResult.rows,
+    search: req.query.search || "",
+  });
+}
+
+exports.createBenefit = async (req, res) => {
+  console.log("Form Data:", req.body);
+  console.log("Uploaded File:", req.file);
+  const { title, description } = req.body;
+  let icon = null;
+
+  if (req.file) {
+    const result = await cloudinary.uploader.upload(req.file.path, {
+      folder: "benefits",
+    });
+    icon = result.secure_url;
+    if (fs.existsSync(req.file.path)) fs.unlinkSync(req.file.path);
+  }
+
+  await pool.query(
+    "INSERT INTO benefits (title, description, icon) VALUES ($1, $2, $3)",
+    [title, description, icon]
+  );
+
+  res.redirect("/admin/benefits");
+}
+
+exports.editBenefitForm = async (req, res) => {
+  const id = req.params.id;
+  const benefitResult = await pool.query(
+    "SELECT * FROM benefits WHERE id = $1",
+    [id]
+  );
+  const infoResult = await pool.query(
+    "SELECT * FROM company_info ORDER BY id DESC LIMIT 1"
+  );
+
+  res.render("admin/editBenefit", {
+    info: infoResult.rows[0] || {},
+    benefit: benefitResult.rows[0],
+  });
+};
+
+
+exports.updateBenefit = async (req, res) => {
+  const id = req.params.id;
+  const { title, description } = req.body;
+  let icon;
+
+  if (req.file) {
+    const result = await cloudinary.uploader.upload(req.file.path, {
+      folder: "benefits",
+    });
+    icon = result.secure_url;
+    if (fs.existsSync(req.file.path)) fs.unlinkSync(req.file.path);
+  }
+
+  const benefit = await pool.query("SELECT * FROM benefits WHERE id = $1", [
+    id,
+  ]);
+  const currentIcon = benefit.rows[0]?.icon;
+
+  const query = icon
+    ? "UPDATE benefits SET title = $1, description = $2, icon = $3 WHERE id = $4"
+    : "UPDATE benefits SET title = $1, description = $2 WHERE id = $3";
+
+  const params = icon
+    ? [title, description, icon, id]
+    : [title, description, id];
+
+  await pool.query(query, params);
+  res.redirect("/admin/benefits");
+};
+
+exports.deleteBenefit = async (req, res) => {
+  const id = req.params.id;
+  await pool.query("DELETE FROM benefits WHERE id = $1", [id]);
+  res.redirect("/admin/benefits");
+};
+
 

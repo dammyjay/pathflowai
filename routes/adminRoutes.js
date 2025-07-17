@@ -95,7 +95,23 @@ router.post("/pathways/:id/delete", adminController.deletePathway);
 // Courses
 router.get("/courses", adminController.showCourses);
 router.post("/courses", upload.single("thumbnail"), adminController.createCourse);
-router.post("/courses/:id/delete", adminController.deleteCourse);
+router.post(
+  "/courses/edit/:id",
+  upload.single("thumbnail"),
+  adminController.editCourse
+);
+router.post("/courses/delete/:id", adminController.deleteCourse);
+
+//benefits
+router.get("/benefits", adminController.showBenefits);
+router.post("/benefits", upload.single("icon"), adminController.createBenefit);
+router.get("/benefits/edit/:id", adminController.editBenefitForm);
+router.post(
+  "/benefits/edit/:id",
+  upload.single("icon"),
+  adminController.updateBenefit
+);
+router.post("/benefits/delete/:id", adminController.deleteBenefit);
 
 
 

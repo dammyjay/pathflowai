@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <html>
   <head>
-    <title>Manage Articles</title>
+    <title>Manage Courses</title>
     <link rel="stylesheet" href="/css/style.css" />
     <link rel="stylesheet" href="/css/styles2.css" />
     <link rel="stylesheet" href="/css/styles3.css" />
@@ -171,33 +171,74 @@
     <% for (let level in groupedCourses[pathway]) { %>
       <div class="course-level-section" data-level="<%= level %>">
         <h3 style="margin-top: 1rem; color: #444;"><%= level %> Level</h3>
-        <section class="course-scroll-container">
-          <% groupedCourses[pathway][level].forEach(course => { %>
-            <div class="article-card scroll-card">
-              <% if (course.thumbnail_url) { %>
-                <img src="<%= course.thumbnail_url %>" alt="Course Thumbnail"  />
-              <% } %>
+        <div class="section">
+          <section class="course-scroll-container">
+            <% groupedCourses[pathway][level].forEach(course => { %>
+              <div class="article-card scroll-card">
+                <% if (course.thumbnail_url) { %>
+                  <img src="<%= course.thumbnail_url %>" alt="Course Thumbnail"  />
+                <% } %>
 
-              <h4><%= course.title %></h4>
-              <div class="article-body" id="desc-<%= course.id %>" data-full="<%- course.description.replace(/"/g, '&quot;') %>">
-                <%- course.description.substring(0, 30) %>...
+                <h4><%= course.title %></h4>
+                <div class="article-body" id="desc-<%= course.id %>" data-full="<%- course.description.replace(/"/g, '&quot;') %>">
+                  <%- course.description.substring(0, 30) %>...
+                </div>
+
+                <a href="javascript:void(0);" class="toggle-article" onclick="togglePathway(<%= course.id %>)">Show More</a>
+
+                <div class="article-buttons">
+                  <button class="btn-edit" onclick="openEditModal(<%= course.id %>)">Edit</button>
+                  <form action="/admin/courses/delete/<%= course.id %>" method="POST" onsubmit="return confirm('Delete this course?');">
+                    <button class="btn-delete" type="submit">Delete</button>
+                  </form>
+                </div>
               </div>
 
-              <a href="javascript:void(0);" class="toggle-article" onclick="togglePathway(<%= course.id %>)">Show More</a>
+              <!-- Edit Modal for this course -->
+              <div id="editModal-<%= course.id %>" class="modal">
+                <div class="modal-content">
+                  <span class="close" onclick="closeEditModal(<%= course.id %>)">&times;</span>
+                  <h2>Edit Course</h2>
+                  <form action="/admin/courses/edit/<%= course.id %>" method="POST" enctype="multipart/form-data">
+                    <input type="text" name="title" value="<%= course.title %>" required /><br />
+                    <!-- <textarea id="content" name="description"><%- course.description %></textarea><br /> -->
+                    <textarea id="editContent-<%= course.id %>" name="description"><%- course.description %></textarea>
 
-              <div class="article-buttons">
-                <a href="/admin/courses/edit/<%= course.id %>">Edit</a>
-                <form action="/admin/courses/delete/<%= course.id %>" method="POST" onsubmit="return confirm('Delete this course?');">
-                  <button type="submit">Delete</button>
-                </form>
+                    <select name="level" required>
+                      <option value="">Select Level</option>
+                      <option value="Beginner" <%= course.level === 'Beginner' ? 'selected' : '' %>>Beginner</option>
+                      <option value="Intermediate" <%= course.level === 'Intermediate' ? 'selected' : '' %>>Intermediate</option>
+                      <option value="Advanced" <%= course.level === 'Advanced' ? 'selected' : '' %>>Advanced</option>
+                    </select><br /><br>
+
+                    <select name="career_pathway_id" required>
+                      <option value="">-- Career Pathway --</option>
+                      <% careerPathways.forEach(path => { %>
+                        <option value="<%= path.id %>" <%= path.id === course.career_pathway_id ? 'selected' : '' %>><%= path.title %></option>
+                      <% }) %>
+                    </select><br /><br>
+
+                    <label for="">Sort Number</label>
+                    <input type="number" name="sort_order" value="<%= course.sort_order %>" /><br />
+
+                    <% if (course.thumbnail_url) { %>
+                      <img src="<%= course.thumbnail_url %>" width="100" /><br />
+                    <% } %>
+                    <input type="file" name="thumbnail" /><br />
+                    <button type="submit">Update Course</button>
+                  </form>
+                </div>
               </div>
-            </div>
-          <% }) %>
-        </section>
+
+            <% }) %>
+          </section>
+        </div>
       </div>
     <% } %>
   </div>
 <% } %>
+
+
 
 
     <a href="/admin/dashboard">Back to Dashboard</a>
@@ -208,10 +249,19 @@
 
     <!-- script to toggle navigation menu -->
     <script>
-      function toggleNav() {
-        var nav = document.getElementById("main-nav");
-        nav.classList.toggle("open");
-      }
+        // Close nav when clicking outside of it
+        document.addEventListener("click", function (event) {
+          const nav = document.getElementById("main-nav");
+          const toggleBtn = document.querySelector(".nav-toggle");
+
+          if (
+            nav.classList.toggle("open") &&
+            !nav.contains(event.target) &&
+            !toggleBtn.contains(event.target)
+          ) {
+            nav.classList.remove("open");
+            }
+      });
     </script>
 
     <!-- Script not to be able to copy content from article body -->
@@ -248,21 +298,22 @@
     </script>
 
     <!-- script to filter level for each career pathway -->
-     <!-- <script>
-  function filterByLevel() {
-    const selected = document.getElementById("levelFilter").value;
-    const sections = document.querySelectorAll(".course-level-section");
+    <!--<script>
+      function filterByLevel() {
+        const selected = document.getElementById("levelFilter").value;
+        const sections = document.querySelectorAll(".course-level-section");
 
-    sections.forEach(section => {
-      const level = section.getAttribute("data-level");
-      if (selected === "All" || level === selected) {
-        section.style.display = "block";
-      } else {
-        section.style.display = "none";
+        sections.forEach(section => {
+          const level = section.getAttribute("data-level");
+          if (selected === "All" || level === selected) {
+            section.style.display = "block";
+          } else {
+            section.style.display = "none";
+          }
+        });
       }
-    });
-  }
-</script> -->
+    </script> -->
+
     <script>
   function filterByPathway(pathway) {
     const groups = document.querySelectorAll(".pathway-group");
@@ -275,7 +326,7 @@
       }
     });
   }
-</script>
+    </script>
 
 <!-- script for opening and closing the modal -->
     <script>
@@ -286,15 +337,41 @@
         function closeModal() {
           document.getElementById("createModal").style.display = "none";
         }
+
+        function openEditModal(id) {
+          document.getElementById("editModal-" + id).style.display = "block";
+        }
+
+        function closeEditModal(id) {
+          document.getElementById("editModal-" + id).style.display = "none";
+        }
       
         // Close modal when clicking outside the modal content
+        // window.onclick = function (event) {
+        //   const modal = document.getElementById("createModal");
+        //   if (event.target == modal) {
+        //     modal.style.display = "none";
+        //   }
+        // };
+        // Close any modal when clicking outside it
         window.onclick = function (event) {
-          const modal = document.getElementById("createModal");
-          if (event.target == modal) {
-            modal.style.display = "none";
-          }
+            if (event.target.classList.contains("modal")) {
+            event.target.style.display = "none";
+            }
         };
       </script>
+
+      <!-- script for ckeditor -->
+      <script>
+        <% for (let pathway in groupedCourses) { %>
+          <% for (let level in groupedCourses[pathway]) { %>
+            <% groupedCourses[pathway][level].forEach(course => { %>
+              CKEDITOR.replace("editContent-<%= course.id %>");
+            <% }) %>
+          <% } %>
+        <% } %>
+      </script>
+
 
   </body>
 </html>

@@ -941,7 +941,7 @@ nav a:hover {
 /* Card Grid */
 .card-grid {
     display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(560px, 1fr));
+    grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
     gap: 2rem;
     margin-top: 1rem;
     margin-bottom: 5rem;
@@ -1380,6 +1380,7 @@ nav a:hover {
              align-items: center;
              justify-content: center;
              z-index: 1000;
+             
          }
     
          /* .modal-content {
@@ -1635,6 +1636,7 @@ nav a:hover {
                 padding-top: 60px;
                 transition: left 0.3s ease;
                 box-shadow: 2px 0 8px rgba(0, 0,0, 0.2);
+                /* display: flex; */
         }
     
         #main-nav.open {
@@ -1768,10 +1770,14 @@ nav a:hover {
                     padding-top: 60px;
                     transition: left 0.3s ease;
                     z-index: 2000;
-                    box-shadow: 2px 0 8px rgba(0, 0, 0, 0.2);       }
+                    box-shadow: 2px 0 8px rgba(0, 0, 0, 0.2);      
+                    /* display: flex; */
+                }
     
                                         #main-nav.open {
-                                            left: 0;                   }
+                                            left: 0;        
+                                            display: flex;          
+                                         }
     
         #main-nav a,
         #main-nav img {
@@ -1859,6 +1865,7 @@ nav a:hover {
         flex-direction: row;
         background: none;
         width: auto;
+        /* display: flex; */
     }
 
     #main-nav a,
