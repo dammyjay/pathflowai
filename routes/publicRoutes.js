@@ -362,4 +362,50 @@ router.post("/verify-payment", async (req, res) => {
   }
 });
 
+router.get("/courses", async (req, res) => {
+  const infoResult = await pool.query(
+    "SELECT * FROM company_info ORDER BY id DESC LIMIT 1"
+  );
+  const info = infoResult.rows[0] || {};
+
+  const careerPathwaysResult = await pool.query(
+    "SELECT * FROM career_pathways ORDER BY title"
+  );
+  const coursesResult = await pool.query(`
+    SELECT courses.*, cp.title AS pathway_name
+    FROM courses
+    LEFT JOIN career_pathways cp ON cp.id = courses.career_pathway_id
+    ORDER BY cp.title ASC, courses.level ASC, sort_order ASC
+  `);
+
+  // Grouping courses by pathway and level
+  const groupedCourses = {};
+
+  coursesResult.rows.forEach((course) => {
+    const pathway = course.pathway_name || "Unassigned";
+    const level = course.level || "Unspecified";
+
+    if (!groupedCourses[pathway]) groupedCourses[pathway] = {};
+    if (!groupedCourses[pathway][level]) groupedCourses[pathway][level] = [];
+
+    groupedCourses[pathway][level].push(course);
+  });
+
+   const isLoggedIn = !!req.session.user; // or whatever property you use for login
+   const profilePic = req.session.user
+     ? req.session.user.profile_picture
+     : null;
+   console.log("User session:", req.session.user);
+   console.log("Is user logged in:", isLoggedIn);
+
+  res.render("userCourses", {
+    info,
+    isLoggedIn: !!req.session.user,
+    profilePic,
+    groupedCourses,
+    careerPathways: careerPathwaysResult.rows,
+    subscribed: req.query.subscribed,
+  });
+});
+
   module.exports = router;
