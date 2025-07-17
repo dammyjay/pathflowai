@@ -444,13 +444,13 @@ function showLess(idx) {
 </script>
 
 <!-- script for auto-scroll -->
-     <script>
+     <!-- <script>
         let scrollInterval;
         let scrollContainer = document.getElementById("courseScroll");
 
         function startAutoScroll() {
           scrollInterval = setInterval(() => {
-            scrollContainer.scrollLeft += 2;
+            scrollContainer.scrollLeft += 1;
             if (scrollContainer.scrollLeft + scrollContainer.clientWidth >= scrollContainer.scrollWidth) {
               scrollContainer.scrollLeft = 0;
             }
@@ -465,7 +465,37 @@ function showLess(idx) {
         scrollContainer.addEventListener("mouseleave", startAutoScroll);
 
         startAutoScroll(); // Start on load
-      </script>
+      </script> -->
+
+
+      <script>
+  // const scrollContainer = document.querySelector(".course-scroll-container");
+  let scrollContainer = document.getElementById("courseScroll");
+  let scrollAmount = 1;
+  let scrollInterval;
+
+  function startAutoScroll() {
+    scrollInterval = setInterval(() => {
+      // Use Math.ceil for precision
+      const maxScrollLeft = scrollContainer.scrollWidth - scrollContainer.clientWidth;
+      if (Math.ceil(scrollContainer.scrollLeft) >= maxScrollLeft) {
+        // Pause before looping
+        clearInterval(scrollInterval);
+        setTimeout(() => {
+          scrollContainer.scrollLeft = 0;
+          startAutoScroll();
+        }, 1000); // 1-second pause before restarting
+      } else {
+        scrollContainer.scrollLeft += scrollAmount;
+      }
+    }, 20); // speed of scroll
+  }
+
+  scrollContainer.addEventListener("mouseenter", () => clearInterval(scrollInterval));
+  scrollContainer.addEventListener("mouseleave", startAutoScroll);
+
+  window.addEventListener("load", startAutoScroll);
+</script>
 
 
 <!-- Notification Banner -->
