@@ -422,5 +422,70 @@ router.get("/courses", async (req, res) => {
   });
 });
 
+router.get("/pay-event/:regId", async (req, res) => {
+  const { regId } = req.params;
+
+  try {
+    const regResult = await pool.query(
+      `SELECT r.*, e.title, e.amount, e.image_url
+       FROM event_registrations r
+       JOIN events e ON r.event_id = e.id
+       WHERE r.id = $1`,
+      [regId]
+    );
+
+    if (regResult.rows.length === 0) {
+      return res.status(404).send("Registration not found");
+    }
+
+    const reg = regResult.rows[0];
+
+    res.render("eventPayment", {
+      reg,
+      title: "Event Payment",
+    });
+  } catch (err) {
+    console.error("Error loading payment page:", err);
+    res.status(500).send("Server error");
+  }
+});
+
+router.post("/verify-event-payment", async (req, res) => {
+  const { reference, regId } = req.body;
+
+  try {
+    const response = await axios.get(
+      `https://api.paystack.co/transaction/verify/${reference}`,
+      {
+        headers: {
+          Authorization: `Bearer ${process.env.PAYSTACK_SECRET_KEY}`,
+        },
+      }
+    );
+
+    const payment = response.data.data;
+
+    if (payment.status === "success") {
+      const amount = payment.amount / 100;
+
+      // ✅ Update registration as paid
+      await pool.query(
+        `UPDATE event_registrations
+         SET payment_status = 'completed', amount_paid = $1
+         WHERE id = $2`,
+        [amount, regId]
+      );
+
+      return res.json({ success: true });
+    } else {
+      return res.json({ success: false, message: "Payment failed" });
+    }
+  } catch (err) {
+    console.error("❌ Error verifying event payment:", err.message);
+    return res.status(500).json({ success: false, message: "Server error" });
+  }
+});
+
+
 
   module.exports = router;

@@ -89,6 +89,11 @@
     <a href="/register/<%= event.id %>" class="btn-register">Register</a>
   </section>
 
+  <% if (paid === 'success') { %>
+  <div class="alert alert-success">✅ Thank you! Your payment is confirmed.</div>
+<% } %>
+
+
 
     <% if (subscribed === 'success') { %>
 

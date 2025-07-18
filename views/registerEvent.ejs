@@ -67,29 +67,60 @@
       </nav>
     </header>
 
-    <h2>Register for: <%= event.title %></h2>
-    <form method="POST" action="/events/register/<%= event.id %>">
-    <input type="text" name="registrant_name" placeholder="Your Name" required />
-    <input type="email" name="registrant_email" placeholder="Your Email" required />
-    <input type="text" name="registrant_phone" placeholder="Phone Number" />
+    <!-- <h2>Register for: <%= event.title %></h2> -->
+    <!-- <form action="/register/<%= event.id %>" method="POST">
+      <label>Are you registering as a parent?</label>
+      <input type="checkbox" name="is_parent" onchange="toggleChildInput(this)" />
+      <br />
 
-    <label>
-        <input type="checkbox" name="is_parent" value="true" onchange="toggleChildField(this)" />
-        I’m a parent registering for my child
-    </label>
+      <div>
+        <label>Your Full Name:</label>
+        <input type="text" name="registrant_name" required />
+      </div>
 
-    <div id="childSection" style="display: none;">
-        <input type="text" name="child_name" placeholder="Child's Name" />
-    </div>
+      <div id="childField" style="display: none;">
+        <label>Child's Full Name:</label>
+        <input type="text" name="child_name" />
+      </div>
 
-    <% if (event.is_paid) { %>
-        <p>Amount: ₦<%= event.amount %></p>
-    <% } else { %>
-        <p>This event is free.</p>
-    <% } %>
+      <label>Email:</label>
+      <input type="email" name="registrant_email" required />
 
-    <button type="submit">Submit Registration</button>
-    </form>
+      <label>Phone:</label>
+      <input type="text" name="registrant_phone" />
+
+      <% if (event.is_paid) { %>
+        <p><strong>Fee:</strong> ₦<%= event.amount %></p>
+        <button type="submit">Proceed to Pay</button>
+      <% } else { %>
+        <button type="submit">Register</button>
+      <% } %>
+    </form> -->
+
+     <h2>Register for <%= event.title %></h2>
+      <p><strong>Date:</strong> <%= event.event_date.toDateString() %></p>
+      <p><strong>Location:</strong> <%= event.location %></p>
+
+      <form action="/register/<%= event.id %>" method="POST">
+        <input type="text" name="registrant_name" placeholder="Your Full Name" required />
+        <input type="email" name="registrant_email" placeholder="Your Email" required />
+        <input type="tel" name="registrant_phone" placeholder="Phone (optional)" />
+        
+        <label>
+          <input type="checkbox" name="is_parent" />
+          I am registering as a parent
+        </label>
+        <input type="text" name="child_name" placeholder="Child's Name (if parent)" />
+
+        <button type="submit">Register</button>
+      </form>
+
+
+<script>
+  function toggleChildInput(checkbox) {
+    document.getElementById('childField').style.display = checkbox.checked ? 'block' : 'none';
+  }
+</script>
 
     <script>
     function toggleChildField(checkbox) {

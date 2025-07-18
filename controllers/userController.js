@@ -152,16 +152,84 @@ exports.showEvent = async (req, res) => {
 
     if (!event) return res.status(404).send("Event not found");
 
+    // ✅ Extract paid status from query
+    const paid = req.query.paid;
+
     res.render("showEvent", {
       event,
       info,
       isLoggedIn,
       users: req.session.user,
       subscribed: req.query.subscribed,
+      paid
     });
   } catch (err) {
     console.error("Error loading event:", err);
     res.status(500).send("Server error");
   }
 };
+
+// exports.registerEvent = async (req, res) => {
+//   const { id: eventId } = req.params;
+//   const {
+//     registrant_name,
+//     registrant_email,
+//     registrant_phone,
+//     is_parent,
+//     child_name,
+//   } = req.body;
+
+//   try {
+//     const eventRes = await pool.query("SELECT * FROM events WHERE id = $1", [
+//       eventId,
+//     ]);
+//     const event = eventRes.rows[0];
+//     if (!event) return res.status(404).send("Event not found");
+
+//     if (event.is_paid) {
+//       // Save as pending
+//       const regRes = await pool.query(
+//         `INSERT INTO event_registrations
+//           (event_id, registrant_name, registrant_email, registrant_phone, is_parent, child_name, amount_paid, payment_status)
+//          VALUES ($1,$2,$3,$4,$5,$6,$7,$8) RETURNING id`,
+//         [
+//           eventId,
+//           registrant_name,
+//           registrant_email,
+//           registrant_phone,
+//           is_parent === "on",
+//           is_parent === "on" ? child_name : null,
+//           event.amount,
+//           "pending",
+//         ]
+//       );
+
+//       const regId = regRes.rows[0].id;
+
+//       // Redirect to payment gateway page
+//       return res.redirect(`/pay-event/${regId}`);
+//     } else {
+//       // Free event, mark as complete
+//       await pool.query(
+//         `INSERT INTO event_registrations
+//           (event_id, registrant_name, registrant_email, registrant_phone, is_parent, child_name, payment_status)
+//          VALUES ($1,$2,$3,$4,$5,$6,$7)`,
+//         [
+//           eventId,
+//           registrant_name,
+//           registrant_email,
+//           registrant_phone,
+//           is_parent === "on",
+//           is_parent === "on" ? child_name : null,
+//           "completed",
+//         ]
+//       );
+
+//       return res.redirect(`/events/${eventId}?registered=success`);
+//     }
+//   } catch (err) {
+//     console.error("Registration failed:", err);
+//     res.status(500).send("Server error");
+//   }
+// };
 
