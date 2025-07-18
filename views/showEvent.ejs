@@ -67,7 +67,9 @@
       </nav>
     </header>
 
-    
+      <% if (paid === 'success') { %>
+        <div class="alert alert-success">✅ Thank you! Your payment is confirmed.</div>
+      <% } %>
   <section class="event-details">
     <h1><%= event.title %></h1>
     <p><strong>Date:</strong> <%= event.event_date.toDateString() %></p>
@@ -89,9 +91,7 @@
     <a href="/register/<%= event.id %>" class="btn-register">Register</a>
   </section>
 
-  <% if (paid === 'success') { %>
-  <div class="alert alert-success">✅ Thank you! Your payment is confirmed.</div>
-<% } %>
+
 
 
 

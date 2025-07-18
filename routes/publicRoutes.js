@@ -4,6 +4,7 @@ const pool = require("../models/db");
 // const upload = require("../middleware/upload");
 const axios = require("axios");
 const userController = require("../controllers/userController");
+const sendEmail = require("../utils/sendEmail");
 // const articleController = require("../controllers/articleController");
 
 // Homepage Route
@@ -476,7 +477,46 @@ router.post("/verify-event-payment", async (req, res) => {
         [amount, regId]
       );
 
-      return res.json({ success: true });
+      // ✅ Fetch registration + event details
+      // const regResult = await pool.query(
+      //   `SELECT r.*, e.title, e.event_date, e.time, e.location
+      //    FROM event_registrations r
+      //    JOIN events e ON r.event_id = e.id
+      //    WHERE r.id = $1`,
+      //   [regId]
+      // );
+
+      // const reg = regResult.rows[0];
+      // if (!reg || !reg.registrant_email) {
+      //   console.error("❌ No registrant email found for ID:", regId);
+      //   return res.status(400).json({
+      //     success: false,
+      //     message: "Email not found for registrant",
+      //   });
+      // }
+
+      // console.log("📧 Sending to:", reg.registrant_email);
+      // // ✅ Send confirmation email
+      // await sendEmail({
+      //   to: reg.registrant_email,
+      //   subject: `✅ Event Registration Successful: ${reg.title}`,
+      //   html: `
+      //     <h2>🎉 Thank You for Registering!</h2>
+      //     <p>Hello ${reg.registrant_name},</p>
+      //     <p>Your payment of <strong>₦${amount}</strong> for the event "<strong>${
+      //     reg.title
+      //   }</strong>" has been confirmed.</p>
+      //     <p><strong>Date:</strong> ${new Date(
+      //       reg.event_date
+      //     ).toDateString()}<br />
+      //     <strong>Time:</strong> ${reg.time}<br />
+      //     <strong>Location:</strong> ${reg.location}</p>
+      //     <p>We're excited to have you join us!</p>
+      //     <p>— JKT EdTech Team</p>
+      //   `,
+      // });
+
+      return res.json({ success: true, message: "Payment Sucessful" });
     } else {
       return res.json({ success: false, message: "Payment failed" });
     }

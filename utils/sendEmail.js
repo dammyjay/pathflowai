@@ -23,7 +23,7 @@ const sendFaqAnswerEmail = async (to, question, answer) => {
 
 async function sendEmail(to, subject, message) {
   await transporter.sendMail({
-    // from: "Ministry Web App" <${user}>,
+    from: `"JKT Hub" <${process.env.EMAIL_USERNAME}>`,
     to,
     subject,
     html: message,
