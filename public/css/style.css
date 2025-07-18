@@ -660,6 +660,8 @@ form button {
 /* Buttons container */
 .article-buttons {
     margin-top: 15px;
+    /* display: flex;
+    flex-direction: row; */
 }
 
 /* Style for both buttons and links */

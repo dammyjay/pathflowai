@@ -112,6 +112,64 @@
   </div>
 </section>
 
+<!-- <section class="event-section">
+  <h2>📅 Upcoming Events</h2>
+  <div class="event-grid">
+    <% events.forEach(event => { %>
+      <div class="event-card">
+        <% if (event.image_url) { %>
+          <img src="<%= event.image_url %>" alt="Event image" />
+        <% } %>
+        <h3><%= event.title %></h3>
+        <p><%= event.event_date.toDateString() %> | <%= event.time %></p>
+        <p><%= event.location %></p>
+        <a href="/events/<%= event.id %>" class="btn-show">Show</a>
+      </div>
+    <% }) %>
+  </div>
+</section> -->
+
+<section class="event-section">
+  <h2>📅 Upcoming Events</h2>
+
+  <% events.forEach(event => { %>
+    <div class="event-container">
+      <!-- Event Image -->
+      <div class="event-details">
+        <% if (event.image_url) { %>
+          <img src="<%= event.image_url %>" alt="Event image" />
+        <% } %>
+      </div>
+
+      <!-- Event Details -->
+      <div class="event-details">
+        <h2><%= event.title %></h2>
+        <p><strong>Description:</strong> <%- event.description %></p>
+
+        <h4>Benefits</h4>
+        <ul>
+          <li>Lorem ipsum dolor sit amet, consectetur adipiscing elit.</li>
+          <li>Maecenas vel sem fermentum, pretium felis id, sagittis risus.</li>
+          <li>More benefits...</li>
+        </ul>
+
+        <p><strong>Date:</strong> <%= event.event_date.toDateString() %></p>
+        <p><strong>Time:</strong> <%= event.time %></p>
+        <p><strong>Location:</strong> <%= event.location %></p>
+
+        <% if (event.is_paid) { %>
+          <p><strong>Price:</strong> ₦<%= event.amount.toLocaleString() %></p>
+        <% } else { %>
+          <p><strong>This is a free event</strong></p>
+        <% } %>
+          <a href="/events/<%= event.id %>" class="btn-show">Show</a>
+        <!-- <a href="/register/<%= event.id %>" class="btn-register">Register now</a> -->
+      </div>
+    </div>
+  <% }) %>
+</section>
+
+
    
     <!-- Pathways -->
     <section id="articles" class="section">

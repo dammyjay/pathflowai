@@ -114,6 +114,25 @@ router.post(
 router.post("/benefits/delete/:id", adminController.deleteBenefit);
 
 
+// router.get("/admin/events", adminController.listEvents);
+router.post("/events", upload.single("image"), adminController.createEvent);
+router.get(
+  "/events/registrations/:id",
+  adminController.viewEventRegistrations
+);
+router.get("/events", adminController.showEvents); // list all events
+router.get(
+  "/events/registrations/:id/export",
+  adminController.exportEventRegistrations
+);
+
+// Edit event (update)
+router.put("/events/:id", upload.single("image"), adminController.updateEvent);
+
+// Delete event
+router.delete("/events/:id", adminController.deleteEvent);
+
+
 
 
 // // Temporary route to add `created_at` column

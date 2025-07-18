@@ -1,7 +1,9 @@
 const express = require("express");
 const router = express.Router();
 const pool = require("../models/db");
+// const upload = require("../middleware/upload");
 const axios = require("axios");
+const userController = require("../controllers/userController");
 // const articleController = require("../controllers/articleController");
 
 // Homepage Route
@@ -140,6 +142,7 @@ const axios = require("axios");
 //   }
 // });
 
+router.get("/events/:id", userController.showEvent);
 router.get("/", async (req, res) => {
     try {
       const [infoResult, career_pathwaysResult, usersResult] = await Promise.all([
@@ -214,6 +217,16 @@ router.get("/", async (req, res) => {
           ORDER BY cp.title ASC, courses.level ASC, sort_order ASC LIMIT 10
         `
       );
+      
+      // const eventsResult = await pool.query(
+      //   `SELECT * FROM events ORDER BY event_date DESC LIMIT 5`
+      // );
+
+      const eventsResult = await pool.query(
+        "SELECT * FROM events WHERE show_on_homepage = true ORDER BY event_date ASC LIMIT 5"
+      );
+
+      const events = eventsResult.rows;
 
       let walletBalance = 0;
       if (req.session.user) {
@@ -233,6 +246,7 @@ router.get("/", async (req, res) => {
       res.render("home", {
         info,
         users,
+        events,
         walletBalance,
         career_pathways,
         title: "Company Home",
@@ -407,5 +421,6 @@ router.get("/courses", async (req, res) => {
     subscribed: req.query.subscribed,
   });
 });
+
 
   module.exports = router;

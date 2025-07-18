@@ -5,6 +5,7 @@ const crypto = require("crypto");
 const sendEmail = require("../utils/sendEmail");
 const cloudinary = require("../utils/cloudinary");
 const fs = require("fs");
+const { Parser } = require("json2csv");
 
 // Show forgot password form
 exports.showForgotPasswordForm = (req, res) => {
@@ -927,5 +928,228 @@ exports.deleteBenefit = async (req, res) => {
   await pool.query("DELETE FROM benefits WHERE id = $1", [id]);
   res.redirect("/admin/benefits");
 };
+
+
+exports.createEvent = async (req, res) => {
+  const show_on_homepage = req.body.show_on_homepage === "on";
+  const { title, description, event_date, time, location, is_paid, amount } =
+    req.body;
+  let image_url = null;
+
+  if (req.file) {
+    const result = await cloudinary.uploader.upload(req.file.path, {
+      folder: "events",
+    });
+    image_url = result.secure_url;
+    if (fs.existsSync(req.file.path)) fs.unlinkSync(req.file.path);
+  }
+
+  await pool.query(
+    `INSERT INTO events (title, description, event_date, time, location, is_paid, amount, image_url)
+     VALUES ($1, $2, $3, $4, $5, $6, $7, $8)`,
+    [
+      title,
+      description,
+      event_date,
+      time,
+      location,
+      is_paid === "true",
+      amount || 0,
+      image_url,
+    ]
+  );
+
+  res.redirect("/admin/events");
+};
+
+// exports.viewEventRegistrations = async (req, res) => {
+//   const eventId = req.params.id;
+//   const eventResult = await pool.query("SELECT * FROM events WHERE id = $1", [
+//     eventId,
+//   ]);
+//   const registrations = await pool.query(
+//     "SELECT * FROM event_registrations WHERE event_id = $1",
+//     [eventId]
+//   );
+
+//   const infoResult = await pool.query(
+//     "SELECT * FROM company_info ORDER BY id DESC LIMIT 1"
+//   );
+//   const info = infoResult.rows[0] || {};
+
+//   res.render("admin/eventRegistrations", {
+//     info,
+//     event: eventResult.rows[0],
+//     registrations: registrations.rows,
+//   });
+// };
+
+exports.viewEventRegistrations = async (req, res) => {
+  const eventId = req.params.id;
+  const { search = "", page = 1 } = req.query;
+  const limit = 10;
+  const offset = (page - 1) * limit;
+
+  try {
+    const infoResult = await pool.query(
+      "SELECT * FROM company_info ORDER BY id DESC LIMIT 1"
+    );
+    const info = infoResult.rows[0] || {};
+
+    const eventResult = await pool.query("SELECT * FROM events WHERE id = $1", [
+      eventId,
+    ]);
+    const event = eventResult.rows[0];
+    if (!event) return res.status(404).send("Event not found");
+
+    const searchQuery = `%${search}%`;
+
+    // Get total count for pagination
+    const countResult = await pool.query(
+      `SELECT COUNT(*) FROM event_registrations 
+       WHERE event_id = $1 AND 
+       (registrant_name ILIKE $2 OR registrant_email ILIKE $2)`,
+      [eventId, searchQuery]
+    );
+    const total = parseInt(countResult.rows[0].count);
+    const totalPages = Math.ceil(total / limit);
+
+    const registrationsResult = await pool.query(
+      `SELECT * FROM event_registrations 
+       WHERE event_id = $1 AND 
+       (registrant_name ILIKE $2 OR registrant_email ILIKE $2)
+       ORDER BY created_at DESC
+       LIMIT $3 OFFSET $4`,
+      [eventId, searchQuery, limit, offset]
+    );
+
+    res.render("admin/eventRegistrations", {
+      info,
+      event,
+      registrations: registrationsResult.rows,
+      currentPage: parseInt(page),
+      totalPages,
+      search,
+    });
+  } catch (err) {
+    console.error("Error loading registrations:", err.message);
+    res.status(500).send("Server error");
+  }
+};
+
+
+exports.showEvents = async (req, res) => {
+  const infoResult = await pool.query(
+    "SELECT * FROM company_info ORDER BY id DESC LIMIT 1"
+  );
+  const eventsResult = await pool.query(
+    "SELECT * FROM events ORDER BY event_date DESC"
+  );
+
+  res.render("admin/events", {
+    info: infoResult.rows[0] || {},
+    events: eventsResult.rows,
+  });
+};
+
+exports.exportEventRegistrations = async (req, res) => {
+  const eventId = req.params.id;
+
+  try {
+    const registrationsResult = await pool.query(
+      `SELECT * FROM event_registrations WHERE event_id = $1`,
+      [eventId]
+    );
+
+    const fields = [
+      "registrant_name",
+      "registrant_email",
+      "registrant_phone",
+      "is_parent",
+      "child_name",
+      "amount_paid",
+      "payment_status",
+      "created_at",
+    ];
+    const parser = new Parser({ fields });
+    const csv = parser.parse(registrationsResult.rows);
+
+    res.header("Content-Type", "text/csv");
+    res.attachment("event_registrations.csv");
+    return res.send(csv);
+  } catch (err) {
+    console.error("CSV Export Error:", err.message);
+    res.status(500).send("Failed to export CSV.");
+  }
+};
+
+// UPDATE EVENT
+exports.updateEvent = async (req, res) => {
+  const { id } = req.params;
+  const { title, description, event_date, time, location, is_paid, amount } =
+    req.body;
+
+  const show_on_homepage = req.body.show_on_homepage === "on"; // ✅ Checkbox logic
+  let image_url;
+
+  try {
+    if (req.file) {
+      const result = await cloudinary.uploader.upload(req.file.path, {
+        folder: "events",
+      });
+      image_url = result.secure_url;
+      if (fs.existsSync(req.file.path)) fs.unlinkSync(req.file.path);
+    }
+
+    // Prepare base query and values
+    let query = `
+      UPDATE events
+      SET title=$1, description=$2, event_date=$3, time=$4, location=$5, is_paid=$6, amount=$7, show_on_homepage=$8
+    `;
+    const values = [
+      title,
+      description,
+      event_date,
+      time,
+      location,
+      is_paid === "true" || is_paid === "on",
+      amount || 0,
+      show_on_homepage,
+    ];
+
+    if (image_url) {
+      query += `, image_url=$9 WHERE id=$10`;
+      values.push(image_url, id);
+    } else {
+      query += ` WHERE id=$9`;
+      values.push(id);
+    }
+
+    await pool.query(query, values);
+    res.redirect("/admin/events");
+  } catch (err) {
+    console.error("Error updating event:", err.message);
+    res.status(500).send("Error updating event.");
+  }
+};
+
+
+
+// DELETE EVENT
+exports.deleteEvent = async (req, res) => {
+  const { id } = req.params;
+  try {
+    await pool.query("DELETE FROM events WHERE id = $1", [id]);
+    res.redirect("/admin/events");
+  } catch (err) {
+    console.error("❌ Error deleting event:", err.message);
+    res.status(500).send("Server error");
+  }
+};
+
+
+
+
+
 
 

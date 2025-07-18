@@ -135,3 +135,33 @@ exports.updateUserProfile = async (req, res) => {
     return res.redirect("/profile");
   }
 };
+
+exports.showEvent = async (req, res) => {
+  const { id } = req.params;
+  // Add this line to pass login status to EJS
+  const isLoggedIn = !!req.session.user; // or whatever property you use for login
+  const profilePic = req.session.user ? req.session.user.profile_picture : null;
+  try {
+    const result = await pool.query("SELECT * FROM events WHERE id = $1", [id]);
+    const event = result.rows[0];
+
+    const infoResult = await pool.query(
+      "SELECT * FROM company_info ORDER BY id DESC LIMIT 1"
+    );
+    const info = infoResult.rows[0] || {};
+
+    if (!event) return res.status(404).send("Event not found");
+
+    res.render("showEvent", {
+      event,
+      info,
+      isLoggedIn,
+      users: req.session.user,
+      subscribed: req.query.subscribed,
+    });
+  } catch (err) {
+    console.error("Error loading event:", err);
+    res.status(500).send("Server error");
+  }
+};
+

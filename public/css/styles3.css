@@ -137,4 +137,16 @@
             margin-top: 10px;
         
     }
+
+    event-details {
+        padding: 20px;
+    }
+
+    .event-details h1 {
+        font-size: 1.5em;
+    }
+
+    .event-details p {
+        font-size: 1em;
+    }
 }

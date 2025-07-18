@@ -146,6 +146,41 @@ async function createTables() {
         created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
       );`
     );
+
+    
+    await pool.query(`
+      CREATE TABLE IF NOT EXISTS events (
+        id SERIAL PRIMARY KEY,
+        title TEXT NOT NULL,
+        description TEXT NOT NULL,
+        event_date DATE NOT NULL,
+        time TEXT,
+        location TEXT,
+        is_paid BOOLEAN DEFAULT FALSE,
+        amount NUMERIC DEFAULT 0,
+        image_url TEXT,
+        created_at TIMESTAMP DEFAULT NOW(),
+        show_on_homepage BOOLEAN DEFAULT false
+      );
+    `);
+
+    await pool.query(
+      `CREATE TABLE IF NOT EXISTS event_registrations (
+        id SERIAL PRIMARY KEY,
+        event_id INTEGER REFERENCES events(id) ON DELETE CASCADE,
+        registrant_name TEXT NOT NULL,
+        registrant_email TEXT NOT NULL,
+        registrant_phone TEXT,
+        is_parent BOOLEAN DEFAULT FALSE,
+        child_name TEXT,
+        amount_paid NUMERIC DEFAULT 0,
+        payment_status TEXT DEFAULT 'pending',
+        created_at TIMESTAMP DEFAULT NOW()
+      );
+      `
+    );
+
+
     console.log("✅ All tables are updated and ready.");
   } catch (err) {
     console.error("❌ Error creating tables:", err.message);

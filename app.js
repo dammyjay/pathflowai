@@ -10,6 +10,8 @@ const runNewsletterScheduler = require("./cron/newsletterScheduler");
 const runDevotionalScheduler = require("./cron/cronJobs");
 require("dotenv").config(); // Load .env variables
 const pool = require('./models/db'); // adjust path based on your folder structure
+const methodOverride = require("method-override");
+
 
 
 const app = express();
@@ -46,6 +48,7 @@ app.use(
 
 app.locals.vapidPublicKey = process.env.VAPID_PUBLIC_KEY;
 
+app.use(methodOverride("_method"));
 
 app.use((req, res, next) => {
   console.log("🧾 SESSION:", req.session);
