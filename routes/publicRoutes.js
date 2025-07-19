@@ -151,7 +151,7 @@ router.get("/", async (req, res) => {
         pool.query("SELECT * FROM career_pathways ORDER BY created_at"),
         pool.query("SELECT * FROM users2"),
       ]);
-  l
+        
       // const faqsResult = await pool.query(
       //   "SELECT * FROM faqs WHERE is_published = true ORDER BY created_at DESC LIMIT 5"
       // );
