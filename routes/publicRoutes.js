@@ -151,7 +151,7 @@ router.get("/", async (req, res) => {
         pool.query("SELECT * FROM career_pathways ORDER BY created_at"),
         pool.query("SELECT * FROM users2"),
       ]);
-  
+  l
       // const faqsResult = await pool.query(
       //   "SELECT * FROM faqs WHERE is_published = true ORDER BY created_at DESC LIMIT 5"
       // );
@@ -383,6 +383,8 @@ router.get("/courses", async (req, res) => {
   );
   const info = infoResult.rows[0] || {};
 
+  const usersResult = await pool.query ("SELECT * FROM users2");
+    const users = usersResult.rows;
   const careerPathwaysResult = await pool.query(
     "SELECT * FROM career_pathways ORDER BY title"
   );
@@ -415,6 +417,7 @@ router.get("/courses", async (req, res) => {
 
   res.render("userCourses", {
     info,
+      users,
     isLoggedIn: !!req.session.user,
     profilePic,
     groupedCourses,
