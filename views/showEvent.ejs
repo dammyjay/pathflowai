@@ -70,25 +70,41 @@
       <% if (paid === 'success') { %>
         <div class="alert alert-success">✅ Thank you! Your payment is confirmed.</div>
       <% } %>
-  <section class="event-details">
-    <h1><%= event.title %></h1>
-    <p><strong>Date:</strong> <%= event.event_date.toDateString() %></p>
-    <p><strong>Time:</strong> <%= event.time %></p>
-    <p><strong>Location:</strong> <%= event.location %></p>
-    <p><strong>Description:</strong></p>
-    <div><%- event.description %></div>
+  <section class="event_section">
+    <div class="event_container">
+      <div class="event_details">
+        <h1><%= event.title %></h1>
+        <p><strong>Date:</strong> <%= event.event_date.toDateString() %></p>
+        <p><strong>Time:</strong> <%= event.time %></p>
+        <p><strong>Location:</strong> <%= event.location %></p>
+        <p><strong>Description:</strong></p>
+        <div><%- event.description %></div>
 
-    <% if (event.image_url) { %>
-      <img src="<%= event.image_url %>" alt="Event Image" />
-    <% } %>
+        
+        <h4>Benefits</h4>
+        <ul>
+          <li>Lorem ipsum dolor sit amet, consectetur adipiscing elit.</li>
+          <li>Maecenas vel sem fermentum, pretium felis id, sagittis risus.</li>
+          <li>More benefits...</li>
+        </ul>
 
-    <% if (event.is_paid) { %>
-      <p><strong>Price:</strong> ₦<%= event.amount %></p>
-    <% } else { %>
-      <p><strong>This is a free event</strong></p>
-    <% } %>
+        
+        <% if (event.is_paid) { %>
+          <p><strong>Price:</strong> ₦<%= event.amount %></p>
+        <% } else { %>
+          <p><strong>This is a free event</strong></p>
+        <% } %>
 
-    <a href="/register/<%= event.id %>" class="btn-register">Register</a>
+        <a href="/register/<%= event.id %>" class="btn-register">Register</a>
+      </div>
+      
+      <div class="event_details">
+        <% if (event.image_url) { %>
+          <img src="<%= event.image_url %>" alt="Event Image" />
+        <% } %>
+
+      </div>
+    </div>
   </section>
 
 
