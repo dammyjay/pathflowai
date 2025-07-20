@@ -129,20 +129,20 @@
   </div>
 </section> -->
 
-<section class="event-section">
+<section class="event_section">
   <h2>📅 Upcoming Events</h2>
 
   <% events.forEach(event => { %>
-    <div class="event-container">
+    <div class="event_container">
       <!-- Event Image -->
-      <div class="event-details">
+      <div class="event_details">
         <% if (event.image_url) { %>
           <img src="<%= event.image_url %>" alt="Event image" />
         <% } %>
       </div>
 
       <!-- Event Details -->
-      <div class="event-details">
+      <div class="event_details">
         <h2><%= event.title %></h2>
         <p><strong>Description:</strong> <%- event.description %></p>
 

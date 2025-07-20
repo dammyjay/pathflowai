@@ -141,6 +141,17 @@ exports.showEvent = async (req, res) => {
   // Add this line to pass login status to EJS
   const isLoggedIn = !!req.session.user; // or whatever property you use for login
   const profilePic = req.session.user ? req.session.user.profile_picture : null;
+
+   let walletBalance = 0;
+   if (req.session.user) {
+     const walletResult = await pool.query(
+       "SELECT wallet_balance2 FROM users2 WHERE email = $1",
+       [req.session.user.email]
+     );
+     walletBalance = walletResult.rows[0]?.wallet_balance2 || 0;
+   }
+
+
   try {
     const result = await pool.query("SELECT * FROM events WHERE id = $1", [id]);
     const event = result.rows[0];
@@ -161,7 +172,8 @@ exports.showEvent = async (req, res) => {
       isLoggedIn,
       users: req.session.user,
       subscribed: req.query.subscribed,
-      paid
+      paid,
+      walletBalance
     });
   } catch (err) {
     console.error("Error loading event:", err);
