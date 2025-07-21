@@ -455,9 +455,17 @@
     padding: 20px 0px;
 }
 
+
+
 .hero-content{
     width: 100%;
     /* display: flex; */
+}
+
+.hero-details{
+    display: flex;
+    align-items: center;
+    gap: 10px;
 }
 
 /* Responsive design */
