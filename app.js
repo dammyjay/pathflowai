@@ -77,6 +77,13 @@ app.use("/admin", adminRoutes);
 const userRoutes = require("./routes/userRoutes");
 app.use("/", userRoutes);
 
+const aboutRoutes = require("./routes/aboutRoutes");
+app.use("/", aboutRoutes);
+
+const galleryRoutes = require("./routes/galleryRoutes");
+app.use("/", galleryRoutes);
+
+
 app.get("/test", (req, res) => {
   res.send("✅ Test route works");
 });

@@ -180,6 +180,33 @@ async function createTables() {
       `
     );
 
+    await pool.query(
+      `CREATE TABLE IF NOT EXISTS about_sections (
+        id SERIAL PRIMARY KEY,
+        section_title TEXT NOT NULL,
+        section_key TEXT UNIQUE NOT NULL,
+        content TEXT NOT NULL,
+        updated_at TIMESTAMP DEFAULT NOW()
+      );`
+    );
+
+    await pool.query(
+      `CREATE TABLE IF NOT EXISTS gallery_categories (
+        id SERIAL PRIMARY KEY,
+        name TEXT NOT NULL,
+        created_at TIMESTAMP DEFAULT NOW()
+      );`
+    );
+
+    await pool.query(
+      `CREATE TABLE IF NOT EXISTS gallery_images (
+        id SERIAL PRIMARY KEY,
+        title TEXT,
+        image_url TEXT NOT NULL,
+        category_id INT REFERENCES gallery_categories(id),
+        uploaded_at TIMESTAMP DEFAULT NOW()
+      );`
+    );
 
     console.log("✅ All tables are updated and ready.");
   } catch (err) {

@@ -1,0 +1,238 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="UTF-8" />
+    <title>Edit company Info</title>
+    <link rel="stylesheet" href="/css/style.css" />
+    <link rel="stylesheet" href="/css/styles2.css" />
+    <link rel="stylesheet" href="/css/styles3.css" />
+    <link rel="icon" type="image/x-icon" href="/public/images/JKT logo.png" />
+    <script src="https://cdn.ckeditor.com/4.22.1/standard/ckeditor.js"></script>
+  </head>
+  <body>
+    <!-- Header -->
+    <header class="header">
+      <div class="logo-title">
+        <% info = info || {}; %> <% if (info.logo_url) { %>
+        <img src="<%= info.logo_url %>" alt="Logo" />
+        <% } %>
+        <p><%= info?.company_name || 'Jaykirch Tech Hub' %></p>
+      </div>
+      <button class="nav-toggle" onclick="toggleNav()">☰</button>
+      <nav id="main-nav">
+        <a href="/admin/dashboard">Dashboard</a>
+        <a href="/admin/pathways">Pathways</a>
+        <a href="/admin/courses">Courses</a>
+
+        <div class="dropdown">
+          <button class="dropbtn" onclick="toggleDropdown('galleryMenu')">
+            Gallery ▾
+          </button>
+          <div class="dropdown-content" id="galleryMenu">
+            <a href="/admin/gallery">Gallery</a>
+            <!-- <a href="/admin/gallery/categories">Categories</a> -->
+            <!-- <a href="/admin/demo-videos">Demo</a> -->
+          </div>
+        </div>
+
+        <div class="dropdown">
+          <button
+            class="dropbtn active"
+            onclick="toggleDropdown('ministryMenu')"
+          >
+            company ▾
+          </button>
+          <div class="dropdown-content" id="ministryMenu">
+            <a href="/admin/company">Company Details</a>
+            <a href="/admin/about">About Us</a>
+            <!-- <a href="/admin/devotionals">Devotionals</a> -->
+            <a href="/admin/benefits">Benefits</a>
+            <a href="/admin/events">Events</a>
+          </div>
+        </div>
+
+        <a href="/profile">Profile</a>
+        <a href="/admin/logout" class="logout-button">Logout</a>
+      </nav>
+    </header>
+
+    <h2>Edit About Page Sections</h2>
+    <div class="container2">
+      <button onclick="openModal()" class="btn-create">
+        + Create About section
+      </button>
+    </div>
+
+    <!-- <table>
+      <tr>
+        <th>Section</th>
+        <th>Actions</th>
+      </tr>
+      <% sections.forEach(section => { %>
+      <tr>
+        <td><%= section.section_title %></td>
+        <td>
+          <button
+            onclick="openEditModal('<%= section.section_key %>', '<%= section.section_title %>', `<%- section.content.replace(/`/g, '\\`') %>`)"
+          >
+            ✏️ Edit
+          </button>
+        </td>
+      </tr>
+      <% }) %>
+    </table> -->
+
+    <table class="user-table">
+      <tr>
+        <th>Section</th>
+        <th>Actions</th>
+      </tr>
+      <% sections.forEach(section => { %>
+      <tr>
+        <td><%= section.section_title %></td>
+        <td>
+          <div class="article-buttons">
+            <button
+              class="btn-edit"
+              onclick="openEditModal('<%= section.section_key %>', '<%= section.section_title %>', `<%- section.content.replace(/`/g, '\\`') %>`)"
+            >
+              ✏️ Edit
+            </button>
+
+            <form
+              method="POST"
+              action="/admin/about/delete/<%= section.id %>"
+              style="display: inline"
+              onsubmit="return confirm('Are you sure you want to delete this section?')"
+            >
+              <button
+                class="btn-delete"
+                type="submit"
+                style="color: rgb(255, 255, 255)"
+              >
+                🗑 Delete
+              </button>
+            </form>
+          </div>
+        </td>
+      </tr>
+      <% }) %>
+    </table>
+
+    <!-- Modal -->
+    <!-- <div id="editModal" class="modal">
+      <div class="modal-content">
+        <form method="POST" action="/admin/about/update">
+          <h3 id="modal-title">Edit Section</h3>
+          <span class="close" onclick="closeModal()">&times;</span>
+          <textarea id="modal-textarea" name="content" rows="10"></textarea>
+          <input type="hidden" id="modal-section-key" name="section_key" />
+          <div class="modal-actions">
+            <button type="submit">✅ Save</button>
+            <button type="button" onclick="closeModal()">❌ Cancel</button>
+          </div>
+        </form>
+      </div>
+    </div> -->
+
+    <!-- Modal for Creating Section -->
+    <div id="createModal" class="modal">
+      <div class="modal-content">
+        <form method="POST" action="/admin/about/create">
+          <h3>Create New About Section</h3>
+          <span class="close" onclick="closeModal()">&times;</span>
+
+          <label>Section Key (unique):</label>
+          <input type="text" name="section_key" required />
+
+          <label>Section Title:</label>
+          <input type="text" name="section_title" required />
+
+          <label>Content:</label>
+          <textarea name="content" rows="8"></textarea>
+
+          <div class="modal-actions">
+            <button type="submit">✅ Save</button>
+            <button type="button" onclick="closeModal()">❌ Cancel</button>
+          </div>
+        </form>
+      </div>
+    </div>
+
+    <!-- <script>
+      function openEditModal(sectionKey, title, content) {
+        document.getElementById("modal-title").innerText = "Edit " + title;
+        document.getElementById("modal-section-key").value = sectionKey;
+        document.getElementById("modal-textarea").value = content;
+        document.getElementById("editModal").classList.add("open");
+      }
+
+      function closeModal() {
+        document.getElementById("editModal").classList.remove("open");
+      }
+    </script> -->
+
+    <!-- script for opening and closing the modal -->
+    <!-- <script>
+      function openModal() {
+        document.getElementById("editModal").style.display = "block";
+      }
+
+      function closeModal() {
+        document.getElementById("editModal").style.display = "none";
+      }
+
+      function openEditModal(id) {
+        document.getElementById("editModal-" + id).style.display = "block";
+      }
+
+      function closeEditModal(id) {
+        document.getElementById("editModal-" + id).style.display = "none";
+      }
+
+      // Close modal when clicking outside the modal content
+      // window.onclick = function (event) {
+      //   const modal = document.getElementById("createModal");
+      //   if (event.target == modal) {
+      //     modal.style.display = "none";
+      //   }
+      // };
+      // Close any modal when clicking outside it
+      window.onclick = function (event) {
+        if (event.target.classList.contains("modal")) {
+          event.target.style.display = "none";
+        }
+      };
+    </script> -->
+
+    <script>
+      function openModal() {
+        document.getElementById("createModal").style.display = "block";
+      }
+
+      function closeModal() {
+        document.getElementById("createModal").style.display = "none";
+        document.getElementById("editModal").style.display = "none";
+      }
+
+      function openEditModal(sectionKey, title, content) {
+        document.getElementById("modal-title").innerText = "Edit " + title;
+        document.getElementById("modal-section-key").value = sectionKey;
+        document.getElementById("modal-textarea").value = content;
+        document.getElementById("editModal").style.display = "block";
+      }
+
+      window.onclick = function (event) {
+        if (event.target.classList.contains("modal")) {
+          event.target.style.display = "none";
+        }
+      };
+
+      CKEDITOR.replace("content");
+    </script>
+
+    <script>
+      CKEDITOR.replace("content");
+    </script>
+  </body>
+</html>
