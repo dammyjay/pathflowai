@@ -85,18 +85,32 @@
     </div>
 
     <h2>Intro Video</h2>
+    <% function getEmbedUrl(videoUrl) {
+        if (!videoUrl) return '';
+        if (videoUrl.includes('youtube.com') || videoUrl.includes('youtu.be')) {
+            const idMatch = videoUrl.match(/(?:youtu\.be\/|v=)([^\?&]+)/);
+            return idMatch ? `https://www.youtube.com/embed/${idMatch[1]}` : '';
+        }
+        if (videoUrl.includes('vimeo.com')) {
+            const idMatch = videoUrl.match(/vimeo\.com\/(\d+)/);
+            return idMatch ? `https://player.vimeo.com/video/${idMatch[1]}` : '';
+        }
+        return '';
+    } %>
+
     <% if (pathway.video_intro_url) { %>
-      <div class="video-container" style="margin: 20px 0;">
+    <div class="video-container" style="margin: 20px 0;">
         <iframe
-          width="100%"
-          height="400"
-          src="<%= pathway.video_intro_url %>"
-          frameborder="0"
-          allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
-          allowfullscreen
+        width="100%"
+        height="400"
+        src="<%= getEmbedUrl(pathway.video_intro_url) %>"
+        frameborder="0"
+        allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+        allowfullscreen
         ></iframe>
-      </div>
+    </div>
     <% } %>
+
 
      <div style="margin-top: 30px;">
         
