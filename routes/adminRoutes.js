@@ -89,6 +89,11 @@ router.post(
   upload.single("thumbnail"),
   adminController.createPathway
 );
+router.post(
+  "/pathways/edit/:id",
+  upload.single("thumbnail"),
+  adminController.editPathway
+);
 
 router.post("/pathways/:id/delete", adminController.deletePathway);
 

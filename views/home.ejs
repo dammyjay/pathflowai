@@ -122,7 +122,10 @@
                 style="width: 100%; height: 300px; object-fit: cover; border-radius: 8px;"
               />
             <% } %>
-            <h3><%- pathway.title %></h3> 
+            <!-- <h3><%- pathway.title %></h3>  -->
+             <a href="/pathways/<%= pathway.id %>">
+              <h3><%- pathway.title %></h3>
+            </a>
              <!-- <h3 style="color: #1660E8;"><%- pathway.title %></h3>  -->
             <div class="article-body">
               <span id="article-short-<%= idx %>" style="display: block;">

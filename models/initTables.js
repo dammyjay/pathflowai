@@ -108,7 +108,12 @@ async function createTables() {
         title TEXT NOT NULL,
         description TEXT,
         thumbnail_url TEXT,
-        created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+        created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+        target_audience TEXT,
+        expected_outcomes TEXT,
+        duration_estimate TEXT,
+        video_intro_url TEXT,
+        show_on_homepage BOOLEAN DEFAULT false
       )`
     );
 

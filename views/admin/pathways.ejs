@@ -35,10 +35,7 @@
         </div>
 
         <div class="dropdown">
-          <button
-            class="dropbtn"
-            onclick="toggleDropdown('ministryMenu')"
-          >
+          <button class="dropbtn" onclick="toggleDropdown('ministryMenu')">
             company ▾
           </button>
           <div class="dropdown-content" id="ministryMenu">
@@ -55,7 +52,7 @@
       </nav>
     </header>
 
-    <form method="GET" action="/admin/pathways" style="margin-top: 20px">
+    <!-- <form method="GET" action="/admin/pathways" style="margin-top: 20px">
       <input
         type="text"
         name="search"
@@ -63,60 +60,142 @@
         value="<%= search || '' %>"
       />
       <button type="submit">Search</button>
-    </form>
+    </form> -->
 
     <h2>Existing Pathways</h2>
-    
+
     <div class="container2">
-        <button onclick="openModal()" class="btn-create">
+      <button onclick="openModal()" class="btn-create">
         + Create New Pathway
-        </button>
+      </button>
     </div>
 
     <section class="article-grid">
-        <% pathways.forEach(pathway => { %>
-          <div class="article-card">
-            <h3><%= pathway.title %></h3>
-      
-            <% if (pathway.thumbnail_url) { %>
+      <% pathways.forEach(pathway => { %>
+      <div class="article-card">
+        <h3><%= pathway.title %></h3>
+
+        <% if (pathway.thumbnail_url) { %>
+        <img
+          src="<%= pathway.thumbnail_url %>"
+          alt="Pathway Thumbnail"
+          style="object-fit: cover; height: 300px; width: 100%"
+        />
+        <% } %>
+
+        <div class="article-body" id="desc-<%= pathway.id %>">
+          <%- pathway.description.substring(0, 100) %>...
+        </div>
+
+        <a
+          href="javascript:void(0);"
+          class="toggle-article"
+          onclick="togglePathway(<%= pathway.id %>)"
+          >Show More</a
+        >
+
+        <div class="article-buttons">
+          <!-- <a href="/admin/pathways/edit/<%= pathway.id %>">Edit</a> -->
+          <button class="btn-edit" onclick="openEditModal(<%= pathway.id %>)">
+            Edit
+          </button>
+          <form
+            action="/admin/pathways/delete/<%= pathway.id %>"
+            method="POST"
+            onsubmit="return confirm('Delete this pathway?');"
+          >
+            <button type="submit">Delete</button>
+          </form>
+        </div>
+      </div>
+      <!-- EDIT Modal for Pathway ID:-->
+      <div id="editModal-<%= pathway.id %>" class="modal">
+        <div class="modal-content">
+          <span class="close" onclick="closeEditModal(<%= pathway.id %>)"
+            >&times;</span
+          >
+          <h2>Edit Pathway</h2>
+          <form
+            action="/admin/pathways/edit/<%= pathway.id %>"
+            method="POST"
+            enctype="multipart/form-data"
+          >
+            <label for="">Title</label>
+            <input
+              type="text"
+              name="title"
+              value="<%= pathway.title %>"
+              required
+            /><br />
+            <label for="">Description</label>
+            <textarea
+              id="content"
+              name="description"
+              id="edit-desc-<%= pathway.id %>"
+            >
+            <%- pathway.description %></textarea
+            ><br />
+            <label for="">Target Audience</label>
+            <input
+              type="text"
+              name="target_audience"
+              value="<%= pathway.target_audience || '' %>"
+            /><br />
+            <label for="">Expected Outcomes</label>
+            <textarea
+              name="expected_outcomes"
+              id="expectedOutcomes-<%= pathway.id %>"
+            >
+            <%- pathway.expected_outcomes || '' %></textarea
+            >
+            <br />
+            <label for="">Duration</label>
+            <input
+              type="text"
+              name="duration_estimate"
+              value="<%= pathway.duration_estimate || '' %>"
+            /><br />
+            <label for="">Intro video</label>
+            <input
+              type="url"
+              name="video_intro_url"
+              value="<%= pathway.video_intro_url || '' %>"
+            /><br />
+            <label>
+              <input type="checkbox" name="show_on_homepage" value="true" <%=
+              pathway.show_on_homepage ? 'checked' : '' %> /> Show on Homepage
+            </label>
+            <br />
+
+            <input type="file" name="thumbnail" accept="image/*" /><br />
+
+            <div class="preview-container">
               <img
                 src="<%= pathway.thumbnail_url %>"
-                alt="Pathway Thumbnail"
-                style="object-fit: cover; height: 300px; width: 100%;"
+                style="width: 100px; height: auto"
               />
-            <% } %>
-      
-            <div class="article-body" id="desc-<%= pathway.id %>">
-              <%- pathway.description.substring(0, 100) %>...
             </div>
-      
-            <a
-              href="javascript:void(0);"
-              class="toggle-article"
-              onclick="togglePathway(<%= pathway.id %>)"
-            >Show More</a>
-      
-            <div class="article-buttons">
-              <a href="/admin/pathways/edit/<%= pathway.id %>">Edit</a>
-              <form
-                action="/admin/pathways/delete/<%= pathway.id %>"
-                method="POST"
-                onsubmit="return confirm('Delete this pathway?');"
-              >
-                <button type="submit">Delete</button>
-              </form>
-            </div>
-          </div>
-        <% }) %>
-      </section>
-      
+
+            <button type="submit">Update Pathway</button>
+          </form>
+        </div>
+      </div>
+      <script>
+        CKEDITOR.replace("expectedOutcomes-<%= pathway.id %>");
+      </script>
+
+      <script>
+        CKEDITOR.replace("edit-desc-<%= pathway.id %>");
+      </script>
+      <% }) %>
+    </section>
+
     <!-- Create Pathway Modal -->
     <div id="createModal" class="modal">
       <div class="modal-content">
         <span class="close" onclick="closeModal()">&times;</span>
         <h2>Create New Pathway</h2>
-        <form
-          
+        <!-- <form
           action="/admin/pathways"
           method="POST"
           enctype="multipart/form-data"
@@ -135,6 +214,67 @@
           ><br />
           <input type="file" name="thumbnail" accept="image/*" /><br />
 
+          <div class="preview-container">
+            <img id="preview-image" alt="Image Preview" />
+          </div>
+
+          <button type="submit">Create Pathway</button>
+        </form> -->
+        <form
+          action="/admin/pathways"
+          method="POST"
+          enctype="multipart/form-data"
+        >
+          <input
+            type="text"
+            name="title"
+            placeholder="Pathway Title"
+            required
+          /><br />
+
+          <textarea
+            name="description"
+            id="content"
+            placeholder="Full Description"
+          ></textarea
+          ><br />
+
+          <input
+            type="text"
+            name="target_audience"
+            id="content"
+            placeholder="Target Audience (e.g., students, teachers)"
+            required
+          /><br />
+
+          <input
+            type="text"
+            name="expected_outcomes"
+            id="content2"
+            placeholder="Expected Outcomes (e.g., Build apps)"
+            required
+          /><br />
+
+          <input
+            type="text"
+            name="duration_estimate"
+            placeholder="Estimated Duration (e.g., 6 weeks)"
+            required
+          /><br />
+
+          <input
+            type="url"
+            name="video_intro_url"
+            placeholder="Intro Video URL (YouTube/Vimeo)"
+          /><br />
+
+          <label style="display: inline-block; margin-top: 10px">
+            <input type="checkbox" name="show_on_homepage" value="true" />
+            Show on homepage </label
+          ><br />
+
+          <input type="file" name="thumbnail" accept="image/*" /><br />
+
           <!-- Preview image container -->
           <div class="preview-container">
             <img id="preview-image" alt="Image Preview" />
@@ -148,6 +288,10 @@
     <a href="/admin/dashboard">Back to Dashboard</a>
     <script>
       CKEDITOR.replace("content");
+    </script>
+
+    <script>
+      CKEDITOR.replace("content2");
     </script>
 
     <!-- script to toggle navigation menu -->
@@ -172,7 +316,9 @@
 
     <!-- script to preview image before upload -->
     <script>
-        document.querySelector("input[name='thumbnail']").addEventListener("change", function () {
+      document
+        .querySelector("input[name='thumbnail']")
+        .addEventListener("change", function () {
           const preview = document.getElementById("preview-image");
           const file = this.files[0];
           if (file) {
@@ -187,27 +333,33 @@
             preview.style.display = "none";
           }
         });
-      </script>
-      
+    </script>
 
     <!-- script for opening and closing the modal -->
     <script>
-        function openModal() {
-          document.getElementById("createModal").style.display = "block";
+      function openModal() {
+        document.getElementById("createModal").style.display = "block";
+      }
+
+      function closeModal() {
+        document.getElementById("createModal").style.display = "none";
+      }
+
+      function openEditModal(id) {
+        document.getElementById("editModal-" + id).style.display = "block";
+      }
+
+      function closeEditModal(id) {
+        document.getElementById("editModal-" + id).style.display = "none";
+      }
+
+      // Close modal when clicking outside the modal content
+      window.onclick = function (event) {
+        const modal = document.getElementById("createModal");
+        if (event.target == modal) {
+          modal.style.display = "none";
         }
-      
-        function closeModal() {
-          document.getElementById("createModal").style.display = "none";
-        }
-      
-        // Close modal when clicking outside the modal content
-        window.onclick = function (event) {
-          const modal = document.getElementById("createModal");
-          if (event.target == modal) {
-            modal.style.display = "none";
-          }
-        };
-      </script>
-      
+      };
+    </script>
   </body>
 </html>

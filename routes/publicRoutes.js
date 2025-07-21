@@ -148,7 +148,7 @@ router.get("/", async (req, res) => {
     try {
       const [infoResult, career_pathwaysResult, usersResult] = await Promise.all([
         pool.query("SELECT * FROM company_info ORDER BY id DESC LIMIT 1"),
-        pool.query("SELECT * FROM career_pathways ORDER BY created_at"),
+        pool.query("SELECT * FROM career_pathways WHERE show_on_homepage = true ORDER BY created_at"),
         pool.query("SELECT * FROM users2"),
       ]);
         
@@ -417,7 +417,7 @@ router.get("/courses", async (req, res) => {
 
   res.render("userCourses", {
     info,
-      users,
+    users,
     isLoggedIn: !!req.session.user,
     profilePic,
     groupedCourses,
@@ -527,6 +527,66 @@ router.post("/verify-event-payment", async (req, res) => {
     console.error("❌ Error verifying event payment:", err.message);
     return res.status(500).json({ success: false, message: "Server error" });
   }
+});
+
+router.get("/pathways/:id", async (req, res) => {
+   const { id } = req.params;
+
+   try {
+     // Get company info
+     const infoResult = await pool.query(
+       "SELECT * FROM company_info ORDER BY id DESC LIMIT 1"
+     );
+     const info = infoResult.rows[0] || {};
+
+     // Get the pathway details
+     const pathwayResult = await pool.query(
+       "SELECT * FROM career_pathways WHERE id = $1",
+       [id]
+     );
+     const pathway = pathwayResult.rows[0];
+
+     if (!pathway) return res.status(404).send("Pathway not found");
+
+     // Get courses under this pathway, grouped by level
+     const courseResult = await pool.query(
+       `SELECT * FROM courses 
+       WHERE career_pathway_id = $1
+       ORDER BY level ASC, sort_order ASC`,
+       [id]
+     );
+
+     const courses = courseResult.rows;
+
+     const groupedCourses = {};
+     courses.forEach((course) => {
+       const level = course.level || "Unspecified";
+       if (!groupedCourses[level]) groupedCourses[level] = [];
+       groupedCourses[level].push(course);
+     });
+
+     const usersResult = await pool.query("SELECT * FROM users2");
+     const users = usersResult.rows;
+     const isLoggedIn = !!req.session.user; // or whatever property you use for login
+     const profilePic = req.session.user
+       ? req.session.user.profile_picture
+       : null;
+     console.log("User session:", req.session.user);
+     console.log("Is user logged in:", isLoggedIn);
+
+     res.render("singlePathway", {
+       info,
+       users,
+       isLoggedIn: !!req.session.user,
+       profilePic,
+       pathway,
+       groupedCourses,
+       subscribed: req.query.subscribed,
+     });
+   } catch (err) {
+     console.error("❌ Error fetching pathway details:", err.message);
+     res.status(500).send("Server error");
+   }
 });
 
 

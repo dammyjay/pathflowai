@@ -659,16 +659,36 @@ exports.showPathways = async (req, res) => {
 };
 
 // exports.createPathway = async (req, res) => {
-//   const { name, description } = req.body;
+//   const { title, description } = req.body;
+//   let thumbnail_url = null;
+
+//   if (req.file) {
+//     const result = await cloudinary.uploader.upload(req.file.path, {
+//       folder: "pathways",
+//     });
+//     thumbnail_url = result.secure_url;
+//     if (fs.existsSync(req.file.path)) fs.unlinkSync(req.file.path);
+//   }
+
 //   await pool.query(
-//     "INSERT INTO career_pathways (name, description) VALUES ($1, $2)",
-//     [name, description]
+//     "INSERT INTO career_pathways (title, description, thumbnail_url) VALUES ($1, $2, $3)",
+//     [title, description, thumbnail_url]
 //   );
+
 //   res.redirect("/admin/pathways");
 // };
 
 exports.createPathway = async (req, res) => {
-  const { title, description } = req.body;
+  const {
+    title,
+    description,
+    target_audience,
+    expected_outcomes,
+    duration_estimate,
+    video_intro_url,
+    show_on_homepage,
+  } = req.body;
+
   let thumbnail_url = null;
 
   if (req.file) {
@@ -680,8 +700,17 @@ exports.createPathway = async (req, res) => {
   }
 
   await pool.query(
-    "INSERT INTO career_pathways (title, description, thumbnail_url) VALUES ($1, $2, $3)",
-    [title, description, thumbnail_url]
+    "INSERT INTO career_pathways (title, description, thumbnail_url, target_audience, expected_outcomes, duration_estimate, video_intro_url, show_on_homepage) VALUES ($1, $2, $3, $4, $5, $6, $7, $8)",
+    [
+      title,
+      description,
+      thumbnail_url,
+      target_audience,
+      expected_outcomes,
+      duration_estimate,
+      video_intro_url,
+      show_on_homepage === "true",
+    ]
   );
 
   res.redirect("/admin/pathways");
@@ -693,6 +722,64 @@ exports.deletePathway = async (req, res) => {
   await pool.query("DELETE FROM career_pathways WHERE id = $1", [id]);
   res.redirect("/admin/pathways");
 };
+
+exports.editPathway = async (req, res) => {
+  const { id } = req.params;
+  const {
+    title,
+    description,
+    target_audience,
+    expected_outcomes,
+    duration_estimate,
+    video_intro_url,
+    show_on_homepage,
+  } = req.body;
+
+  let thumbnail_url = null;
+
+  if (req.file) {
+    const result = await cloudinary.uploader.upload(req.file.path, {
+      folder: "pathways",
+    });
+    thumbnail_url = result.secure_url;
+    if (fs.existsSync(req.file.path)) fs.unlinkSync(req.file.path);
+  }
+
+  const existing = await pool.query(
+    "SELECT * FROM career_pathways WHERE id = $1",
+    [id]
+  );
+  const current = existing.rows[0];
+
+  const updatedThumbnail = thumbnail_url || current.thumbnail_url;
+
+  await pool.query(
+    `UPDATE career_pathways
+     SET title = $1,
+         description = $2,
+         thumbnail_url = $3,
+         target_audience = $4,
+         expected_outcomes = $5,
+         duration_estimate = $6,
+         video_intro_url = $7,
+         show_on_homepage = $8
+     WHERE id = $9`,
+    [
+      title,
+      description,
+      updatedThumbnail,
+      target_audience,
+      expected_outcomes,
+      duration_estimate,
+      video_intro_url,
+      show_on_homepage === "true",
+      id,
+    ]
+  );
+
+  res.redirect("/admin/pathways");
+};
+
 
 // --- COURSES ---
 // exports.showCourses = async (req, res) => {
