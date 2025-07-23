@@ -107,6 +107,14 @@ router.post(
 );
 router.post("/courses/delete/:id", adminController.deleteCourse);
 
+router.get("/pathways/:id/courses", adminController.showCoursesByPathway);
+router.post(
+  "/pathways/:id/courses",
+  upload.single("thumbnail"),
+  adminController.createCourseUnderPathway
+);
+
+
 //benefits
 router.get("/benefits", adminController.showBenefits);
 router.post("/benefits", upload.single("icon"), adminController.createBenefit);

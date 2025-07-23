@@ -1,11 +1,11 @@
 @media screen and (max-width: 600px) {
     .article-grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(270px, 1fr));
-            gap: 20px;
-            margin-top: 20px;
-            width: 100%;
-        }
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(270px, 1fr));
+        gap: 20px;
+        margin-top: 20px;
+        width: 100%;
+    }
 
         .article-grid img {
             width: 100%;
@@ -173,6 +173,17 @@
       overflow: hidden;
       margin-top: 20px;
       padding: 20px 0px;
+  }
+
+  .video-container {
+      width: 100%;
+      /* height: 200px; */
+  }
+
+  .video-container iframe {
+      height: 100%;
+      width: 100%;
+      border-radius: 8px;
   }
   
 }

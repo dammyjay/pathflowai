@@ -925,6 +925,61 @@ exports.deleteCourse = async (req, res) => {
   }
 };
 
+exports.showCoursesByPathway = async (req, res) => {
+  const { id } = req.params;
+
+  const infoResult = await pool.query(
+    "SELECT * FROM company_info ORDER BY id DESC LIMIT 1"
+  );
+  const info = infoResult.rows[0] || {};
+
+  const pathwayResult = await pool.query(
+    "SELECT * FROM career_pathways WHERE id = $1",
+    [id]
+  );
+  const pathway = pathwayResult.rows[0];
+
+  const careerPathways = await pool.query(
+    "SELECT id, title FROM career_pathways"
+  );
+
+  const coursesResult = await pool.query(
+    `SELECT * FROM courses WHERE career_pathway_id = $1 ORDER BY level ASC, sort_order ASC`,
+    [id]
+  );
+
+  res.render("admin/pathwayCourses", {
+    info,
+    pathway,
+    careerPathways: careerPathways.rows,
+    courses: coursesResult.rows,
+  });
+};
+
+exports.createCourseUnderPathway = async (req, res) => {
+  const { id } = req.params;
+  const { title, description, level, sort_order } = req.body;
+
+  let thumbnail_url = null;
+
+  if (req.file) {
+    const result = await cloudinary.uploader.upload(req.file.path, {
+      folder: "courses",
+    });
+    thumbnail_url = result.secure_url;
+    if (fs.existsSync(req.file.path)) fs.unlinkSync(req.file.path);
+  }
+
+  await pool.query(
+    `INSERT INTO courses (title, description, level, career_pathway_id, thumbnail_url, sort_order)
+      VALUES ($1, $2, $3, $4, $5, $6)`,
+    [title, description, level, id, thumbnail_url, sort_order]
+  );
+
+  res.redirect(`/admin/pathways/${id}/courses`);
+};
+
+
 
 exports.showBenefits = async (req, res) => {
   const infoResult = await pool.query(

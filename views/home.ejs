@@ -116,11 +116,13 @@
           <div class="article-card">
             
             <% if (pathway.thumbnail_url) { %>
-              <img
-                src="<%= pathway.thumbnail_url %>"
-                alt="Career_pathway Image"
-                style="width: 100%; height: 300px; object-fit: cover; border-radius: 8px;"
-              />
+              <a href="/pathways/<%= pathway.id %>">
+                <img
+                  src="<%= pathway.thumbnail_url %>"
+                  alt="Career_pathway Image"
+                  style="width: 100%; height: 300px; object-fit: cover; border-radius: 8px;"
+                />
+              </a>
             <% } %>
             <!-- <h3><%- pathway.title %></h3>  -->
              <a href="/pathways/<%= pathway.id %>">

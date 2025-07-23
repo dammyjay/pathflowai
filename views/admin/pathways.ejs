@@ -79,7 +79,7 @@
         <img
           src="<%= pathway.thumbnail_url %>"
           alt="Pathway Thumbnail"
-          style="object-fit: cover; height: 300px; width: 100%"
+          
         />
         <% } %>
 
@@ -94,6 +94,8 @@
           >Show More</a
         >
 
+        
+
         <div class="article-buttons">
           <!-- <a href="/admin/pathways/edit/<%= pathway.id %>">Edit</a> -->
           <button class="btn-edit" onclick="openEditModal(<%= pathway.id %>)">
@@ -106,6 +108,8 @@
           >
             <button type="submit">Delete</button>
           </form>
+
+          <a style="background-color: black;" href="/admin/pathways/<%= pathway.id %>/courses" class="btn-create">View Courses</a>
         </div>
       </div>
       <!-- EDIT Modal for Pathway ID:-->
