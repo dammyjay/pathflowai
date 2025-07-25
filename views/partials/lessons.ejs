@@ -1,0 +1,56 @@
+<h3>Lessons</h3>
+<% modules.forEach(module => { %>
+  <div>
+    <h4>Module: <%= module.title %></h4>
+    <ul>
+      <% lessons
+        .filter(lesson => lesson.module_id === module.id)
+        .forEach(lesson => { %>
+        <li>
+          <strong><%= lesson.title %></strong>
+          <form action="/admin/lessons/edit/<%= lesson.id %>" method="POST">
+            <input type="text" name="title" value="<%= lesson.title %>" required />
+            <textarea name="content"><%= lesson.content %></textarea>
+            <button type="submit">Update</button>
+          </form>
+          <form action="/admin/lessons/delete/<%= lesson.id %>" method="POST">
+            <button type="submit">Delete</button>
+          </form>
+
+          <!-- QUIZ SECTION -->
+          <h5>Quiz</h5>
+          <form action="/admin/quiz/create" method="POST">
+            <input type="hidden" name="lesson_id" value="<%= lesson.id %>" />
+            <input type="text" name="title" placeholder="Quiz Title" required />
+            <button type="submit">Add Quiz</button>
+          </form>
+
+          <% quizzes
+            .filter(quiz => quiz.lesson_id === lesson.id)
+            .forEach(quiz => { %>
+            <p>📘 <%= quiz.title %>
+              <form action="/admin/quiz/delete/<%= quiz.id %>" method="POST" style="display:inline;">
+                <button type="submit">Delete</button>
+              </form>
+            </p>
+          <% }) %>
+
+          <!-- LESSON ASSIGNMENT -->
+          <h5>Mini Assignment</h5>
+          <form action="/admin/assignments/create" method="POST">
+            <input type="hidden" name="lesson_id" value="<%= lesson.id %>" />
+            <input type="text" name="title" placeholder="Assignment Title" required />
+            <textarea name="content" placeholder="Instructions"></textarea>
+            <button type="submit">Add Assignment</button>
+          </form>
+
+          <% assignments
+            .filter(a => a.lesson_id === lesson.id)
+            .forEach(a => { %>
+              <p>📝 <%= a.title %></p>
+          <% }) %>
+        </li>
+      <% }) %>
+    </ul>
+  </div>
+<% }) %>

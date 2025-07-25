@@ -1,0 +1,55 @@
+<h3>Modules</h3>
+<button onclick="openModal('createModuleModal')">+ Add Module</button>
+
+<ul>
+  <% modules.forEach(module => { %>
+    <li>
+      <strong><%= module.title %></strong>
+      <form action="/admin/modules/edit/<%= module.id %>" method="POST" style="display:inline;">
+        <input type="text" name="title" value="<%= module.title %>" />
+        <button type="submit">Edit</button>
+      </form>
+      <form action="/admin/modules/delete/<%= module.id %>" method="POST" style="display:inline;">
+        <button type="submit">Delete</button>
+      </form>
+    </li>
+  <% }) %>
+</ul>
+
+<!-- Modal to add new module -->
+<div id="createModuleModal" class="modal">
+  <div class="modal-content">
+    <span class="close" onclick="closeModal('createModuleModal')">&times;</span>
+    <h3>Create Module</h3>
+    <form action="/admin/modules/create" method="POST">
+      <input type="hidden" name="course_id" value="<%= course.id %>" />
+      <input type="text" name="title" placeholder="Module Title" required />
+      <button type="submit">Create</button>
+    </form>
+  </div>
+</div>
+<!-- Quizzes Tab -->
+<div class="mb-3">
+  <form action="/admin/quizzes/create" method="POST">
+    <select name="lesson_id" class="form-select mb-2" required>
+      <option value="">Select Lesson</option>
+      <% lessons.forEach((l) => { %>
+        <option value="<%= l.id %>"><%= l.title %></option>
+      <% }) %>
+    </select>
+    <input type="text" name="title" placeholder="Quiz Title" class="form-control mb-2" required>
+    <button class="btn btn-success" type="submit">Add Quiz</button>
+  </form>
+</div>
+
+<% quiz.forEach((q) => { %>
+  <div class="card mb-3">
+    <div class="card-body">
+      <h5><%= q.title %></h5>
+      <p><strong>Lesson ID:</strong> <%= q.lesson_id %></p>
+      <form action="/admin/quizzes/<%= q.id %>/delete" method="POST">
+        <button class="btn btn-sm btn-danger">Delete</button>
+      </form>
+    </div>
+  </div>
+<% }) %>

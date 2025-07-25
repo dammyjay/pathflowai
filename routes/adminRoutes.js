@@ -5,6 +5,25 @@ const router = express.Router();
 const adminController = require("../controllers/adminController");
 const companyController = require("../controllers/companyController");
 const articleController = require("../controllers/articleController");
+const learningController = require("../controllers/learningController")
+const { getCourseById } = require('../models/courseModel'); // adjust path if needed
+const { getModulesByCourse } = require("../models/moduleModel"); // adjust path if needed
+const {
+  getQuizzesByLesson,
+  createQuiz,
+  deleteQuiz,
+  getLessonAssignments,
+  createLessonAssignment,
+  deleteLessonAssignment,
+  getModuleAssignments,
+  createModuleAssignment,
+  deleteModuleAssignment,
+  getCourseProjects,
+  createCourseProject,
+  deleteCourseProject,
+} = require("../controllers/learningController");
+
+
 // const galleryController = require("../controllers/galleryController");
 // const devotionalController = require("../controllers/devotionalController");
 
@@ -95,7 +114,7 @@ router.post(
   adminController.editPathway
 );
 
-router.post("/pathways/:id/delete", adminController.deletePathway);
+router.post("/pathways/delete/:id", adminController.deletePathway);
 
 // Courses
 router.get("/courses", adminController.showCourses);
@@ -114,8 +133,82 @@ router.post(
   adminController.createCourseUnderPathway
 );
 
+// router.get("/courses/:courseId", async (req, res) => {
+//   const courseId = req.params.courseId;
+//   const tab = req.query.tab || "details";
+
+//   const course = await getCourseById(courseId);
+//   const modules = await getModulesByCourse(courseId);
+//   const lessons = await getLessonsByModules(modules.map((m) => m.id));
+//   const assignment = await getCourseAssignment(courseId);
+//   const project = await getCourseProject(courseId);
+
+//   res.render("admin/singleCourse", {
+//     course,
+//     modules,
+//     lessons,
+//     assignment,
+//     project,
+//     activeTab: tab,
+//   });
+// });
+
 
 //benefits
+// router.get("/admin/courses/:id", async (req, res) => {
+//   const courseId = req.params.id;
+//   const course = await getCourseById(courseId);
+//   const modules = await getModulesByCourse(courseId);
+//   const lessons = await getLessonsByCourse(courseId);
+//   const assignment = null;
+//   const project = null;
+
+//   res.render("admin/singleCourse", {
+//     course,
+//     modules,
+//     lessons,
+//     assignment,
+//     project,
+//     activeTab: req.query.tab || "details",
+//   });
+// });
+
+// router.get("/admin/courses/:id", learningController.getSingleCourse);
+
+// router.get("/courses/:id", learningController.viewSingleCourse);
+router.get("/courses/:id", learningController.viewSingleCourse);
+router.post("/admin/courses/:id/edit", learningController.updateCourse);
+// router.post("/admin/courses/:id/delete", learningController.deleteCourse);
+// Modules
+router.post("/admin/courses/:id/modules", learningController.createModule);
+router.post("/admin/modules/:id/edit", learningController.editModule);
+router.post("/admin/modules/:id/delete", learningController.deleteModule);
+
+// Lessons
+router.post("/admin/modules/:id/lessons", learningController.createLesson);
+router.post("/admin/lessons/:id/edit", learningController.editLesson);
+router.post("/admin/lessons/:id/delete", learningController.deleteLesson);
+
+// Quiz
+router.post("/admin/lessons/:id/quiz", learningController.createQuiz);
+router.post("/admin/quizzes/:id/questions", learningController.addQuizQuestion);
+router.post("/admin/quizzes/:id/delete", learningController.deleteQuiz);
+
+// Handle lesson assignment
+router.post("/admin/lessons/:id/assignment", learningController.createAssignment);
+
+// Handle module assignment using same function
+router.post("/admin/modules/:id/assignment", learningController.createAssignment);
+
+
+// Projects
+router.post(
+  "/admin/courses/:id/project",
+  learningController.createProject
+);
+
+
+
 router.get("/benefits", adminController.showBenefits);
 router.post("/benefits", upload.single("icon"), adminController.createBenefit);
 router.get("/benefits/edit/:id", adminController.editBenefitForm);

@@ -135,16 +135,17 @@
             <textarea
               id="content"
               name="description"
-              id="edit-desc-<%= pathway.id %>"
+              id="edit-desc2-<%= pathway.id %>"
             >
             <%- pathway.description %></textarea
             ><br />
             <label for="">Target Audience</label>
-            <input
-              type="text"
+            <textarea
               name="target_audience"
-              value="<%= pathway.target_audience || '' %>"
-            /><br />
+              id="edit-audience-<%= pathway.id %>"
+            ><%- pathway.target_audience %></textarea>
+            
+            <br />
             <label for="">Expected Outcomes</label>
             <textarea
               name="expected_outcomes"
@@ -171,6 +172,7 @@
             </label>
             <br />
 
+            <img src="<%= pathway.thumbnail_url %>" alt="">
             <input type="file" name="thumbnail" accept="image/*" /><br />
 
             <div class="preview-container">
@@ -190,6 +192,14 @@
 
       <script>
         CKEDITOR.replace("edit-desc-<%= pathway.id %>");
+      </script>
+
+      <script>
+        CKEDITOR.replace("edit-desc2-<%= pathway.id %>");
+      </script>
+
+      <script>
+        CKEDITOR.replace("edit-audience-<%= pathway.id %>");
       </script>
       <% }) %>
     </section>
@@ -229,6 +239,8 @@
           method="POST"
           enctype="multipart/form-data"
         >
+          <label for="">Pathway Title</label>
+          <br />
           <input
             type="text"
             name="title"
@@ -236,29 +248,34 @@
             required
           /><br />
 
+          <label for="">Description</label>
+          <br />
           <textarea
             name="description"
-            id="content"
+            id="content3"
             placeholder="Full Description"
           ></textarea
           ><br />
 
-          <input
-            type="text"
+          <label for="">Target Audience</label>
+          <br />
+          <textarea
             name="target_audience"
-            id="content"
+            id="targetAudience"
             placeholder="Target Audience (e.g., students, teachers)"
             required
-          /><br />
+          ></textarea><br />
 
-          <input
-            type="text"
+          <label for="">Expected Outcomes</label>
+          <textarea
             name="expected_outcomes"
             id="content2"
             placeholder="Expected Outcomes (e.g., Build apps)"
             required
-          /><br />
+          ></textarea><br />
 
+          <label for="">Duration Estimate</label>
+          <br />
           <input
             type="text"
             name="duration_estimate"
@@ -266,6 +283,8 @@
             required
           /><br />
 
+          <label for="">Intro Video URL</label>
+          <br />
           <input
             type="url"
             name="video_intro_url"
@@ -277,6 +296,8 @@
             Show on homepage </label
           ><br />
 
+          <label for="">Thumbnail Image</label>
+          <br />
           <input type="file" name="thumbnail" accept="image/*" /><br />
 
           <!-- Preview image container -->
@@ -295,7 +316,15 @@
     </script>
 
     <script>
+      CKEDITOR.replace("content3");
+    </script>
+
+    <script>
       CKEDITOR.replace("content2");
+    </script>
+
+    <script>
+      CKEDITOR.replace("targetAudience");
     </script>
 
     <!-- script to toggle navigation menu -->

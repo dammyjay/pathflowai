@@ -101,6 +101,7 @@
     <% if (pathway.video_intro_url) { %>
     <div class="video-container" style="margin: 20px 0;">
         <iframe
+        style="border-radius: 10px;"
         src="<%= getEmbedUrl(pathway.video_intro_url) %>"
         frameborder="0"
         allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
@@ -117,7 +118,7 @@
         
         <div class="hero-details">
             <h4>🎯 Target Audience: </h4>
-            <p><%= pathway.target_audience %></p>
+            <p><%- pathway.target_audience %></p>
         </div>
 
         <h4>📌 Expected Outcomes:</h4>

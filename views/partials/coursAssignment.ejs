@@ -1,0 +1,23 @@
+<h3>Module Assignments</h3>
+
+<% modules.forEach(module => { %>
+  <div>
+    <h4><%= module.title %></h4>
+    <form action="/admin/assignments/create" method="POST">
+      <input type="hidden" name="module_id" value="<%= module.id %>" />
+      <input type="text" name="title" placeholder="Assignment Title" required />
+      <textarea name="content" placeholder="Instructions"></textarea>
+      <button type="submit">Add Assignment</button>
+    </form>
+
+    <% assignments
+      .filter(a => a.module_id === module.id)
+      .forEach(a => { %>
+        <p>📝 <%= a.title %>
+          <form action="/admin/assignments/delete/<%= a.id %>" method="POST" style="display:inline;">
+            <button type="submit">Delete</button>
+          </form>
+        </p>
+    <% }) %>
+  </div>
+<% }) %>

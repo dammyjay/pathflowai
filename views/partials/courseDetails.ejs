@@ -1,0 +1,69 @@
+<!-- partials/courseDetails.ejs -->
+
+<!-- <form action="/admin/courses/<%= course.id %>/edit" method="POST">
+  <label>Title</label>
+  <input type="text" name="title" value="<%= course.title %>" required />
+
+  <label>Description</label>
+  <textarea name="description"><%= course.description %></textarea>
+
+  <label>Level</label>
+  <select name="level">
+    <option <%= course.level === "Beginner" ? "selected" : "" %>>Beginner</option>
+    <option <%= course.level === "Intermediate" ? "selected" : "" %>>Intermediate</option>
+    <option <%= course.level === "Advanced" ? "selected" : "" %>>Advanced</option>
+  </select>
+
+  <button type="submit">Update Course</button>
+</form> -->
+<button class="btn-create" onclick="openEditModal('course')">✏️ Edit Course</button>
+
+<div id="editModal-course" class="modal">
+  <div class="modal-content">
+    <span class="close" onclick="closeEditModal('course')">&times;</span>
+    <h3>Edit Course</h3>
+    <form action="/admin/courses/<%= course.id %>/edit" method="POST">
+      <label>Title</label>
+      <input type="text" name="title" value="<%= course.title %>" required>
+
+      <label>Description</label>
+      <textarea id="content" name="description"><%= course.description %></textarea>
+
+      <label>Level</label>
+      <select name="level">
+        <option value="Beginner" <%= course.level === "Beginner" ? "selected" : "" %>>Beginner</option>
+        <option value="Intermediate" <%= course.level === "Intermediate" ? "selected" : "" %>>Intermediate</option>
+        <option value="Advanced" <%= course.level === "Advanced" ? "selected" : "" %>>Advanced</option>
+      </select>
+
+      <button type="submit">Save Changes</button>
+    </form>
+  </div>
+</div>
+
+
+<div class="course-details">
+  <h2><%= course.title %></h2>
+  <p><strong>Level:</strong> <%= course.level %></p>
+  <p><strong>Description:</strong> <%= course.description %></p>
+  <p><strong>Level:</strong> <%= course.Level %></p>
+  <p><strong>Created At:</strong> <%= course.created_at.toDateString() %></p>
+  <p><strong>sort number</strong> <%= course.sort_order %></p>
+  <img src="<%= course.thumbnail_url %>" class="width: 100px; height:100px;" alt="">
+</div>
+
+<script>
+  function openEditModal(id) {
+  document.getElementById("editModal-" + id).style.display = "block";
+}
+
+function closeEditModal(id) {
+  document.getElementById("editModal-" + id).style.display = "none";
+}
+
+</script>
+
+<!-- script for ckeditor -->
+    <script>
+      CKEDITOR.replace("content");
+    </script>

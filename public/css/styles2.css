@@ -468,12 +468,86 @@
     gap: 10px;
 }
 
-/* .video-container{
+.course-card {
     width: 100%;
-    height: fit-content;
-    align-items: center;
-    padding: 0px 20px;
-} */
+    max-width: 300px;
+    border: 1px solid #ccc;
+    border-radius: 10px;
+    padding: 15px;
+    margin: 10px;
+    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+    transition: transform 0.2s; 
+}
+
+.course-card:hover {
+    transform: translateY(-5px);
+}
+
+.article-card-link {
+    text-decoration: none;
+    color: inherit;
+}
+
+.article-card:hover {
+    cursor: pointer;
+    transform: scale(1.02);
+    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
+}
+
+/* Style the tab content container */
+.tab-content {
+  background-color: #fff;
+  border: 1px solid #ccc;
+  padding: 25px;
+  margin-top: 15px;
+  border-radius: 5px;
+  min-height: 200px;
+  width: 90%;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+}
+
+/* Style the tab list (horizontal menu) */
+.tab-list {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+  display: flex;
+  border-bottom: 2px solid #ccc;
+  margin-top: 30px;
+}
+
+/* Each tab item */
+.tab-list li {
+  margin-right: 10px;
+}
+
+/* Tab links */
+.tab-list li a {
+  display: inline-block;
+  padding: 10px 16px;
+  text-decoration: none;
+  color: #333;
+  border: 1px solid transparent;
+  border-radius: 4px 4px 0 0;
+  background-color: #f5f5f5;
+  font-weight: 500;
+  transition: all 0.3s ease;
+}
+
+/* Active tab */
+.tab-list li.active a {
+  background-color: #ffffff;
+  border: 1px solid #ccc;
+  border-bottom: none;
+  color: #007bff;
+}
+
+/* Hover effect */
+.tab-list li a:hover {
+  background-color: #eaeaea;
+  color: #007bff;
+}
+
 
 /* Responsive design */
 @media (max-width: 768px) {

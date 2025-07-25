@@ -213,6 +213,83 @@ async function createTables() {
       );`
     );
 
+    await pool.query(
+      `CREATE TABLE IF NOT EXISTS modules (
+        id SERIAL PRIMARY KEY,
+        course_id INTEGER REFERENCES courses(id) ON DELETE CASCADE,
+        title TEXT NOT NULL,
+        description TEXT,
+        created_at TIMESTAMP DEFAULT NOW()
+      );
+      `
+    );
+
+    await pool.query(
+      `CREATE TABLE IF NOT EXISTS lessons (
+        id SERIAL PRIMARY KEY,
+        module_id INTEGER REFERENCES modules(id) ON DELETE CASCADE,
+        title TEXT NOT NULL,
+        content TEXT,
+        video_url TEXT,
+        created_at TIMESTAMP DEFAULT NOW()
+      );
+      `
+    );
+
+    await pool.query(
+      `CREATE TABLE IF NOT EXISTS lesson_assignments (
+        id SERIAL PRIMARY KEY,
+        lesson_id INTEGER REFERENCES lessons(id) ON DELETE CASCADE,
+        title TEXT,
+        instructions TEXT,
+        resource_url TEXT,
+        created_at TIMESTAMP DEFAULT NOW()
+      );`
+    );
+
+    await pool.query(
+      `CREATE TABLE IF NOT EXISTS module_assignments (
+        id SERIAL PRIMARY KEY,
+        module_id INTEGER REFERENCES modules(id) ON DELETE CASCADE,
+        title TEXT,
+        instructions TEXT,
+        resource_url TEXT,
+        created_at TIMESTAMP DEFAULT NOW()
+      );`
+    );
+
+    await pool.query(
+      `CREATE TABLE IF NOT EXISTS course_projects (
+        id SERIAL PRIMARY KEY,
+          course_id INTEGER REFERENCES courses(id) ON DELETE CASCADE,
+          title TEXT NOT NULL,
+          description TEXT,
+          resource_url TEXT,
+          created_at TIMESTAMP DEFAULT NOW()
+      );
+      `
+    );
+
+    await pool.query(
+      `CREATE TABLE IF NOT EXISTS quizzes (
+        id SERIAL PRIMARY KEY,
+        lesson_id INTEGER REFERENCES lessons(id) ON DELETE CASCADE,
+        title TEXT NOT NULL,
+        created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+      );`
+    );
+
+    await pool.query(
+      `CREATE TABLE IF NOT EXISTS quiz_questions (
+        id SERIAL PRIMARY KEY,
+        quiz_id INTEGER REFERENCES quizzes(id) ON DELETE CASCADE,
+        question TEXT NOT NULL,
+        options TEXT[], -- e.g. ARRAY['A', 'B', 'C', 'D']
+        correct_option TEXT NOT NULL
+      );
+      `
+    );
+
     console.log("✅ All tables are updated and ready.");
   } catch (err) {
     console.error("❌ Error creating tables:", err.message);

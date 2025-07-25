@@ -1,0 +1,18 @@
+<h3>Course Capstone Project</h3>
+
+<form action="/admin/projects/create" method="POST">
+  <input type="hidden" name="course_id" value="<%= course.id %>" />
+  <input type="text" name="title" placeholder="Project Title" required />
+  <textarea name="description" placeholder="Project Instructions"></textarea>
+  <button type="submit">Create Project</button>
+</form>
+
+<% if (project) { %>
+  <p>📌 <strong><%= project.title %></strong></p>
+  <p><%= project.description %></p>
+  <form action="/admin/projects/delete/<%= project.id %>" method="POST">
+    <button type="submit">Delete Project</button>
+  </form>
+<% } else { %>
+  <p>No project created yet.</p>
+<% } %>
