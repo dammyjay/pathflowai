@@ -1,4 +1,4 @@
-<h3>Modules</h3>
+<!-- <h3>Modules</h3>
 <button onclick="openModal('createModuleModal')">+ Add Module</button>
 
 <ul>
@@ -16,7 +16,7 @@
   <% }) %>
 </ul>
 
-<!-- Modal to add new module -->
+
 <div id="createModuleModal" class="modal">
   <div class="modal-content">
     <span class="close" onclick="closeModal('createModuleModal')">&times;</span>
@@ -28,7 +28,7 @@
     </form>
   </div>
 </div>
-<!-- Quizzes Tab -->
+
 <div class="mb-3">
   <form action="/admin/quizzes/create" method="POST">
     <select name="lesson_id" class="form-select mb-2" required>
@@ -42,7 +42,7 @@
   </form>
 </div>
 
-<% quiz.forEach((q) => { %>
+<% quizzes.forEach((q) => { %>
   <div class="card mb-3">
     <div class="card-body">
       <h5><%= q.title %></h5>
@@ -53,3 +53,114 @@
     </div>
   </div>
 <% }) %>
+
+
+  <script>
+    function openModal() {
+      document.getElementById("createModuleModal").style.display = "block";
+    }
+    function closeModal() {
+      document.getElementById("createModule Modal").style.display = "none";
+    }
+
+    function openEditModal(id) {
+      document.getElementById("editModal-" + id).style.display = "block";
+    }
+    function closeEditModal(id) {
+      document.getElementById("editModal-" + id).style.display = "none";
+    }
+
+    function openDeleteModal(id) {
+      document.getElementById("deleteModal-" + id).style.display = "block";
+    }
+    function closeDeleteModal(id) {
+      document.getElementById("deleteModal-" + id).style.display = "none";
+    }
+
+    CKEDITOR.replaceAll('textarea');
+  </script> -->
+
+
+  <h3>Modules</h3>
+<button onclick="openModal('createModuleModal')">+ Add Module</button>
+
+<div id="createModuleModal" class="modal">
+  <div class="modal-content">
+    <span class="close" onclick="closeModal('createModuleModal')">&times;</span>
+    <h3>Create Module</h3>
+    <form action="/admin/modules/create" method="POST">
+      <input type="hidden" name="course_id" value="<%= course.id %>" />
+      <input type="text" name="title" placeholder="Module Title" required />
+      <button type="submit">Create</button>
+    </form>
+  </div>
+</div>
+
+
+<!-- Existing modules are listed below: -->
+<ul>
+  <% modules.forEach(module => { %>
+    <li>
+      <strong><%= module.title %></strong>
+
+      <!-- Edit Button triggers modal -->
+      <button onclick="openEditModal('<%= module.id %>')">Edit</button>
+
+      <!-- Delete Form -->
+      <form action="/admin/modules/delete/<%= module.id %>" method="POST" style="display:inline;">
+        <button type="submit">Delete</button>
+      </form>
+
+      <!-- Edit Modal -->
+      <div id="editModal-<%= module.id %>" class="modal">
+        <div class="modal-content">
+          <span class="close" onclick="closeEditModal('<%= module.id %>')">&times;</span>
+          <h3>Edit Module</h3>
+          <form action="/admin/modules/edit/<%= module.id %>" method="POST">
+            <input type="text" name="title" value="<%= module.title %>" required />
+            <button type="submit">Save Changes</button>
+          </form>
+        </div>
+      </div>
+    </li>
+  <% }) %>
+</ul>
+
+<!-- Modal to Add New Module -->
+<div id="createModuleModal" class="modal">
+  <div class="modal-content">
+    <span class="close" onclick="closeModal('createModuleModal')">&times;</span>
+    <h3>Create Module</h3>
+    <form action="/admin/modules/create" method="POST">
+      <input type="hidden" name="course_id" value="<%= course.id %>" />
+      <input type="text" name="title" placeholder="Module Title" required />
+      <button type="submit">Create</button>
+    </form>
+  </div>
+</div>
+
+
+<script>
+  function openModal(id) {
+    document.getElementById(id).style.display = "block";
+  }
+
+  function closeModal(id) {
+    document.getElementById(id).style.display = "none";
+  }
+
+  function openEditModal(id) {
+    document.getElementById("editModal-" + id).style.display = "block";
+  }
+
+  function closeEditModal(id) {
+    document.getElementById("editModal-" + id).style.display = "none";
+  }
+
+  window.onclick = function (event) {
+    if (event.target.classList.contains("modal")) {
+      event.target.style.display = "none";
+    }
+  };
+</script>
+

@@ -7,10 +7,10 @@
   <button type="submit">Create Project</button>
 </form>
 
-<% if (project) { %>
-  <p>📌 <strong><%= project.title %></strong></p>
-  <p><%= project.description %></p>
-  <form action="/admin/projects/delete/<%= project.id %>" method="POST">
+<% if (projects) { %>
+  <p>📌 <strong><%= projects.title %></strong></p>
+  <p><%= projects.description %></p>
+  <form action="/admin/projects/delete/<%= projects.id %>" method="POST">
     <button type="submit">Delete Project</button>
   </form>
 <% } else { %>

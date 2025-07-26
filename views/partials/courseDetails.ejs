@@ -43,13 +43,14 @@
 
 
 <div class="course-details">
-  <h2><%= course.title %></h2>
+  <img src="<%= course.thumbnail_url %>" style="width: 300px; height:200px; object-fit: contain;" alt="">
+  <h2 style="text-align: left;"><%= course.title %></h2>
   <p><strong>Level:</strong> <%= course.level %></p>
-  <p><strong>Description:</strong> <%= course.description %></p>
+  <p><strong>Description:</strong> <%- course.description %></p>
   <p><strong>Level:</strong> <%= course.Level %></p>
   <p><strong>Created At:</strong> <%= course.created_at.toDateString() %></p>
   <p><strong>sort number</strong> <%= course.sort_order %></p>
-  <img src="<%= course.thumbnail_url %>" class="width: 100px; height:100px;" alt="">
+  
 </div>
 
 <script>

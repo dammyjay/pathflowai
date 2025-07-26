@@ -179,10 +179,15 @@ router.post(
 router.get("/courses/:id", learningController.viewSingleCourse);
 router.post("/admin/courses/:id/edit", learningController.updateCourse);
 // router.post("/admin/courses/:id/delete", learningController.deleteCourse);
+
 // Modules
-router.post("/admin/courses/:id/modules", learningController.createModule);
-router.post("/admin/modules/:id/edit", learningController.editModule);
-router.post("/admin/modules/:id/delete", learningController.deleteModule);
+// router.post("/admin/courses/:id/modules", learningController.createModule);
+// router.post("/admin/modules/:id/edit", learningController.editModule);
+// router.post("/admin/modules/:id/delete", learningController.deleteModule);
+
+router.post("/modules/create", learningController.createModule);
+router.post("/modules/edit/:id", learningController.editModule);
+router.post("/modules/delete/:id", learningController.deleteModule);
 
 // Lessons
 router.post("/admin/modules/:id/lessons", learningController.createLesson);

@@ -31,33 +31,62 @@ exports.createModule = async (req, res) => {
   }
 };
 
+// exports.editModule = async (req, res) => {
+//   const { id } = req.params;
+//   const { title } = req.body;
+//   try {
+//     await pool.query("UPDATE modules SET title = $1 WHERE id = $2", [
+//       title,
+//       id,
+//     ]);
+//     res.redirect("back");
+//   } catch (err) {
+//     console.error("Error editing module:", err);
+//     res.status(500).send("Server error");
+//   }
+// };
 exports.editModule = async (req, res) => {
-  const { id } = req.params;
   const { title } = req.body;
-  try {
-    await pool.query("UPDATE modules SET title = $1 WHERE id = $2", [
-      title,
-      id,
-    ]);
-    res.redirect("back");
-  } catch (err) {
-    console.error("Error editing module:", err);
-    res.status(500).send("Server error");
-  }
+  const { id } = req.params;
+  await pool.query("UPDATE modules SET title = $1 WHERE id = $2", [title, id]);
+
+  // Find course ID to redirect correctly
+  const result = await pool.query(
+    "SELECT course_id FROM modules WHERE id = $1",
+    [id]
+  );
+  const course_id = result.rows[0].course_id;
+  res.redirect(`/admin/courses/${course_id}?tab=modules`);
 };
 
-exports.deleteModule = async (req, res) => {
-  const { id } = req.params;
-  try {
-    await pool.query("DELETE FROM modules WHERE id = $1", [id]);
-    res.redirect("back");
-  } catch (err) {
-    console.error("Error deleting module:", err);
-    res.status(500).send("Server error");
-  }
-};
+
+
+// exports.deleteModule = async (req, res) => {
+//   const { id } = req.params;
+//   try {
+//     await pool.query("DELETE FROM modules WHERE id = $1", [id]);
+//     res.redirect("back");
+//   } catch (err) {
+//     console.error("Error deleting module:", err);
+//     res.status(500).send("Server error");
+//   }
+// };
 
 // -------------------- LESSONS --------------------
+exports.deleteModule = async (req, res) => {
+  const { id } = req.params;
+
+  // Find course ID first before delete
+  const result = await pool.query(
+    "SELECT course_id FROM modules WHERE id = $1",
+    [id]
+  );
+  const course_id = result.rows[0].course_id;
+
+  await pool.query("DELETE FROM modules WHERE id = $1", [id]);
+  res.redirect(`/admin/courses/${course_id}?tab=modules`);
+};
+
 exports.createLesson = async (req, res) => {
   const { title, content, module_id } = req.body;
   try {

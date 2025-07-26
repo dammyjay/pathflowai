@@ -76,12 +76,12 @@
 
       <% if (activeTab === 'details') { %> <%- include('../partials/courseDetails',
       { course }) %> <% } else if (activeTab === 'modules') { %> <%-
-      include('../partials/modules', { modules, quiz }) %> <% } else if (activeTab ===
+      include('../partials/modules', { modules, quizzes, lessons, course, assignments: moduleAssignments }) %> <% } else if (activeTab ===
       'lessons') { %> <%- include('../partials/lessons', { lessons, modules }) %>
       <% } else if (activeTab === 'assignment') { %> <%-
-      include('../partials/courseAssignment', { assignment }) %> <% } else if
+      include('../partials/courseAssignment', { assignments: lessonAssignments }) %> <% } else if
       (activeTab === 'project') { %> <%- include('../partials/courseProject', {
-      project }) %> <% } %>
+      projects }) %> <% } %>
     </div>
 
     <!-- SCRIPT SECTION -->
