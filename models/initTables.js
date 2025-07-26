@@ -219,6 +219,10 @@ async function createTables() {
         course_id INTEGER REFERENCES courses(id) ON DELETE CASCADE,
         title TEXT NOT NULL,
         description TEXT,
+        objectives TEXT,
+        learning_outcomes TEXT,
+        thumbnail TEXT,
+        order_number INTEGER,
         created_at TIMESTAMP DEFAULT NOW()
       );
       `

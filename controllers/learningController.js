@@ -1,4 +1,6 @@
 const pool = require("../models/db");
+const cloudinary = require("../utils/cloudinary");
+const fs = require("fs");
 
 exports.updateCourse = async (req, res) => {
   const { id } = req.params;
@@ -18,12 +20,38 @@ exports.updateCourse = async (req, res) => {
 
 // -------------------- MODULES --------------------
 exports.createModule = async (req, res) => {
-  const { title, course_id } = req.body;
+  const {
+    title,
+    course_id,
+    description,
+    objectives,
+    learning_outcomes,
+    order_number,
+  } = req.body;
+  let thumbnail = null;
+  
+  if (req.file) {
+      const result = await cloudinary.uploader.upload(req.file.path, {
+        folder: "modules",
+      });
+      thumbnail= result.secure_url;
+      if (fs.existsSync(req.file.path)) fs.unlinkSync(req.file.path);
+    }
+  
+  
   try {
-    await pool.query("INSERT INTO modules (title, course_id) VALUES ($1, $2)", [
-      title,
-      course_id,
-    ]);
+    await pool.query(
+      "INSERT INTO modules (title, course_id, description, objectives, learning_outcomes, thumbnail, order_number) VALUES ($1, $2, $3, $4, $5, $6, $7)",
+      [
+        title,
+        course_id,
+        description,
+        objectives,
+        learning_outcomes,
+        thumbnail,
+        order_number,
+      ]
+    );
     res.redirect(`/admin/courses/${course_id}?tab=modules`);
   } catch (err) {
     console.error("Error creating module:", err);
@@ -46,9 +74,30 @@ exports.createModule = async (req, res) => {
 //   }
 // };
 exports.editModule = async (req, res) => {
-  const { title } = req.body;
+  const { title, description, objectives, learning_outcomes, order_number } =
+    req.body;
   const { id } = req.params;
-  await pool.query("UPDATE modules SET title = $1 WHERE id = $2", [title, id]);
+
+  let thumbnail = null;
+
+  if (req.file) {
+    const result = await cloudinary.uploader.upload(req.file.path, {
+      folder: "modules",
+    });
+    thumbnail = result.secure_url;
+    if (fs.existsSync(req.file.path)) fs.unlinkSync(req.file.path);
+  }
+
+  const updatedThumbnail = thumbnail || null;
+  await pool.query("UPDATE modules SET title = $1, description = $2, objectives = $3, learning_outcomes = $4, thumbnail = $5, order_number = $6 WHERE id = $7", [
+    title,
+    description,
+    objectives,
+    learning_outcomes,
+    updatedThumbnail,
+    order_number,
+    id,
+  ]);
 
   // Find course ID to redirect correctly
   const result = await pool.query(
