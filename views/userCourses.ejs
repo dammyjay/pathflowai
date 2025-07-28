@@ -91,11 +91,16 @@
 
                 <h4><%= course.title %></h4>
                 <div class="article-body" id="desc-<%= course.id %>" data-full="<%- course.description.replace(/"/g, '&quot;') %>">
-                  <%- course.description.substring(0, 30) %>...
+                  
+                   <%- course.description.length > 60 ? course.description.substring(0, 60) + '...' : course.description %>
                 </div>
 
-                <a href="javascript:void(0);" class="toggle-article" onclick="togglePathway(<%= course.id %>)">Show More</a>
 
+                <% if (course.description.length > 60) { %>
+                  <a href="javascript:void(0);" class="toggle-article" onclick="toggleDescription(<%= course.id %>, `<%- course.description.replace(/`/g, '\\`').replace(/"/g, '&quot;') %>`)">
+                    Show More
+                  </a>
+                <% } %>
                 <!-- <div class="article-buttons">
                   <button class="btn-edit" onclick="openEditModal(<%= course.id %>)">Edit</button>
                   <form action="/admin/courses/delete/<%= course.id %>" method="POST" onsubmit="return confirm('Delete this course?');">
@@ -288,6 +293,24 @@
         var nav = document.getElementById("main-nav");
         nav.classList.toggle("open");
     }
+    </script>
+
+
+    <!-- script for show more -->
+     <script>
+      function toggleDescription(courseId, fullDescription) {
+        const descElement = document.getElementById(`desc-${courseId}`);
+        const toggleBtn = event.target;
+
+        const isCollapsed = toggleBtn.innerText === "Show More";
+        if (isCollapsed) {
+          descElement.innerHTML = fullDescription;
+          toggleBtn.innerText = "Show Less";
+        } else {
+          descElement.innerHTML = fullDescription.substring(0, 60) + "...";
+          toggleBtn.innerText = "Show More";
+        }
+      }
     </script>
 
     <!-- script for closing nav on outside click -->
