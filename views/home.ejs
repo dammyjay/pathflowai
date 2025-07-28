@@ -183,6 +183,12 @@
               <h4><%= course.title %></h4>
               <!-- <p><%- course.description.substring(0, 50) %>...</p> -->
               <small><strong><%= course.level %></strong> | <%= course.pathway_name || 'General' %></small>
+
+              <% if (course.amount == 0) { %>
+                  <p><strong>This is a free course</strong></p>
+                <% } else { %>
+                  <p><strong>Price:</strong> ₦<%= course.amount %></p>
+                <% } %>
             </div>
           <% }) %>
         </div>

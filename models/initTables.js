@@ -125,7 +125,8 @@ async function createTables() {
         level TEXT CHECK (level IN ('Beginner', 'Intermediate', 'Advanced')),
         career_pathway_id INTEGER REFERENCES career_pathways(id) ON DELETE SET NULL,
         thumbnail_url TEXT,
-        sort_order INTEGER DEFAULT 0, 
+        sort_order INTEGER DEFAULT 0,
+        amount INTEGER DEFAULT 0, 
         created_at TIMESTAMP DEFAULT NOW()
       );`
     );

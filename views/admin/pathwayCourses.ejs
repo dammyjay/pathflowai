@@ -121,6 +121,16 @@
             <% } %>
             <input type="file" name="thumbnail" /><br />
 
+            <div class="container" id="amountContainer">
+              <input
+                type="number"
+                name="amount"
+                step="0.01"
+                placeholder="Amount in ₦"
+                value="<%= course.amount || '' %>"
+              /><br />
+            </div>
+
             <button type="submit">Update Course</button>
             </form>
         </div>
@@ -201,6 +211,15 @@
 
       <input type="number" name="sort_order" placeholder="Sort Order" /><br />
       <input type="file" name="thumbnail" /><br />
+
+      <div class="container" id="amountContainer">
+              <input
+                type="number"
+                name="amount"
+                step="0.01"
+                placeholder="Amount in ₦"
+              /><br />
+            </div>
       <button type="submit">Create Course</button>
     </form>
       </div>

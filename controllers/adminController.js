@@ -842,7 +842,7 @@ exports.showCourses = async (req, res) => {
 
 exports.createCourse = async (req, res) => {
     console.log("Creating course with:", req.body);
-  const { title, description, level, career_pathway_id, sort_order } = req.body;
+  const { title, description, level, career_pathway_id, sort_order,  } = req.body;
   let thumbnail_url = null;
 
   if (req.file) {
@@ -866,7 +866,7 @@ exports.createCourse = async (req, res) => {
 
 exports.editCourse = async (req, res) => {
   const { id } = req.params;
-  const { title, description, level, career_pathway_id, sort_order } = req.body;
+  const { title, description, level, career_pathway_id, sort_order, amount } = req.body;
 
   try {
     let thumbnail_url = null;
@@ -893,8 +893,9 @@ exports.editCourse = async (req, res) => {
            level = $3,
            career_pathway_id = $4,
            thumbnail_url = $5,
-           sort_order = $6
-       WHERE id = $7`,
+           sort_order = $6,
+           amount = $7
+       WHERE id = $8`,
       [
         title,
         description,
@@ -902,6 +903,7 @@ exports.editCourse = async (req, res) => {
         career_pathway_id || null,
         updatedThumbnail,
         sort_order || null,
+        amount || null,
         id,
       ]
     );

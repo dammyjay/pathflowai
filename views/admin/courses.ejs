@@ -136,6 +136,13 @@
 
       <input type="number" name="sort_order" placeholder="Sort Order" /><br />
       <input type="file" name="thumbnail" /><br />
+
+            <input
+              type="number"
+              name="amount"
+              step="0.01"
+              placeholder="Amount in ₦"
+            /><br />
       <button type="submit">Create Course</button>
     </form>
       </div>
@@ -191,8 +198,8 @@
                   <%- course.description.substring(0, 30) %>...
                 </div>
 
-                <a href="javascript:void(0);" class="toggle-article" onclick="togglePathway(<%= course.id %>)">Show More</a>
-
+                <a href="javascript:void(0);" class="toggle-article" onclick="togglePathway(<%= course.id %>)">Show More</a> <br>
+                <small><strong>Price: </strong> ₦ <%= course.amount %></small>
                 <div class="article-buttons">
                   <button class="btn-edit" onclick="openEditModal(<%= course.id %>)">Edit</button>
                   <form action="/admin/courses/delete/<%= course.id %>" method="POST" onsubmit="return confirm('Delete this course?');">
@@ -232,6 +239,16 @@
                       <img src="<%= course.thumbnail_url %>" width="100" /><br />
                     <% } %>
                     <input type="file" name="thumbnail" /><br />
+                    <div class="container" id="amountContainer">
+                      <input
+                        type="number"
+                        name="amount"
+                        step="0.01"
+                        placeholder="Amount in ₦"
+                        value="<%= course.amount || '' %>"
+                      /><br />
+                    </div>
+                    
                     <button type="submit">Update Course</button>
                   </form>
                 </div>

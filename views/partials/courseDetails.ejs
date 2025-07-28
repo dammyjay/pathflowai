@@ -29,12 +29,25 @@
       <label>Description</label>
       <textarea id="content" name="description"><%= course.description %></textarea>
 
+      <label for="">Thumbnail</label>
+      <img style="width: 100px; height: 100px;" src="<%= course.thumbnail_url %>" st alt="">
+
+      <input type="file" name="thumbnail" id="">
+
       <label>Level</label>
       <select name="level">
         <option value="Beginner" <%= course.level === "Beginner" ? "selected" : "" %>>Beginner</option>
         <option value="Intermediate" <%= course.level === "Intermediate" ? "selected" : "" %>>Intermediate</option>
         <option value="Advanced" <%= course.level === "Advanced" ? "selected" : "" %>>Advanced</option>
       </select>
+
+      <label for="">Amount</label>
+      <input
+        type="number"
+        name="amount"
+        step="0.01"
+        placeholder="Amount in ₦"
+      /><br />
 
       <button type="submit">Save Changes</button>
     </form>
@@ -50,6 +63,7 @@
   <p><strong>Level:</strong> <%= course.Level %></p>
   <p><strong>Created At:</strong> <%= course.created_at.toDateString() %></p>
   <p><strong>sort number</strong> <%= course.sort_order %></p>
+  <p><strong>Price: </strong> ₦ <%= course.amount %></p>
   
 </div>
 

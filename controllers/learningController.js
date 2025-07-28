@@ -4,12 +4,12 @@ const fs = require("fs");
 
 exports.updateCourse = async (req, res) => {
   const { id } = req.params;
-  const { title, description, level } = req.body;
+  const { title, description, level, amount } = req.body;
 
   try {
     await pool.query(
-      "UPDATE courses SET title = $1, description = $2, level = $3 WHERE id = $4",
-      [title, description, level, id]
+      "UPDATE courses SET title = $1, description = $2, level = $3, amount = $4 WHERE id = $5",
+      [title, description, level, amount, id]
     );
     res.redirect(`/admin/courses/${id}?tab=details`);
   } catch (err) {

@@ -123,6 +123,12 @@
                     <button class="btn-delete" type="submit">Delete</button>
                   </form>
                 </div> -->
+
+                <% if (course.amount == 0) { %>
+                  <p><strong>This is a free course</strong></p>
+                <% } else { %>
+                  <p><strong>Price:</strong> ₦<%= course.amount %></p>
+                <% } %>
               </div>
 
               <!-- Edit Modal for this course -->
