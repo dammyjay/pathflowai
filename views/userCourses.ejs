@@ -67,6 +67,22 @@
       </nav>
     </header>
 
+    <div class="wallet-btn" style="display: flex; justify-content: right; margin-top: 1rem; width: 100%;">
+      <% if (isLoggedIn) { %>
+        <a href="/make-payment" class="btn-create" style="text-decoration: none;">Fund wallet</a>
+      <% } else { %>
+        <!-- <a href=""> -->
+          <button  onclick="promptLogin()" class="btn-create">Fund wallet</button>
+        <!-- </a> -->
+        <script>
+          function promptLogin() {
+            alert("Please login to make a payment.");
+            window.location.href = "/admin/login";
+          }
+        </script>
+      <% } %>
+    </div>
+
     <div class="pathway-nav">
     <button class="path-nav-btn" onclick="filterByPathway('All')">All Pathways</button>
     <% careerPathways.forEach(path => { %>
@@ -155,19 +171,7 @@
 
 
     
-    <% if (isLoggedIn) { %>
-      <a href="/make-payment" class="btn btn-primary">Make a Payment</a>
-    <% } else { %>
-      <!-- <a href=""> -->
-        <button onclick="promptLogin()" class="btn btn-primary">Make a Payment</button>
-      <!-- </a> -->
-      <script>
-        function promptLogin() {
-          alert("Please login to make a payment.");
-          window.location.href = "/admin/login";
-        }
-      </script>
-    <% } %>
+    
     
 
     <% if (subscribed === 'success') { %>
