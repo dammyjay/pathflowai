@@ -2,28 +2,8 @@ const pool = require("./db");
 
 async function createTables() {
   try {
-    // await pool.query(`
-    //   CREATE TABLE IF NOT EXISTS likes (
-    //     id SERIAL PRIMARY KEY,
-    //     user_id INTEGER REFERENCES users2(id) ON DELETE CASCADE,
-    //     content_type VARCHAR(10) CHECK (content_type IN ('article', 'video')),
-    //     content_id INTEGER NOT NULL,
-    //     created_at TIMESTAMP DEFAULT NOW(),
-    //     UNIQUE(user_id, content_type, content_id)
-    //   );
-    // `);
 
-    // await pool.query(`
-    //   CREATE TABLE IF NOT EXISTS comments (
-    //     id SERIAL PRIMARY KEY,
-    //     user_id INTEGER REFERENCES users2(id) ON DELETE CASCADE,
-    //     content_type VARCHAR(10) CHECK (content_type IN ('article', 'video')),
-    //     content_id INTEGER NOT NULL,
-    //     comment TEXT NOT NULL,
-    //     created_at TIMESTAMP DEFAULT NOW()
-    //   );
-    // `);
-
+    // table for push notifications
     await pool.query(`
       CREATE TABLE IF NOT EXISTS push_subscriptions (
         id SERIAL PRIMARY KEY,
@@ -32,6 +12,7 @@ async function createTables() {
       );
     `);
 
+    // table for push notifications
     await pool.query(`
       CREATE TABLE IF NOT EXISTS subscriptions (
         id SERIAL PRIMARY KEY,
@@ -41,17 +22,7 @@ async function createTables() {
       );
     `);
 
-    // await pool.query(`
-    //   CREATE TABLE devotionals (
-    //     id SERIAL PRIMARY KEY,
-    //     title TEXT NOT NULL,
-    //     scripture TEXT,
-    //     content TEXT NOT NULL,
-    //     image_url TEXT,
-    //     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
-    //   );
-    // `);
-
+    // table for company info
     await pool.query(
       `CREATE TABLE IF NOT EXISTS company_info(
             id SERIAL PRIMARY KEY,
@@ -66,6 +37,7 @@ async function createTables() {
         );`
     );
 
+    // table for pending users
     await pool.query(
       `CREATE TABLE IF NOT EXISTS pending_users(
         id SERIAL PRIMARY KEY,
@@ -84,6 +56,7 @@ async function createTables() {
         )`
     );
 
+    // table for users
     await pool.query(
       `CREATE TABLE IF NOT EXISTS users2(
         id SERIAL PRIMARY KEY,
@@ -102,6 +75,7 @@ async function createTables() {
       )`
     );
 
+    // table for career pathways
     await pool.query(
       `CREATE TABLE IF NOT EXISTS career_pathways(
         id SERIAL PRIMARY KEY,
@@ -117,6 +91,7 @@ async function createTables() {
       )`
     );
 
+    // table for courses
     await pool.query(
       `CREATE TABLE IF NOT EXISTS courses (
         id SERIAL PRIMARY KEY,
@@ -131,6 +106,7 @@ async function createTables() {
       );`
     );
 
+    // table for transactions
     await pool.query(
       `CREATE TABLE IF NOT EXISTS transactions (
         id SERIAL PRIMARY KEY,
@@ -143,6 +119,7 @@ async function createTables() {
       );`
     );
 
+    //table for benefits
     await pool.query(
       `CREATE TABLE IF NOT EXISTS benefits (
         id SERIAL PRIMARY KEY,
@@ -153,7 +130,7 @@ async function createTables() {
       );`
     );
 
-    
+    // table for events
     await pool.query(`
       CREATE TABLE IF NOT EXISTS events (
         id SERIAL PRIMARY KEY,
@@ -170,6 +147,7 @@ async function createTables() {
       );
     `);
 
+    // table for event registrations
     await pool.query(
       `CREATE TABLE IF NOT EXISTS event_registrations (
         id SERIAL PRIMARY KEY,
@@ -186,6 +164,7 @@ async function createTables() {
       `
     );
 
+    // table for testimonials
     await pool.query(
       `CREATE TABLE IF NOT EXISTS about_sections (
         id SERIAL PRIMARY KEY,
@@ -196,6 +175,7 @@ async function createTables() {
       );`
     );
 
+    // table for gallery categories
     await pool.query(
       `CREATE TABLE IF NOT EXISTS gallery_categories (
         id SERIAL PRIMARY KEY,
@@ -204,6 +184,7 @@ async function createTables() {
       );`
     );
 
+    // 
     await pool.query(
       `CREATE TABLE IF NOT EXISTS gallery_images (
         id SERIAL PRIMARY KEY,
@@ -214,6 +195,7 @@ async function createTables() {
       );`
     );
 
+    // table for modules
     await pool.query(
       `CREATE TABLE IF NOT EXISTS modules (
         id SERIAL PRIMARY KEY,
@@ -229,6 +211,7 @@ async function createTables() {
       `
     );
 
+    // table for lessons
     await pool.query(
       `CREATE TABLE IF NOT EXISTS lessons (
         id SERIAL PRIMARY KEY,
@@ -241,6 +224,7 @@ async function createTables() {
       `
     );
 
+    // table for lesson assignments
     await pool.query(
       `CREATE TABLE IF NOT EXISTS lesson_assignments (
         id SERIAL PRIMARY KEY,
@@ -252,6 +236,7 @@ async function createTables() {
       );`
     );
 
+    // table for module assignments
     await pool.query(
       `CREATE TABLE IF NOT EXISTS module_assignments (
         id SERIAL PRIMARY KEY,
@@ -263,6 +248,7 @@ async function createTables() {
       );`
     );
 
+    // table for course projects
     await pool.query(
       `CREATE TABLE IF NOT EXISTS course_projects (
         id SERIAL PRIMARY KEY,
@@ -275,6 +261,7 @@ async function createTables() {
       `
     );
 
+    // table for quizzes
     await pool.query(
       `CREATE TABLE IF NOT EXISTS quizzes (
         id SERIAL PRIMARY KEY,
@@ -284,6 +271,7 @@ async function createTables() {
       );`
     );
 
+    // table for quiz questions
     await pool.query(
       `CREATE TABLE IF NOT EXISTS quiz_questions (
         id SERIAL PRIMARY KEY,
@@ -292,6 +280,86 @@ async function createTables() {
         options TEXT[], -- e.g. ARRAY['A', 'B', 'C', 'D']
         correct_option TEXT NOT NULL
       );
+      `
+    );
+
+      // table for course enrollments
+    await pool.query(
+      `CREATE TABLE IF NOT EXISTS course_enrollments (
+        id SERIAL PRIMARY KEY,
+        user_id INTEGER REFERENCES users2(id) ON DELETE CASCADE,
+        course_id INTEGER REFERENCES courses(id) ON DELETE CASCADE,
+        enrolled_at TIMESTAMP DEFAULT NOW(),
+        progress INTEGER DEFAULT 0
+      );
+      `
+    );
+
+    // table for tracking student XP
+    await pool.query(
+      `CREATE TABLE IF NOT EXISTS student_xp (
+        user_id INTEGER PRIMARY KEY REFERENCES users2(id) ON DELETE CASCADE,
+        xp INTEGER DEFAULT 0,
+        level INTEGER DEFAULT 1
+      );
+      `
+    );
+
+    // table for tracking student badges
+    await pool.query(
+      `CREATE TABLE IF NOT EXISTS student_badges (
+        id SERIAL PRIMARY KEY,
+        user_id INTEGER REFERENCES users2(id) ON DELETE CASCADE,
+        title TEXT,
+        awarded_at TIMESTAMP DEFAULT NOW()
+      );
+      `
+    );
+
+    // table for tracking user XP history
+    await pool.query(
+      `CREATE TABLE IF NOT EXISTS xp_history (
+        id SERIAL PRIMARY KEY,
+        user_id INTEGER REFERENCES users2(id) ON DELETE CASCADE,
+        xp INTEGER NOT NULL,
+        activity TEXT, -- e.g., "Completed lesson", "Quiz passed"
+        earned_at TIMESTAMP DEFAULT NOW()
+      );
+      `
+    );
+
+    // table for tracking user badges
+    await pool.query(
+      `
+      CREATE TABLE IF NOT EXISTS user_badges (
+        id SERIAL PRIMARY KEY,
+        user_id INTEGER REFERENCES users2(id) ON DELETE CASCADE,
+        badge_name TEXT NOT NULL,
+        awarded_at TIMESTAMP DEFAULT NOW(),
+        UNIQUE(user_id, badge_name)
+      );
+      `
+    );
+
+    // table for tracking lesson completion
+    await pool.query(
+      `CREATE TABLE IF NOT EXISTS user_lesson_progress (
+        id SERIAL PRIMARY KEY,
+        user_id INTEGER REFERENCES users2(id) ON DELETE CASCADE,
+        lesson_id INTEGER REFERENCES lessons(id) ON DELETE CASCADE,
+        completed_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+        UNIQUE(user_id, lesson_id)
+      );
+      `
+    );
+
+    await pool.query(
+      `
+      `
+    );
+
+    await pool.query(
+      `
       `
     );
 

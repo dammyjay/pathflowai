@@ -45,6 +45,13 @@ app.use(
     },
   })
 );
+app.use((req, res, next) => {
+  if (req.session && req.session.user) {
+    req.user = req.session.user; // 👈 Attach user to req
+    res.locals.user = req.session.user; // (optional) make available in views
+  }
+  next();
+});
 
 app.locals.vapidPublicKey = process.env.VAPID_PUBLIC_KEY;
 
@@ -82,6 +89,10 @@ app.use("/", aboutRoutes);
 
 const galleryRoutes = require("./routes/galleryRoutes");
 app.use("/", galleryRoutes);
+
+
+const studentRoutes = require("./routes/student");
+app.use("/student", studentRoutes);
 
 
 app.get("/test", (req, res) => {

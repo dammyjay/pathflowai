@@ -395,6 +395,13 @@ router.get("/courses", async (req, res) => {
     ORDER BY cp.title ASC, courses.level ASC, sort_order ASC
   `);
 
+  const enrolledCoursesRes = await pool.query(
+    `SELECT course_id FROM course_enrollments WHERE user_id = $1`,
+    [req.user?.id]
+  );
+  const enrolledCourseIds = enrolledCoursesRes.rows.map((r) => r.course_id);
+
+
   // Grouping courses by pathway and level
   const groupedCourses = {};
 
@@ -430,6 +437,7 @@ router.get("/courses", async (req, res) => {
     isLoggedIn: !!req.session.user,
     profilePic,
     walletBalance,
+    enrolledCourseIds,
     groupedCourses,
     careerPathways: careerPathwaysResult.rows,
     subscribed: req.query.subscribed,

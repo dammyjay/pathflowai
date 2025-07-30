@@ -51,7 +51,9 @@
               <a  href="/make-payment">Fund wallet</a>
               <a href="/profile">View Profile</a>
             </div>
+            
           </div>
+          <a href="/student/dashboard"> Dashboard</a>
           
           
           
@@ -90,6 +92,8 @@
     <% }) %>
     </div>
    
+    
+
     <% for (let pathway in groupedCourses) { %>
   <div class="pathway-group" data-pathway="<%= pathway %>">
     <h2 style="margin-top: 2rem; color: goldenrod;"><%= pathway %></h2>
@@ -129,6 +133,27 @@
                 <% } else { %>
                   <p><strong>Price:</strong> ₦<%= course.amount %></p>
                 <% } %>
+
+                <div style="display: flex; width: 100%;">
+                <% const isEnrolled = enrolledCourseIds?.includes(course.id); %>
+
+                  <% if (isLoggedIn && !isEnrolled) { %>
+                    <form action="/student/courses/enroll/<%= course.id %>" method="POST" onsubmit="return confirmEnroll(<%= course.amount %>)">
+                      <button type="submit" class="btn-create">
+                        <% if (course.amount == 0) { %>
+                          Enroll for Free
+                        <% } else { %>
+                          Enroll (₦<%= course.amount.toLocaleString() %> from wallet)
+                        <% } %>
+                      </button>
+                    </form>
+                  <% } else if (isLoggedIn && isEnrolled) { %>
+                    <p style="color: green;"><i class="fas fa-check-circle"></i> Already Enrolled</p>
+                  <% } else { %>
+                    <button class="btn-create" onclick="promptLogin()">Login to Enroll</button>
+                  <% } %>
+                  </div>
+
               </div>
 
               <!-- Edit Modal for this course -->
@@ -303,6 +328,14 @@
         var nav = document.getElementById("main-nav");
         nav.classList.toggle("open");
     }
+    </script>
+
+    <!-- script for confirm enrollment -->
+    <script>
+      function confirmEnroll(amount) {
+        if (amount === 0) return true;
+        return confirm(`This course costs ₦${amount.toLocaleString()}. Proceed to enroll using your wallet balance?`);
+      }
     </script>
 
 

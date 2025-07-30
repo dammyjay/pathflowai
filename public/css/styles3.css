@@ -186,6 +186,36 @@
       border-radius: 8px;
   }
   
+
+ .dashboard-container {
+     flex-direction: column;
+ }
+
+ .sidebar {
+     flex: 1 1 100%;
+     text-align: center;
+ }
+
+ .sidebar ul li a {
+     display: inline-block;
+     margin: 5px 10px;
+ }
+
+ .main-content {
+     flex: 1 1 100%;
+ }
+
+ .hamburger {
+     display: block;
+ }
+
+ .sidebar {
+     display: none;
+ }
+
+ .sidebar.open {
+     display: block;
+ }
 }
 
 
