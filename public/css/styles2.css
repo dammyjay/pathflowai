@@ -230,6 +230,17 @@
     scroll-behavior: smooth;
 }
 
+.course-card2 {
+    min-width: 250px;
+    flex: 0 0 auto;
+    background: #fff;
+    border-radius: 8px;
+    padding: 1rem;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+    transition: transform 0.3s;
+    margin-bottom: 10px;
+}
+
 .course-card {
     min-width: 250px;
     flex: 0 0 auto;
@@ -240,7 +251,16 @@
     transition: transform 0.3s;
 }
 
+
 .course-card img {
+    width: 100%;
+    height: 150px;
+    object-fit: contain;
+    border-radius: 6px;
+    margin-bottom: 10px;
+}
+
+.course-card2 img {
     width: 100%;
     height: 150px;
     object-fit: contain;
@@ -548,12 +568,38 @@
   color: #007bff;
 }
 
+.content-section {
+    display: none;
+}
+
+.content-section:first-child {
+    display: block;
+}
+
+.sidebar button.nav-tab {
+    background: none;
+    border: none;
+    color: inherit;
+    font: inherit;
+    padding: 0.5em 0;
+    width: 100%;
+    text-align: left;
+    cursor: pointer;
+}
+
+.sidebar button.nav-tab:hover {
+    background-color: #f0f0f0;
+}
+
 /* === Dashboard Container === */
 .dashboard-container {
     display: flex;
+    flex-direction: row;
+    /* Moves sidebar to the right */
     min-height: 100vh;
     background-color: #f9f9f9;
     font-family: 'Segoe UI', sans-serif;
+    width: 100%;
 }
 
 /* === Sidebar === */
@@ -562,6 +608,12 @@
     background-color: #222;
     color: white;
     padding: 20px;
+    position: sticky;
+    top: 0;
+    /* left: 0; */
+    height: 100vh;
+    overflow-y: auto;
+    z-index: 1000;
 }
 
 .sidebar-header{
@@ -583,8 +635,9 @@
     padding: 0;
 }
 
-.sidebar ul li {
-    margin-bottom: 10px;
+.sidebar ul li,
+.sidebar h2 {
+    text-align: right;
 }
 
 .sidebar ul li a {
@@ -606,6 +659,9 @@
 .main-content {
     flex: 1;
     padding: 30px;
+    min-width: 0;
+    width: 100%;
+    /* helps prevent overflow */
 }
 
 .main-content h1 {

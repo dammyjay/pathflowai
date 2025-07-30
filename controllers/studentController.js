@@ -50,6 +50,7 @@ exports.getDashboard = async (req, res) => {
       walletBalance,
       subscribed: req.query.subscribed,
       enrolledCourses: enrolledCoursesRes.rows,
+      courses: enrolledCoursesRes.rows, // if using courses tab
       badges: badgesRes.rows,
       xpHistory: xpHistoryRes.rows,
     });
@@ -63,16 +64,31 @@ exports.getDashboard = async (req, res) => {
 exports.getEnrolledCourses = async (req, res) => {
   const studentId = req.user.id;
   const infoResult = await pool.query(
-    "SELECT * FROM company_info ORDER BY id DESC LIMIT 1",
-    [studentId]
+    "SELECT * FROM company_info ORDER BY id DESC LIMIT 1"
   );
   const info = infoResult.rows[0] || {};
   const isLoggedIn = !!req.session.user; // or whatever property you use for login
   const profilePic = req.session.user ? req.session.user.profile_picture : null;
 
-  const studentRes = await pool.query("SELECT * FROM users2 WHERE id = $1", [
-    studentId,
-  ]);
+  const [studentRes, enrolledCoursesRes, badgesRes, xpHistoryRes] =
+    await Promise.all([
+      pool.query("SELECT * FROM users2 WHERE id = $1", [studentId]),
+      pool.query(
+        `
+        SELECT c.*, e.progress
+        FROM course_enrollments e
+        JOIN courses c ON c.id = e.course_id
+        WHERE e.user_id = $1
+        ORDER BY c.created_at DESC
+      `,
+        [studentId]
+      ),
+      pool.query(`SELECT * FROM user_badges WHERE user_id = $1`, [studentId]),
+      pool.query(
+        `SELECT * FROM xp_history WHERE user_id = $1 ORDER BY earned_at DESC LIMIT 10`,
+        [studentId]
+      ),
+    ]);
   let walletBalance = 0;
   if (req.session.user) {
     const walletResult = await pool.query(
@@ -103,6 +119,10 @@ exports.getEnrolledCourses = async (req, res) => {
       users: req.session.user,
       walletBalance,
       profilePic,
+      enrolledCourses: enrolledCoursesRes.rows,
+      courses: enrolledCoursesRes.rows, // if using courses tab
+      badges: badgesRes.rows,
+      xpHistory: xpHistoryRes.rows,
     });
   } catch (err) {
     console.error("Error fetching courses:", err.message);
@@ -131,7 +151,7 @@ exports.getAnalytics = async (req, res) => {
     const labels = result.rows.map((row) => row.module);
     const data = result.rows.map((row) => Number(row.lessons_completed));
 
-    res.render("student/analytics", {
+    res.render("student/dashboard", {
       chart: { labels, data },
     });
   } catch (err) {

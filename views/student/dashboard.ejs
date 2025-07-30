@@ -1,39 +1,59 @@
-<!-- <%- include('../partials/header', { title: 'Dashboard' }) %> -->
+<%- include('../partials/header', { title: 'Dashboard' }) %>
 
-<button id="toggleSidebar" class="hamburger">☰</button>
+<button id="toggleSidebar" class="hamburger" style="margin-bottom: 20px">
+  ☰
+</button>
 
 <div class="dashboard-container">
   <aside class="sidebar">
     <div class="sidebar-header">
       <% if (profilePic) { %>
-        <img src="<%= profilePic %>" alt="Profile Picture" class="profile-pic">
+      <img src="<%= profilePic %>" alt="Profile Picture" class="profile-pic" />
       <% } else { %>
-        <img src="/images/profile male.png" alt="Default Profile Picture" class="profile-pic">
+      <img
+        src="/images/profile male.png"
+        alt="Default Profile Picture"
+        class="profile-pic"
+      />
       <% } %>
     </div>
     <h2>👤 <%= student.fullname %></h2>
-    <ul>
+    <!-- <ul>
       <li><a href="/student/dashboard">🏠 Dashboard</a></li>
       <li><a href="/student/courses">📚 My Courses</a></li>
       <li><a href="/student/analytics">📈 Progress</a></li>
       <li><a href="/student/badges">🎖️ Badges</a></li>
       <li><a href="/logout">🚪 Logout</a></li>
+    </ul> -->
+
+    <ul>
+      <li>
+        <button class="nav-tab" data-section="dashboard">🏠 Dashboard</button>
+      </li>
+      <li>
+        <button class="nav-tab" data-section="courses">📚 My Courses</button>
+      </li>
+      <li>
+        <button class="nav-tab" data-section="progress">📈 Progress</button>
+      </li>
+      <li><button class="nav-tab" data-section="badges">🎖️ Badges</button></li>
+      <li><a href="/admin/logout">🚪 Logout</a></li>
     </ul>
   </aside>
 
-  <main class="main-content">
+  <!-- <main class="main-content">
     <h1>Welcome, <%= student.fullname %>!</h1>
 
     <section class="progress-summary">
       <h3>Course Progress Overview</h3>
       <% enrolledCourses.forEach(course => { %>
-        <div class="course-card">
-          <h4><%= course.title %></h4>
-          <div class="progress-bar">
-            <div class="filled" style="width: <%= course.progress %>%;"></div>
-          </div>
-          <p><%= course.progress %>% complete</p>
+      <div class="course-card">
+        <h4><%= course.title %></h4>
+        <div class="progress-bar">
+          <div class="filled" style="width: <%= course.progress %>%"></div>
         </div>
+        <p><%= course.progress %>% complete</p>
+      </div>
       <% }) %>
     </section>
 
@@ -43,7 +63,7 @@
       <p>Level: <strong><%= student.level %></strong></p>
       <div class="badges">
         <% badges.forEach(badge => { %>
-          <span class="badge"><%= badge.title %></span>
+        <span class="badge"><%= badge.title %></span>
         <% }) %>
       </div>
     </section>
@@ -52,34 +72,126 @@
       <h3>Analytics</h3>
       <canvas id="progressChart"></canvas>
     </section>
+  </main> -->
+
+  <main class="main-content">
+    <section id="dashboard-section" class="content-section">
+      <h1>Welcome, <%= student.fullname %>!</h1>
+
+      <div class="progress-summary">
+        <h3>Course Progress Overview</h3>
+        <% enrolledCourses.forEach(course => { %>
+        <div class="course-card2">
+          <img src="<%= course.thumbnail_url %>" alt="" />
+          <h4><%= course.title %></h4>
+          <div class="progress-bar">
+            <div class="filled" style="width: <%= course.progress %>%"></div>
+          </div>
+          <p><%= course.progress %>% complete</p>
+        </div>
+        <% }) %>
+      </div>
+    </section>
+
+    <section id="courses-section" class="content-section" style="display: none">
+      <h2>📚 My Courses</h2>
+      <% courses.forEach(course => { %>
+      <div class="course-card2">
+        <h4><%= course.title %></h4>
+        <p><%- course.description %></p>
+      </div>
+      <% }) %>
+    </section>
+
+    <section
+      id="progress-section"
+      class="content-section"
+      style="display: none"
+    >
+      <h2>📈 Progress Analytics</h2>
+      <canvas id="progressChart"></canvas>
+    </section>
+
+    <section id="badges-section" class="content-section" style="display: none">
+      <h2>🎖️ My Badges</h2>
+      <p>XP Points: <strong><%= student.xp %></strong></p>
+      <p>Level: <strong><%= student.level %></strong></p>
+      <div class="badges">
+        <% badges.forEach(badge => { %>
+        <span class="badge"><%= badge.title %></span>
+        <% }) %>
+      </div>
+    </section>
   </main>
 </div>
 
 <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-<script>
-  const ctx = document.getElementById('progressChart').getContext('2d');
-  const chart = new Chart(ctx, {
-    type: 'bar',
-    data: {
-      labels: <%- JSON.stringify(enrolledCourses.map(c => c.title)) %>,
-      datasets: [{
-        label: 'Progress (%)',
-        data: <%- JSON.stringify(enrolledCourses.map(c => c.progress)) %>,
-        backgroundColor: 'rgba(75, 192, 192, 0.6)'
-      }]
-    },
-    options: {
-      responsive: true,
-      scales: {
-        y: { beginAtZero: true, max: 100 }
+<!-- <script>
+    const ctx = document.getElementById('progressChart').getContext('2d');
+    const chart = new Chart(ctx, {
+      type: 'bar',
+      data: {
+        labels: <%- JSON.stringify(enrolledCourses.map(c => c.title)) %>,
+        datasets: [{
+          label: 'Progress (%)',
+          data: <%- JSON.stringify(enrolledCourses.map(c => c.progress)) %>,
+          backgroundColor: 'rgba(75, 192, 192, 0.6)'
+        }]
+      },
+      options: {
+        responsive: true,
+        scales: {
+          y: { beginAtZero: true, max: 100 }
+        }
       }
-    }
+    });
+
+    document.getElementById("toggleSidebar").addEventListener("click", function () {
+    document.querySelector(".sidebar").classList.toggle("open");
+  });
+</script> -->
+
+<script>
+  const navTabs = document.querySelectorAll('.nav-tab');
+  const sections = document.querySelectorAll('.content-section');
+
+  navTabs.forEach(tab => {
+    tab.addEventListener('click', () => {
+      const target = tab.getAttribute('data-section');
+
+      sections.forEach(section => {
+        section.style.display = 'none';
+      });
+
+      document.getElementById(`${target}-section`).style.display = 'block';
+    });
   });
 
   document.getElementById("toggleSidebar").addEventListener("click", function () {
-  document.querySelector(".sidebar").classList.toggle("open");
-});
+    document.querySelector(".sidebar").classList.toggle("open");
+  });
 
+  // Optional: Re-initialize chart when tab is clicked
+  document.querySelector('[data-section="progress"]').addEventListener('click', () => {
+    if (typeof chart !== 'undefined') chart.destroy();
+
+    const ctx = document.getElementById('progressChart').getContext('2d');
+    chart = new Chart(ctx, {
+      type: 'bar',
+      data: {
+        labels: <%- JSON.stringify(enrolledCourses.map(c => c.title)) %>,
+        datasets: [{
+          label: 'Progress (%)',
+          data: <%- JSON.stringify(enrolledCourses.map(c => c.progress)) %>,
+          backgroundColor: 'rgba(75, 192, 192, 0.6)'
+        }]
+      },
+      options: {
+        responsive: true,
+        scales: {
+          y: { beginAtZero: true, max: 100 }
+        }
+      }
+    });
+  });
 </script>
-
-<%- include('../partials/footer') %>
