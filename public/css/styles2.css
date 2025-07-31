@@ -616,7 +616,7 @@
 } */
 
 .sidebar {
-    width: 240px;
+    /* width: 240px; */
     background-color: #1e1e2f;
     color: #fff;
     padding: 20px;
@@ -649,7 +649,7 @@
 
 .sidebar ul li,
 .sidebar h2 {
-    text-align: right;
+    text-align: left;
 }
 
 .sidebar ul li a {
@@ -841,6 +841,11 @@ canvas {
 .sidebar-nav {
     list-style: none;
     padding-left: 0;
+}
+
+.sidebar-nav ul{
+    padding-left: 0;
+    text-align: left;
 }
 
 .sidebar-nav li {

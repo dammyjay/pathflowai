@@ -109,57 +109,10 @@
     </section>
   </main> -->
 
-  <main class="main-content">
-    <!-- <section id="dashboard-section" class="content-section">
-      <h1>Welcome, <%= student.fullname %>!</h1>
-
-      <div class="progress-summary">
-        <h3>Course Progress Overview</h3>
-        <% enrolledCourses.forEach(course => { %>
-        <div class="course-card2">
-          <img src="<%= course.thumbnail_url %>" alt="" />
-          <h4><%= course.title %></h4>
-          <div class="progress-bar">
-            <div class="filled" style="width: <%= course.progress %>%"></div>
-          </div>
-          <p><%= course.progress %>% complete</p>
-        </div>
-        <% }) %>
-      </div>
-    </section>
-
-    <section id="courses-section" class="content-section" style="display: none">
-      <h2>📚 My Courses</h2>
-      <% courses.forEach(course => { %>
-      <div class="course-card2">
-        <h4><%= course.title %></h4>
-        <p><%- course.description %></p>
-      </div>
-      <% }) %>
-    </section>
-
-    <section
-      id="progress-section"
-      class="content-section"
-      style="display: none"
-    >
-      <h2>📈 Progress Analytics</h2>
-      <canvas id="progressChart"></canvas>
-    </section>
-
-    <section id="badges-section" class="content-section" style="display: none">
-      <h2>🎖️ My Badges</h2>
-      <p>XP Points: <strong><%= student.xp %></strong></p>
-      <p>Level: <strong><%= student.level %></strong></p>
-      <div class="badges">
-        <% badges.forEach(badge => { %>
-        <span class="badge"><%= badge.title %></span>
-        <% }) %>
-      </div>
-    </section> -->
-
-    <!-- Stats Boxes -->
-    <div class="stats-boxes">
+ <main class="main-content">
+  <% if (!selectedPathway || !pathwayCourses[selectedPathway]) { %>
+    <!-- DASHBOARD VIEW -->
+    <section class="stats-boxes">
       <div class="stat-box light-blue">
         <h4>📘 Courses Completed</h4>
         <p><%= completedCourses %></p>
@@ -176,9 +129,8 @@
         <h4>📜 Certificates</h4>
         <p><%= certificatesCount %></p>
       </div>
-    </div>
+    </section>
 
-    <!-- Engagement Chart -->
     <div class="analytics-wrapper">
       <div class="analytics-filters">
         <select>
@@ -188,13 +140,11 @@
       <canvas id="engagementChart"></canvas>
     </div>
 
-    <!-- Course Progress Chart -->
     <div class="chart-section">
       <h3>📊 Course Completion Progress</h3>
       <canvas id="courseProgressChart"></canvas>
     </div>
 
-    <!-- Continue Learning Grid -->
     <h2>Continue Learning</h2>
     <div class="course-grid">
       <% enrolledCourses.forEach(course => { %>
@@ -210,7 +160,9 @@
       </div>
       <% }) %>
     </div>
-    <% if (selectedPathway && pathwayCourses[selectedPathway]) { %>
+
+  <% } else { %>
+    <!-- PATHWAY VIEW -->
     <section class="pathway-section">
       <h2><%= selectedPathway %> Courses</h2>
 
@@ -226,24 +178,16 @@
               alt=""
             />
             <h4><%= mod.title %></h4>
-
-            <a href="/student/courses/<%= course.id %>/modules/<%= mod.id %>"
-              >View Module</a
-            >
+            <a href="/student/courses/<%= course.id %>/modules/<%= mod.id %>">View Module</a>
           </div>
           <% }) %>
         </div>
       </div>
       <% }) %>
     </section>
-    <% } else { %>
-    <!-- Show normal dashboard content when no pathway is selected -->
-    <section id="dashboard-section" class="content-section">
-      <h1>Welcome, <%= student.fullname %>!</h1>
-      <!-- Include analytics, progress, XP, charts, etc. -->
-    </section>
-    <% } %>
-  </main>
+  <% } %>
+</main>
+
 </div>
 
 <!-- <script src="https://cdn.jsdelivr.net/npm/chart.js"></script> -->
