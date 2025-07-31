@@ -282,6 +282,10 @@
       display: block;
   }
 
+   .stat-box {
+    flex: 1 1 100%; /* Full width on mobile */
+  }
+
 }
 
 

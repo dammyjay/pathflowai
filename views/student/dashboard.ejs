@@ -220,9 +220,13 @@
         <div class="modules-scroll">
           <% (courseModules[course.id] || []).forEach(mod => { %>
           <div class="module-card">
-            <img style="width: 100%; height: 100px; object-fit: contain;" src="<%= mod.thumbnail || '/images/JKT logo bg.png' %>" alt="">
+            <img
+              style="width: 100%; height: 100px; object-fit: contain"
+              src="<%= mod.thumbnail || '/images/JKT logo bg.png' %>"
+              alt=""
+            />
             <h4><%= mod.title %></h4>
-            
+
             <a href="/student/courses/<%= course.id %>/modules/<%= mod.id %>"
               >View Module</a
             >
