@@ -184,7 +184,7 @@ async function createTables() {
       );`
     );
 
-    // 
+    // table for gallery images
     await pool.query(
       `CREATE TABLE IF NOT EXISTS gallery_images (
         id SERIAL PRIMARY KEY,

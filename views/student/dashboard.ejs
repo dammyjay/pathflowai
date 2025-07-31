@@ -18,15 +18,8 @@
       <% } %>
     </div>
     <h2>👤 <%= student.fullname %></h2>
-    <!-- <ul>
-      <li><a href="/student/dashboard">🏠 Dashboard</a></li>
-      <li><a href="/student/courses">📚 My Courses</a></li>
-      <li><a href="/student/analytics">📈 Progress</a></li>
-      <li><a href="/student/badges">🎖️ Badges</a></li>
-      <li><a href="/logout">🚪 Logout</a></li>
-    </ul> -->
 
-    <ul>
+    <!-- <ul>
       <li>
         <button class="nav-tab" data-section="dashboard">🏠 Dashboard</button>
       </li>
@@ -37,6 +30,48 @@
         <button class="nav-tab" data-section="progress">📈 Progress</button>
       </li>
       <li><button class="nav-tab" data-section="badges">🎖️ Badges</button></li>
+      <li><a href="/admin/logout">🚪 Logout</a></li>
+    </ul> -->
+    <ul class="sidebar-nav">
+      <li><a href="/student/dashboard">🏠 Dashboard</a></li>
+
+      <!-- Profile -->
+      <li><a href="/student/profile">👤 My Profile</a></li>
+
+      <!-- Pathways / Courses -->
+      <li>
+        <button class="dropdown-btn">📂 My Pathways ▾</button>
+        <!-- <ul class="dropdown-container">
+          <% enrolledCourses.forEach(course => { %>
+          <li>
+            <button class="sub-dropdown-btn"><%= course.title %> ▸</button>
+            <ul class="sub-dropdown">
+              <% (courseModules[course.id] || []).forEach(module => { %>
+              <li>
+                <a
+                  href="/student/courses/<%= course.id %>/modules/<%= module.id %>"
+                >
+                  <%= module.title %>
+                </a>
+              </li>
+              <% }) %>
+            </ul>
+          </li>
+          <% }) %>
+        </ul> -->
+        <ul class="dropdown-container">
+          <% Object.keys(pathwayCourses).forEach(pathway => { %>
+          <li>
+            <a
+              href="/student/dashboard?pathway=<%= encodeURIComponent(pathway) %>"
+            >
+              <%= pathway %>
+            </a>
+          </li>
+          <% }) %>
+        </ul>
+      </li>
+
       <li><a href="/admin/logout">🚪 Logout</a></li>
     </ul>
   </aside>
@@ -75,7 +110,7 @@
   </main> -->
 
   <main class="main-content">
-    <section id="dashboard-section" class="content-section">
+    <!-- <section id="dashboard-section" class="content-section">
       <h1>Welcome, <%= student.fullname %>!</h1>
 
       <div class="progress-summary">
@@ -121,11 +156,93 @@
         <span class="badge"><%= badge.title %></span>
         <% }) %>
       </div>
+    </section> -->
+
+    <!-- Stats Boxes -->
+    <div class="stats-boxes">
+      <div class="stat-box light-blue">
+        <h4>📘 Courses Completed</h4>
+        <p><%= completedCourses %></p>
+      </div>
+      <div class="stat-box light-pink">
+        <h4>🗂️ Completed Projects</h4>
+        <p><%= completedProjects %></p>
+      </div>
+      <div class="stat-box light-yellow">
+        <h4>🏅 Badges Earned</h4>
+        <p><%= badges.length %></p>
+      </div>
+      <div class="stat-box light-grey">
+        <h4>📜 Certificates</h4>
+        <p><%= certificatesCount %></p>
+      </div>
+    </div>
+
+    <!-- Engagement Chart -->
+    <div class="analytics-wrapper">
+      <div class="analytics-filters">
+        <select>
+          <option selected>This Week</option>
+        </select>
+      </div>
+      <canvas id="engagementChart"></canvas>
+    </div>
+
+    <!-- Course Progress Chart -->
+    <div class="chart-section">
+      <h3>📊 Course Completion Progress</h3>
+      <canvas id="courseProgressChart"></canvas>
+    </div>
+
+    <!-- Continue Learning Grid -->
+    <h2>Continue Learning</h2>
+    <div class="course-grid">
+      <% enrolledCourses.forEach(course => { %>
+      <div class="course-card3">
+        <img src="<%= course.thumbnail_url %>" alt="" />
+        <div>
+          <h4><%= course.title %></h4>
+          <p><%= course.progress %>% complete</p>
+          <div class="progress-bar">
+            <div class="filled" style="width: <%= course.progress %>%"></div>
+          </div>
+        </div>
+      </div>
+      <% }) %>
+    </div>
+    <% if (selectedPathway && pathwayCourses[selectedPathway]) { %>
+    <section class="pathway-section">
+      <h2><%= selectedPathway %> Courses</h2>
+
+      <% pathwayCourses[selectedPathway].forEach(course => { %>
+      <div class="course-section">
+        <h3><%= course.title %></h3>
+        <div class="modules-scroll">
+          <% (courseModules[course.id] || []).forEach(mod => { %>
+          <div class="module-card">
+            <img style="width: 100%; height: 100px; object-fit: contain;" src="<%= mod.thumbnail || '/images/JKT logo bg.png' %>" alt="">
+            <h4><%= mod.title %></h4>
+            
+            <a href="/student/courses/<%= course.id %>/modules/<%= mod.id %>"
+              >View Module</a
+            >
+          </div>
+          <% }) %>
+        </div>
+      </div>
+      <% }) %>
     </section>
+    <% } else { %>
+    <!-- Show normal dashboard content when no pathway is selected -->
+    <section id="dashboard-section" class="content-section">
+      <h1>Welcome, <%= student.fullname %>!</h1>
+      <!-- Include analytics, progress, XP, charts, etc. -->
+    </section>
+    <% } %>
   </main>
 </div>
 
-<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<!-- <script src="https://cdn.jsdelivr.net/npm/chart.js"></script> -->
 <!-- <script>
     const ctx = document.getElementById('progressChart').getContext('2d');
     const chart = new Chart(ctx, {
@@ -151,7 +268,7 @@
   });
 </script> -->
 
-<script>
+<!-- <script>
   const navTabs = document.querySelectorAll('.nav-tab');
   const sections = document.querySelectorAll('.content-section');
 
@@ -194,4 +311,116 @@
       }
     });
   });
+</script> -->
+
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+<!-- Script for engagement char -->
+<script>
+  const ctx = document.getElementById('engagementChart').getContext('2d');
+  const chart = new Chart(ctx, {
+    type: 'line',
+    data: {
+      labels: <%- JSON.stringify(engagementData.labels) %>,
+      datasets: [{
+        label: 'Lessons Completed',
+        data: <%- JSON.stringify(engagementData.data) %>,
+        borderColor: '#2196f3',
+        fill: false,
+        tension: 0.3
+      }]
+    },
+    options: {
+      responsive: true,
+      scales: {
+        y: { beginAtZero: true }
+      }
+    }
+  });
+</script>
+
+<!-- Script for course progress chart -->
+<script>
+  const ctx2 = document.getElementById('courseProgressChart').getContext('2d');
+  const courseProgressChart = new Chart(ctx2, {
+    type: 'bar',
+    data: {
+      labels: <%- JSON.stringify(enrolledCourses.map(c => c.title)) %>,
+      datasets: [{
+        label: 'Progress (%)',
+        data: <%- JSON.stringify(enrolledCourses.map(c => c.progress)) %>,
+        backgroundColor: [
+          '#4CAF50',
+          '#2196F3',
+          '#FFC107',
+          '#FF5722',
+          '#9C27B0',
+          '#3F51B5',
+          '#E91E63',
+          '#00BCD4',
+          '#8BC34A',
+          '#FF9800'
+        ],
+        borderRadius: 4
+      }]
+    },
+    options: {
+      responsive: true,
+      scales: {
+        y: {
+          beginAtZero: true,
+          max: 100,
+          title: {
+            display: true,
+            text: 'Completion (%)'
+          }
+        }
+      },
+      plugins: {
+        legend: { display: false },
+        tooltip: {
+          callbacks: {
+            label: function(context) {
+              return `${context.parsed.y}% completed`;
+            }
+          }
+        }
+      }
+    }
+  });
+</script>
+
+<!-- Script for sidebar -->
+<script>
+  document.querySelectorAll(".dropdown-btn").forEach((btn) => {
+    btn.addEventListener("click", function () {
+      this.classList.toggle("active");
+      const dropdown = this.nextElementSibling;
+      dropdown.style.display =
+        dropdown.style.display === "block" ? "none" : "block";
+    });
+  });
+
+  document.querySelectorAll(".sub-dropdown-btn").forEach((btn) => {
+    btn.addEventListener("click", function () {
+      this.classList.toggle("active");
+      const sub = this.nextElementSibling;
+      sub.style.display = sub.style.display === "block" ? "none" : "block";
+    });
+  });
+</script>
+
+<!-- script to Highlight active navbar -->
+<script>
+  const tabs = document.querySelectorAll(".nav-tab");
+  tabs.forEach((tab) => {
+    if (tab.href === window.location.href) {
+      tab.classList.add("active");
+    }
+  });
+  document
+    .getElementById("toggleSidebar")
+    .addEventListener("click", function () {
+      document.querySelector(".sidebar").classList.toggle("open");
+    });
 </script>
