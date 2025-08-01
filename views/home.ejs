@@ -91,6 +91,8 @@
       
       </section> -->
 
+  
+
       <section class="hero-section" style="background-image: url('<%= info.hero_image_url %>');">
         <div class="hero-overlay">
           <h1>Welcome to <%= info?.company_name || 'Jaykirch Tech Hub' %></h1>
@@ -108,6 +110,41 @@
         <div class="marquee-text"><%= info.marquee_message %></div>
       </div>
     <% } %> -->
+
+        <!-- Events section -->
+      <section class="event_section">
+          <h2>📅 Upcoming Events</h2>
+
+          <% events.forEach(event => { %>
+            <div class="event_container">
+              <!-- Event Image -->
+              <div class="event_details">
+                <% if (event.image_url) { %>
+                  <img src="<%= event.image_url %>" alt="Event image" />
+                <% } %>
+              </div>
+
+              <!-- Event Details -->
+              <div class="event_details">
+                <h2><%= event.title %></h2>
+                <p><strong>Description:</strong> <%- event.description %></p>
+
+                <p><strong>Date:</strong> <%= event.event_date.toDateString() %></p>
+                <p><strong>Time:</strong> <%= event.time %></p>
+                <p><strong>Location:</strong> <%= event.location %></p>
+
+                <% if (event.is_paid) { %>
+                  <p><strong>Price:</strong> ₦<%= event.amount.toLocaleString() %></p>
+                <% } else { %>
+                  <p><strong>This is a free event</strong></p>
+                <% } %>
+                  <a href="/events/<%= event.id %>" class="btn-show">Show</a>
+                <!-- <a href="/register/<%= event.id %>" class="btn-register">Register now</a> -->
+              </div>
+            </div>
+          <% }) %>
+        </section>
+
 
    
     <!-- Pathways -->
@@ -199,38 +236,7 @@
         </div>
       </section>
 
-       <section class="event_section">
-          <h2>📅 Upcoming Events</h2>
-
-          <% events.forEach(event => { %>
-            <div class="event_container">
-              <!-- Event Image -->
-              <div class="event_details">
-                <% if (event.image_url) { %>
-                  <img src="<%= event.image_url %>" alt="Event image" />
-                <% } %>
-              </div>
-
-              <!-- Event Details -->
-              <div class="event_details">
-                <h2><%= event.title %></h2>
-                <p><strong>Description:</strong> <%- event.description %></p>
-
-                <p><strong>Date:</strong> <%= event.event_date.toDateString() %></p>
-                <p><strong>Time:</strong> <%= event.time %></p>
-                <p><strong>Location:</strong> <%= event.location %></p>
-
-                <% if (event.is_paid) { %>
-                  <p><strong>Price:</strong> ₦<%= event.amount.toLocaleString() %></p>
-                <% } else { %>
-                  <p><strong>This is a free event</strong></p>
-                <% } %>
-                  <a href="/events/<%= event.id %>" class="btn-show">Show</a>
-                <!-- <a href="/register/<%= event.id %>" class="btn-register">Register now</a> -->
-              </div>
-            </div>
-          <% }) %>
-        </section>
+       
 
     
     <% if (isLoggedIn) { %>
