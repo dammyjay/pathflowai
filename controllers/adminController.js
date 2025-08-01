@@ -150,7 +150,8 @@ exports.login = async (req, res) => {
     } else {
       console.log("User login successful");
       // return res.redirect("/home2");
-      return res.redirect("/");
+      // return res.redirect("/");
+      return res.redirect("/student/dashboard");
     }
   } catch (err) {
     console.error("Login error:", err);

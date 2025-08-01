@@ -1,5 +1,9 @@
 const express = require("express");
 const router = express.Router();
+const multer = require("multer");
+// const upload = multer({ dest: 'uploads/' }); // temp local storage
+const upload = require("../middlewares/upload");
+
 const studentController = require("../controllers/studentController");
 
 const { ensureAuthenticated } = require("../middlewares/auth");
@@ -18,6 +22,11 @@ router.post(
   studentController.enrollInCourse
 );
 
+router.post(
+  "/profile/edit",
+  upload.single("profilePic"),
+  studentController.editProfile
+);
 
 
 module.exports = router;

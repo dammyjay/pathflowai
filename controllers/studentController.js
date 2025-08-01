@@ -228,6 +228,7 @@ exports.getDashboard = async (req, res) => {
       data: engagementRes.rows.map((r) => parseInt(r.count)),
     };
     const selectedPathway = req.query.pathway || null;
+    const section = req.query.section || null;
 
     res.render("student/dashboard", {
       student,
@@ -248,7 +249,8 @@ exports.getDashboard = async (req, res) => {
       xpHistory: xpHistoryRes.rows,
       engagementData,
       selectedPathway: req.query.pathway || "null",
-      selectedPathway
+      selectedPathway,
+      section,
     });
   } catch (err) {
     console.error("Dashboard Error:", err.message);
@@ -578,3 +580,19 @@ exports.enrollInCourse = async (req, res) => {
   }
 };
 
+exports.editProfile = async (req, res) => {
+  const { fullname, gender, dob } = req.body;
+  const profilePic = req.file?.path || req.body.existingPic;
+
+  await pool.query(
+    `UPDATE users2 SET fullname = $1, gender = $2, dob = $3, profile_picture = $4 WHERE id = $5`,
+    [fullname, gender, dob, profilePic, req.user.id]
+  );
+
+  req.session.user.fullname = fullname;
+  req.session.user.gender = gender;
+  req.session.user.dob = dob;
+  req.session.user.profile_picture = profilePic;
+
+  res.redirect("/student/dashboard?section=profile");
+};
