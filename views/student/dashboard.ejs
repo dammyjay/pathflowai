@@ -6,6 +6,12 @@
 
 <div class="dashboard-container">
   <aside class="sidebar">
+    <div class="logo-title">
+        <% if (info?.logo_url) { %>
+        <a href="/"><img src="<%= info.logo_url %>" alt="Logo" /></a>
+        <% } %>
+        <p><%= info?.company_name || 'C&S Church Online' %></p>
+      </div>
     <div class="sidebar-header">
       <% if (profilePic) { %>
       <img src="<%= profilePic %>" alt="Profile Picture" class="profile-pic" />
