@@ -607,6 +607,74 @@ router.get("/pathways/:id", async (req, res) => {
    }
 });
 
+router.get("/courses/:id", async (req, res) => {
+  const { id } = req.params;
+
+  try {
+    // Get company info
+    const infoResult = await pool.query(
+      "SELECT * FROM company_info ORDER BY id DESC LIMIT 1"
+    );
+    const info = infoResult.rows[0] || {};
+
+    // Get the course details
+    const courseResult = await pool.query(
+      "SELECT * FROM courses WHERE id = $1",
+      [id]
+    );
+    const course = courseResult.rows[0];
+
+    if (!course) return res.status(404).send("Course not found");
+
+    // Get modules for this course (flat array, not grouped by level)
+    const modulesResult = await pool.query(
+      `SELECT * FROM modules 
+       WHERE course_id = $1
+       ORDER BY order_number ASC`,
+      [id]
+    );
+
+    const modules = modulesResult.rows;
+
+      const enrolledCoursesRes = await pool.query(
+        `SELECT course_id FROM course_enrollments WHERE user_id = $1`,
+        [req.user?.id]
+      );
+    const enrolledCourseIds = enrolledCoursesRes.rows.map((r) => r.course_id);
+    
+    let walletBalance = 0;
+    if (req.session.user) {
+      const walletResult = await pool.query(
+        "SELECT wallet_balance2 FROM users2 WHERE email = $1",
+        [req.session.user.email]
+      );
+      walletBalance = walletResult.rows[0]?.wallet_balance2 || 0;
+    }
+
+    const usersResult = await pool.query("SELECT * FROM users2");
+    const users = usersResult.rows;
+    const isLoggedIn = !!req.session.user;
+    const profilePic = req.session.user
+      ? req.session.user.profile_picture
+      : null;
+
+    res.render("singleCourse", {
+      info,
+      users,
+      isLoggedIn,
+      profilePic,
+      course,
+      enrolledCourseIds,
+      walletBalance,
+      modules,
+      subscribed: req.query.subscribed,
+    });
+  } catch (err) {
+    console.error("❌ Error fetching course details:", err.message);
+    res.status(500).send("Server error");
+  }
+});
+
 
 
   module.exports = router;

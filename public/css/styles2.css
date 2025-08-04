@@ -1,7 +1,7 @@
 
 .signup-body {
     position: relative;
-    background-image: url('/images/banner.jpg');
+    background-image: url('/images/hero2.jpg');
     background-repeat: no-repeat;
     background-position: center top;
     background-size: cover;
@@ -357,13 +357,14 @@
     flex-direction: row;
     gap: 20px;
     margin-bottom: 20px;
-    height: 620px;
+    /* height: 620px; */
 
 }
 
 .event_details {
     width: 100%;
     padding: 20px 10px;
+    background-color: #ffffff;
     
 }
 

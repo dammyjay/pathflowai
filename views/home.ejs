@@ -127,7 +127,7 @@
               <!-- Event Details -->
               <div class="event_details">
                 <h2><%= event.title %></h2>
-                <p><strong>Description:</strong> <%- event.description %></p>
+                <p style="word-break: break-word; white-space: normal;"><strong>Description:</strong> <%- event.description %></p>
 
                 <p><strong>Date:</strong> <%= event.event_date.toDateString() %></p>
                 <p><strong>Time:</strong> <%= event.time %></p>
@@ -216,9 +216,11 @@
         <div class="horizontal-scroll-container" id="courseScroll">
           <% courses.forEach(course => { %>
             <div class="course-card scroll-card">
+              <a href="/courses/<%= course.id %>">
               <% if (course.thumbnail_url) { %>
                 <img src="<%= course.thumbnail_url %>" alt="Course Thumbnail" />
               <% } %>
+              </a>
               <h4><%= course.title %></h4>
               <!-- <p><%- course.description.substring(0, 50) %>...</p> -->
               <small><strong><%= course.level %></strong> | <%= course.pathway_name || 'General' %></small>
