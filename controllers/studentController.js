@@ -1,64 +1,7 @@
 const pool = require("../models/db");
 
 // GET: Student Dashboard
-// exports.getDashboard = async (req, res) => {
-//   const studentId = req.user.id;
 
-//   const infoResult = await pool.query(
-//         "SELECT * FROM company_info ORDER BY id DESC LIMIT 1"
-//       );
-//   const info = infoResult.rows[0] || {};
-//   const isLoggedIn = !!req.session.user; // or whatever property you use for login
-//   const profilePic = req.session.user ? req.session.user.profile_picture : null;
-
-//   let walletBalance = 0;
-//      if (req.session.user) {
-//        const walletResult = await pool.query(
-//          "SELECT wallet_balance2 FROM users2 WHERE email = $1",
-//          [req.session.user.email]
-//        );
-//        walletBalance = walletResult.rows[0]?.wallet_balance2 || 0;
-//      }
-
-//   try {
-//     const [studentRes, enrolledCoursesRes, badgesRes, xpHistoryRes] =
-//       await Promise.all([
-//         pool.query("SELECT * FROM users2 WHERE id = $1", [studentId]),
-//         pool.query(
-//           `
-//         SELECT c.*, e.progress
-//         FROM course_enrollments e
-//         JOIN courses c ON c.id = e.course_id
-//         WHERE e.user_id = $1
-//         ORDER BY c.created_at DESC
-//       `,
-//           [studentId]
-//         ),
-//         pool.query(`SELECT * FROM user_badges WHERE user_id = $1`, [studentId]),
-//         pool.query(
-//           `SELECT * FROM xp_history WHERE user_id = $1 ORDER BY earned_at DESC LIMIT 10`,
-//           [studentId]
-//         ),
-//       ]);
-
-//     res.render("student/dashboard", {
-//       student: studentRes.rows[0],
-//       info,
-//       profilePic,
-//       isLoggedIn,
-//       users: req.session.user,
-//       walletBalance,
-//       subscribed: req.query.subscribed,
-//       enrolledCourses: enrolledCoursesRes.rows,
-//       courses: enrolledCoursesRes.rows, // if using courses tab
-//       badges: badgesRes.rows,
-//       xpHistory: xpHistoryRes.rows,
-//     });
-//   } catch (err) {
-//     console.error("Error loading dashboard:", err.message);
-//     res.status(500).send("Server Error");
-//   }
-// };
 
 exports.getDashboard = async (req, res) => {
   const studentId = req.user.id;
@@ -288,6 +231,25 @@ exports.getEnrolledCourses = async (req, res) => {
         [studentId]
       ),
     ]);
+
+  // 3. Group by pathway → courses → modules
+  let pathwayCourses = {}; // { pathwayName: [course1, course2, ...] }
+  let courseModules = {}; // { courseId: [module1, module2, ...] }
+
+  for (const course of enrolledCoursesRes.rows) {
+    if (!pathwayCourses[course.pathway_name]) {
+      pathwayCourses[course.pathway_name] = [];
+    }
+    pathwayCourses[course.pathway_name].push(course);
+  }
+
+  for (const mod of modulesRes.rows) {
+    if (!courseModules[mod.course_id]) {
+      courseModules[mod.course_id] = [];
+    }
+    courseModules[mod.course_id].push(mod);
+  }
+
   let walletBalance = 0;
   if (req.session.user) {
     const walletResult = await pool.query(
@@ -315,6 +277,8 @@ exports.getEnrolledCourses = async (req, res) => {
       courses: result.rows,
       info,
       isLoggedIn,
+      pathwayCourses,
+      courseModules,
       users: req.session.user,
       walletBalance,
       profilePic,
@@ -551,7 +515,7 @@ exports.enrollInCourse = async (req, res) => {
     if (course.amount > 0) {
       // 3. Get user wallet
       const userRes = await pool.query(
-        "SELECT wallet_balance FROM users2 WHERE id = $1",
+        "SELECT wallet_balance2 FROM users2 WHERE id = $1",
         [userId]
       );
       const wallet = userRes.rows[0].wallet_balance;
@@ -562,9 +526,16 @@ exports.enrollInCourse = async (req, res) => {
 
       // 4. Deduct wallet
       await pool.query(
-        "UPDATE users2 SET wallet_balance = wallet_balance - $1 WHERE id = $2",
+        "UPDATE users2 SET wallet_balance2 = wallet_balance2 - $1 WHERE id = $2",
         [course.amount, userId]
       );
+
+      // 4b. Get new wallet balance
+      const updatedWalletRes = await pool.query(
+        "SELECT wallet_balance FROM users2 WHERE id = $1",
+        [userId]
+      );
+      const newWalletBalance = updatedWalletRes.rows[0]?.wallet_balance;
     }
 
     // 5. Enroll student

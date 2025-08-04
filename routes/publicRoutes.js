@@ -574,6 +574,15 @@ router.get("/pathways/:id", async (req, res) => {
        [id]
      );
 
+      let walletBalance = 0;
+      if (req.session.user) {
+        const walletResult = await pool.query(
+          "SELECT wallet_balance2 FROM users2 WHERE email = $1",
+          [req.session.user.email]
+        );
+        walletBalance = walletResult.rows[0]?.wallet_balance2 || 0;
+      }
+
      const courses = courseResult.rows;
 
      const groupedCourses = {};
@@ -600,6 +609,7 @@ router.get("/pathways/:id", async (req, res) => {
        pathway,
        groupedCourses,
        subscribed: req.query.subscribed,
+       walletBalance,
      });
    } catch (err) {
      console.error("❌ Error fetching pathway details:", err.message);

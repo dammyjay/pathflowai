@@ -44,28 +44,12 @@
       <!-- Profile -->
       <!-- <li><a href="/student/profile">👤 My Profile</a></li> -->
        <li><a href="/student/dashboard?section=profile">👤 My Profile</a></li>
+       <p style="color: black;">💰 Wallet: ₦<%= walletBalance.toLocaleString() %></p>
 
       <!-- Pathways / Courses -->
       <li>
         <button class="dropdown-btn">📂 My Pathways ▾</button>
-        <!-- <ul class="dropdown-container">
-          <% enrolledCourses.forEach(course => { %>
-          <li>
-            <button class="sub-dropdown-btn"><%= course.title %> ▸</button>
-            <ul class="sub-dropdown">
-              <% (courseModules[course.id] || []).forEach(module => { %>
-              <li>
-                <a
-                  href="/student/courses/<%= course.id %>/modules/<%= module.id %>"
-                >
-                  <%= module.title %>
-                </a>
-              </li>
-              <% }) %>
-            </ul>
-          </li>
-          <% }) %>
-        </ul> -->
+        
         <ul class="dropdown-container">
           <% Object.keys(pathwayCourses).forEach(pathway => { %>
           <li>
@@ -127,6 +111,7 @@
         <p><strong>Full Name:</strong> <%= student.fullname %></p>
         <p><strong>Gender:</strong> <%= student.gender %></p>
         <p><strong>Date of Birth:</strong> <%= student.dob ? student.dob.toISOString().split('T')[0] : 'N/A' %></p>
+        <p style="color: black;">💰 Wallet: ₦<%= walletBalance.toLocaleString() %></p>
         <button class="btn-create" onclick="openEditModal('profile')">✏️ Edit Profile</button>
       </div>
 
