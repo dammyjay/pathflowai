@@ -194,20 +194,71 @@ router.post(
 router.post("/modules/delete/:id", learningController.deleteModule);
 
 // Lessons
-router.post("/admin/modules/:id/lessons", learningController.createLesson);
-router.post("/admin/lessons/:id/edit", learningController.editLesson);
-router.post("/admin/lessons/:id/delete", learningController.deleteLesson);
+// router.get("/lessons", adminController.getLessons);
+// router.post("/admin/modules/:id/lessons", upload.single(video_url), learningController.createLesson);
+// router.post("/admin/lessons/:id/edit", learningController.editLesson);
+// router.post("/admin/lessons/:id/delete", learningController.deleteLesson);
+
+router.post(
+  "/lessons/create",
+  upload.single("video_url"),
+  learningController.createLesson
+);
+router.post(
+  "/lessons/:id/edit",
+  upload.single("video_url"),
+  learningController.editLesson
+);
+router.post("/lessons/:id/delete", learningController.deleteLesson);
 
 // Quiz
-router.post("/admin/lessons/:id/quiz", learningController.createQuiz);
-router.post("/admin/quizzes/:id/questions", learningController.addQuizQuestion);
-router.post("/admin/quizzes/:id/delete", learningController.deleteQuiz);
+// router.post("/admin/lessons/:id/quiz", learningController.createQuiz);
+// router.post("/admin/quizzes/:id/questions", learningController.addQuizQuestion);
+// router.post("/admin/quizzes/:id/delete", learningController.deleteQuiz);
+
+
+// Get or create quiz for lesson
+router.get('/lesson/:lessonId/quiz', learningController.getOrCreateLessonQuiz);
+
+// Create question
+// router.post('/quiz-question/create', learningController.createQuizQuestion);
+router.post(
+  "/quiz-question/create",
+  upload.none(),
+  learningController.createQuizQuestion
+);
+
+router.post(
+  "/quiz-question/:id/edit",
+  upload.none(), // multer middleware to parse form-data
+  learningController.editQuizQuestion
+);
+
+// Delete question
+router.post('/quiz-question/:id/delete', learningController.deleteQuizQuestion);
+
 
 // Handle lesson assignment
-router.post("/admin/lessons/:id/assignment", learningController.createAssignment);
+// router.post("/admin/lessons/:id/assignment", learningController.createAssignment);
 
 // Handle module assignment using same function
-router.post("/admin/modules/:id/assignment", learningController.createAssignment);
+// View single course with assignments tab support
+router.get("/courses/:id", learningController.viewCourseWithAssignments);
+
+
+router.post(
+  "/assignments/create",
+  upload.none(),
+  learningController.createAssignment
+);
+router.post(
+  "/assignments/:id/edit",
+  upload.none(),
+  learningController.editAssignment
+);
+
+// Delete
+router.post('/assignments/:id/delete', learningController.deleteAssignment);
 
 
 // Projects

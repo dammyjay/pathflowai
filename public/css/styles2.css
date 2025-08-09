@@ -529,44 +529,62 @@
 
 /* Style the tab list (horizontal menu) */
 .tab-list {
-  list-style: none;
-  padding: 0;
-  margin: 0;
-  display: flex;
-  border-bottom: 2px solid #ccc;
-  margin-top: 30px;
+    list-style: none;
+    padding: 0;
+    margin: 0;
+    display: flex;
+    flex-wrap: nowrap;
+    /* Prevent wrapping */
+    overflow-x: auto;
+    /* Enable horizontal scroll if needed */
+    -webkit-overflow-scrolling: touch;
+    /* Smooth scroll for mobile */
+    border-bottom: 2px solid #ccc;
+    margin-top: 30px;
+    width: 100vw;
+    /* Full device width */
 }
 
-/* Each tab item */
+.tab-list::-webkit-scrollbar {
+    height: 6px;
+    /* Thin scrollbar */
+}
+
+.tab-list::-webkit-scrollbar-thumb {
+    background-color: #ccc;
+    border-radius: 3px;
+}
+
 .tab-list li {
-  margin-right: 10px;
+    flex: 0 0 auto;
+    /* Prevent shrinking */
+    margin-right: 10px;
 }
 
-/* Tab links */
 .tab-list li a {
-  display: inline-block;
-  padding: 10px 16px;
-  text-decoration: none;
-  color: #333;
-  border: 1px solid transparent;
-  border-radius: 4px 4px 0 0;
-  background-color: #f5f5f5;
-  font-weight: 500;
-  transition: all 0.3s ease;
+    display: inline-block;
+    padding: 10px 16px;
+    text-decoration: none;
+    color: #333;
+    border: 1px solid transparent;
+    border-radius: 4px 4px 0 0;
+    background-color: #f5f5f5;
+    font-weight: 500;
+    transition: all 0.3s ease;
+    white-space: nowrap;
+    /* Keep text on one line */
 }
 
-/* Active tab */
 .tab-list li.active a {
-  background-color: #ffffff;
-  border: 1px solid #ccc;
-  border-bottom: none;
-  color: #007bff;
+    background-color: #ffffff;
+    border: 1px solid #ccc;
+    border-bottom: none;
+    color: #007bff;
 }
 
-/* Hover effect */
 .tab-list li a:hover {
-  background-color: #eaeaea;
-  color: #007bff;
+    background-color: #eaeaea;
+    color: #007bff;
 }
 
 .content-section {
@@ -1031,6 +1049,63 @@ canvas {
         gap: 0px;
         /* display: flex; */
     }
+
+    .lesson-card {
+  border: 1px solid #ccc;
+  border-radius: 8px;
+  padding: 16px;
+  background: #fff;
+  box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+  margin-bottom: 15px;
+}
+
+.lesson-header {
+  display: flex;
+  justify-content: space-between;
+  margin-bottom: 10px;
+}
+
+.lesson-number {
+  font-weight: bold;
+  color: #555;
+}
+
+.status-badge {
+  padding: 4px 10px;
+  border-radius: 12px;
+  font-size: 0.8rem;
+  color: white;
+}
+
+.status-badge.published { background-color: #4CAF50; }
+.status-badge.draft { background-color: #FFC107; }
+
+.lesson-actions button {
+  margin-right: 10px;
+  background: none;
+  border: none;
+  color: #007bff;
+  cursor: pointer;
+}
+
+}
+
+.lesson-cards {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
+    gap: 1rem;
+}
+
+.lesson-card {
+    border: 1px solid #ddd;
+    border-radius: 8px;
+    padding: 1rem;
+    background: #fff;
+}
+
+.lesson-card video {
+    width: 100%;
+    border-radius: 5px;
 }
 
 @keyframes spin {

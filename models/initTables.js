@@ -278,7 +278,8 @@ async function createTables() {
         quiz_id INTEGER REFERENCES quizzes(id) ON DELETE CASCADE,
         question TEXT NOT NULL,
         options TEXT[], -- e.g. ARRAY['A', 'B', 'C', 'D']
-        correct_option TEXT NOT NULL
+        correct_option TEXT NOT NULL,
+        question_type VARCHAR(50) DEFAULT 'multiple_choice'
       );
       `
     );

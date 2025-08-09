@@ -29,16 +29,15 @@ exports.createModule = async (req, res) => {
     order_number,
   } = req.body;
   let thumbnail = null;
-  
+
   if (req.file) {
-      const result = await cloudinary.uploader.upload(req.file.path, {
-        folder: "modules",
-      });
-      thumbnail= result.secure_url;
-      if (fs.existsSync(req.file.path)) fs.unlinkSync(req.file.path);
-    }
-  
-  
+    const result = await cloudinary.uploader.upload(req.file.path, {
+      folder: "modules",
+    });
+    thumbnail = result.secure_url;
+    if (fs.existsSync(req.file.path)) fs.unlinkSync(req.file.path);
+  }
+
   try {
     await pool.query(
       "INSERT INTO modules (title, course_id, description, objectives, learning_outcomes, thumbnail, order_number) VALUES ($1, $2, $3, $4, $5, $6, $7)",
@@ -89,15 +88,18 @@ exports.editModule = async (req, res) => {
   }
 
   const updatedThumbnail = thumbnail || null;
-  await pool.query("UPDATE modules SET title = $1, description = $2, objectives = $3, learning_outcomes = $4, thumbnail = $5, order_number = $6 WHERE id = $7", [
-    title,
-    description,
-    objectives,
-    learning_outcomes,
-    updatedThumbnail,
-    order_number,
-    id,
-  ]);
+  await pool.query(
+    "UPDATE modules SET title = $1, description = $2, objectives = $3, learning_outcomes = $4, thumbnail = $5, order_number = $6 WHERE id = $7",
+    [
+      title,
+      description,
+      objectives,
+      learning_outcomes,
+      updatedThumbnail,
+      order_number,
+      id,
+    ]
+  );
 
   // Find course ID to redirect correctly
   const result = await pool.query(
@@ -107,8 +109,6 @@ exports.editModule = async (req, res) => {
   const course_id = result.rows[0].course_id;
   res.redirect(`/admin/courses/${course_id}?tab=modules`);
 };
-
-
 
 // exports.deleteModule = async (req, res) => {
 //   const { id } = req.params;
@@ -136,103 +136,477 @@ exports.deleteModule = async (req, res) => {
   res.redirect(`/admin/courses/${course_id}?tab=modules`);
 };
 
-exports.createLesson = async (req, res) => {
-  const { title, content, module_id } = req.body;
+// exports.createLesson = async (req, res) => {
+//   const { title, content, module_id } = req.body;
+//   try {
+//     await pool.query(
+//       "INSERT INTO lessons (title, content, module_id) VALUES ($1, $2, $3)",
+//       [title, content, module_id]
+//     );
+//     res.redirect("back");
+//   } catch (err) {
+//     console.error("Error creating lesson:", err);
+//     res.status(500).send("Server error");
+//   }
+// };
+// exports.createLesson = async (req, res) => {
+//   const { title, content, video_url, module_id } = req.body;
+//   await pool.query(
+//     `INSERT INTO lessons (title, content, video_url, module_id) VALUES ($1, $2, $3, $4)`,
+//     [title, content, video_url, module_id]
+//   );
+//   res.redirect("/admin/lessons?module_id=" + module_id);
+// };
+
+// exports.getLessons = async (req, res) => {
+//   const moduleId = req.query.module_id;
+//   const modules = await pool.query(`
+//     SELECT m.id, m.title, c.title AS course_title
+//     FROM modules m
+//     JOIN courses c ON m.course_id = c.id
+//     ORDER BY c.title, m.title
+//   `);
+
+//   let lessons = [];
+//   if (moduleId) {
+//     const result = await pool.query(
+//       `SELECT l.*, m.title AS module_title FROM lessons l JOIN modules m ON l.module_id = m.id WHERE l.module_id = $1`,
+//       [moduleId]
+//     );
+//     lessons = result.rows;
+//   }
+
+//   res.render("admin/adminLessons", {
+//     modules: modules.rows,
+//     selectedModuleId: moduleId,
+//     lessons,
+//   });
+// };
+
+exports.getLessonsPage = async (req, res) => {
   try {
-    await pool.query(
-      "INSERT INTO lessons (title, content, module_id) VALUES ($1, $2, $3)",
-      [title, content, module_id]
-    );
-    res.redirect("back");
+    const modulesRes = await pool.query(`
+      SELECT m.*, c.title AS course_title
+      FROM modules m
+      JOIN courses c ON m.course_id = c.id
+      ORDER BY c.title, m.title
+    `);
+
+    const selectedModuleId = req.query.module || null;
+    let lessons = [];
+
+    if (selectedModuleId) {
+      const lessonsRes = await pool.query(
+        `SELECT * FROM lessons WHERE module_id = $1 ORDER BY id DESC`,
+        [selectedModuleId]
+      );
+      lessons = lessonsRes.rows;
+    }
+
+    res.render("admin/adminLessons", {
+      modules: modulesRes.rows,
+      lessons,
+      selectedModuleId,
+    });
   } catch (err) {
-    console.error("Error creating lesson:", err);
-    res.status(500).send("Server error");
+    console.error("Get Lessons Error:", err.message);
+    res.status(500).send("Server Error");
   }
 };
 
-exports.editLesson = async (req, res) => {
-  const { id } = req.params;
-  const { title, content } = req.body;
-  try {
-    await pool.query(
-      "UPDATE lessons SET title = $1, content = $2 WHERE id = $3",
-      [title, content, id]
-    );
-    res.redirect("back");
-  } catch (err) {
-    console.error("Error editing lesson:", err);
-    res.status(500).send("Server error");
-  }
-};
+// exports.createLesson = async (req, res) => {
+//   try {
+//     const { title, content, module_id } = req.body;
+//     const videoUrl = req.file ? req.file.path : null;
 
-exports.deleteLesson = async (req, res) => {
-  const { id } = req.params;
-  try {
-    await pool.query("DELETE FROM lessons WHERE id = $1", [id]);
-    res.redirect("back");
-  } catch (err) {
-    console.error("Error deleting lesson:", err);
-    res.status(500).send("Server error");
-  }
-};
+//     await pool.query(
+//       `INSERT INTO lessons (title, content, module_id, video_url) VALUES ($1, $2, $3, $4)`,
+//       [title, content, module_id, videoUrl]
+//     );
+
+//     res.redirect("/admin/lessons?module=" + module_id);
+//   } catch (err) {
+//     console.error("Create Lesson Error:", err.message);
+//     res.status(500).send("Error creating lesson");
+//   }
+// };
+
+// exports.editLesson = async (req, res) => {
+//   const { id } = req.params;
+//   const { title, content } = req.body;
+//   try {
+//     await pool.query(
+//       "UPDATE lessons SET title = $1, content = $2 WHERE id = $3",
+//       [title, content, id]
+//     );
+//     res.redirect("back");
+//   } catch (err) {
+//     console.error("Error editing lesson:", err);
+//     res.status(500).send("Server error");
+//   }
+// };
+
+// exports.deleteLesson = async (req, res) => {
+//   const { id } = req.params;
+//   try {
+//     await pool.query("DELETE FROM lessons WHERE id = $1", [id]);
+//     res.redirect("back");
+//   } catch (err) {
+//     console.error("Error deleting lesson:", err);
+//     res.status(500).send("Server error");
+//   }
+// };
 
 // -------------------- QUIZZES --------------------
-exports.createQuiz = async (req, res) => {
-  const { title, lesson_id } = req.body;
-  try {
-    await pool.query("INSERT INTO quizzes (title, lesson_id) VALUES ($1, $2)", [
-      title,
-      lesson_id,
-    ]);
-    res.redirect("back");
-  } catch (err) {
-    console.error("Error creating quiz:", err);
-    res.status(500).send("Server error");
-  }
-};
 
-exports.addQuizQuestion = async (req, res) => {
-  const { quiz_id, question, options, correct_answer } = req.body;
+// CREATE LESSON
+exports.createLesson = async (req, res) => {
   try {
+    const { title, content, module_id, course_id } = req.body;
+    let videoUrl = null;
+
+    if (req.file) {
+      const result = await cloudinary.uploader.upload(req.file.path, {
+        folder: "lessons"
+      });
+      videoUrl = result.secure_url;
+      if (fs.existsSync(req.file.path)) fs.unlinkSync(req.file.path);
+    }
+
     await pool.query(
-      "INSERT INTO quiz_questions (quiz_id, question, options, correct_answer) VALUES ($1, $2, $3, $4)",
-      [quiz_id, question, JSON.stringify(options), correct_answer]
+      `INSERT INTO lessons (title, content, module_id, video_url) VALUES ($1, $2, $3, $4)`,
+      [title, content, module_id, videoUrl]
     );
-    res.redirect("back");
+
+    res.redirect(`/admin/courses/${course_id}?tab=lessons`);
   } catch (err) {
-    console.error("Error adding quiz question:", err);
+    console.error("Create Lesson Error:", err.message);
+    res.status(500).send("Error creating lesson");
+  }
+};
+
+// EDIT LESSON
+exports.editLesson = async (req, res) => {
+  const { id } = req.params;
+  const { title, content, course_id } = req.body;
+  let videoUrl = null;
+
+  try {
+    if (req.file) {
+      const result = await cloudinary.uploader.upload(req.file.path, {
+        folder: "lessons"
+      });
+      videoUrl = result.secure_url;
+      if (fs.existsSync(req.file.path)) fs.unlinkSync(req.file.path);
+    }
+
+    await pool.query(
+      `UPDATE lessons SET title=$1, content=$2, video_url=COALESCE($3, video_url) WHERE id=$4`,
+      [title, content, videoUrl, id]
+    );
+
+    res.redirect(`/admin/courses/${course_id}?tab=lessons`);
+  } catch (err) {
+    console.error("Edit Lesson Error:", err.message);
+    res.status(500).send("Error editing lesson");
+  }
+};
+
+// DELETE LESSON
+exports.deleteLesson = async (req, res) => {
+  const { id } = req.params;
+  const { course_id } = req.body;
+
+  try {
+    await pool.query("DELETE FROM lessons WHERE id = $1", [id]);
+    res.redirect(`/admin/courses/${course_id}?tab=lessons`);
+  } catch (err) {
+    console.error("Error deleting lesson:", err.message);
     res.status(500).send("Server error");
   }
 };
 
-exports.deleteQuiz = async (req, res) => {
-  const { id } = req.params;
+
+// exports.createQuiz = async (req, res) => {
+//   const { title, lesson_id } = req.body;
+//   try {
+//     await pool.query("INSERT INTO quizzes (title, lesson_id) VALUES ($1, $2)", [
+//       title,
+//       lesson_id,
+//     ]);
+//     res.redirect("back");
+//   } catch (err) {
+//     console.error("Error creating quiz:", err);
+//     res.status(500).send("Server error");
+//   }
+// };
+
+// exports.addQuizQuestion = async (req, res) => {
+//   const { quiz_id, question, options, correct_answer } = req.body;
+//   try {
+//     await pool.query(
+//       "INSERT INTO quiz_questions (quiz_id, question, options, correct_answer) VALUES ($1, $2, $3, $4)",
+//       [quiz_id, question, JSON.stringify(options), correct_answer]
+//     );
+//     res.redirect("back");
+//   } catch (err) {
+//     console.error("Error adding quiz question:", err);
+//     res.status(500).send("Server error");
+//   }
+// };
+
+// exports.deleteQuiz = async (req, res) => {
+//   const { id } = req.params;
+//   try {
+//     await pool.query("DELETE FROM quizzes WHERE id = $1", [id]);
+//     res.redirect("back");
+//   } catch (err) {
+//     console.error("Error deleting quiz:", err);
+//     res.status(500).send("Server error");
+//   }
+// };
+
+// exports.deleteQuizQuestion = async (req, res) => {
+//   const { quizId, questionId } = req.params;
+//   try {
+//     await pool.query(
+//       "DELETE FROM quiz_questions WHERE id = $1 AND quiz_id = $2",
+//       [questionId, quizId]
+//     );
+//     res.redirect("back");
+//   } catch (err) {
+//     console.error("Error deleting quiz question:", err);
+//     res.status(500).send("Server error");
+//   }
+// };
+
+// -------------------- ASSIGNMENTS --------------------
+
+// GET quiz questions for a lesson
+
+
+// GET or CREATE quiz for a lesson
+exports.getOrCreateLessonQuiz = async (req, res) => {
+  const { lessonId } = req.params;
+
   try {
-    await pool.query("DELETE FROM quizzes WHERE id = $1", [id]);
-    res.redirect("back");
+    // 1. Check if quiz exists
+    let quizResult = await pool.query(
+      `SELECT * FROM quizzes WHERE lesson_id = $1`,
+      [lessonId]
+    );
+
+    let quiz;
+    if (quizResult.rows.length === 0) {
+      // Create quiz if not exists
+      const insertQuiz = await pool.query(
+        `INSERT INTO quizzes (lesson_id, title) VALUES ($1, $2) RETURNING *`,
+        [lessonId, `Quiz for Lesson ${lessonId}`]
+      );
+      quiz = insertQuiz.rows[0];
+    } else {
+      quiz = quizResult.rows[0];
+    }
+
+    // 2. Get all questions for this quiz
+    const questions = await pool.query(
+      `SELECT * FROM quiz_questions WHERE quiz_id = $1 ORDER BY id ASC`,
+      [quiz.id]
+    );
+
+    res.json({
+      success: true,
+      quiz,
+      questions: questions.rows
+    });
+
   } catch (err) {
-    console.error("Error deleting quiz:", err);
-    res.status(500).send("Server error");
+    console.error(err);
+    res.status(500).json({ success: false, error: "Server error" });
+  }
+};
+
+// CREATE question
+// exports.createQuizQuestion = async (req, res) => {
+//   const { quiz_id, question, question_type, correct_option } = req.body;
+//   let options = req.body.options || [];
+
+//   if (typeof options === 'string') options = [options];
+
+//   await pool.query(
+//     `INSERT INTO quiz_questions (quiz_id, question, question_type, options, correct_option)
+//      VALUES ($1, $2, $3, $4, $5)`,
+//     [quiz_id, question, question_type, options.length ? options : null, correct_option]
+//   );
+
+//   res.redirect('back');
+// };
+
+// DELETE question
+// exports.deleteQuizQuestion = async (req, res) => {
+//   const { id } = req.params;
+//   await pool.query(`DELETE FROM quiz_questions WHERE id = $1`, [id]);
+//   res.redirect('back');
+// };
+
+exports.createQuizQuestion = async (req, res) => {
+  try {
+    const { quiz_id, question, question_type, correct_option } = req.body;
+    let options = req.body.options || [];
+
+    if (typeof options === "string") options = [options];
+
+    await pool.query(
+      `INSERT INTO quiz_questions (quiz_id, question, question_type, options, correct_option)
+       VALUES ($1, $2, $3, $4, $5)`,
+      [
+        quiz_id,
+        question,
+        question_type,
+        options.length ? options : null,
+        correct_option,
+      ]
+    );
+
+    const updatedQuestions = await pool.query(
+      `SELECT * FROM quiz_questions WHERE quiz_id = $1 ORDER BY id ASC`,
+      [quiz_id]
+    );
+
+    res.json({ success: true, questions: updatedQuestions.rows });
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ success: false });
   }
 };
 
 exports.deleteQuizQuestion = async (req, res) => {
-  const { quizId, questionId } = req.params;
   try {
-    await pool.query(
-      "DELETE FROM quiz_questions WHERE id = $1 AND quiz_id = $2",
-      [questionId, quizId]
-    );
-    res.redirect("back");
+    await pool.query(`DELETE FROM quiz_questions WHERE id = $1`, [
+      req.params.id,
+    ]);
+    res.json({ success: true });
   } catch (err) {
-    console.error("Error deleting quiz question:", err);
-    res.status(500).send("Server error");
+    console.error(err);
+    res.status(500).json({ success: false });
   }
 };
 
-// -------------------- ASSIGNMENTS --------------------
+exports.editQuizQuestion = async (req, res) => {
+  try {
+    const { id } = req.params;
+    const { question, question_type, correct_option } = req.body;
+    let options = req.body.options || [];
+
+    if (typeof options === "string") options = [options];
+
+    const updated = await pool.query(
+      `UPDATE quiz_questions
+       SET question = $1, question_type = $2, options = $3, correct_option = $4
+       WHERE id = $5 RETURNING *`,
+      [
+        question,
+        question_type,
+        options.length ? options : null,
+        correct_option,
+        id,
+      ]
+    );
+
+    const quiz_id = updated.rows[0].quiz_id;
+
+    // return updated question list
+    const updatedQuestions = await pool.query(
+      `SELECT * FROM quiz_questions WHERE quiz_id = $1 ORDER BY id ASC`,
+      [quiz_id]
+    );
+
+    res.json({ success: true, questions: updatedQuestions.rows });
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ success: false });
+  }
+};
+
+
+// VIEW course with assignments
+// exports.viewCourseWithAssignments = async (req, res) => {
+//   const courseId = req.params.id;
+//   const activeTab = req.query.tab || "details";
+//   const selectedModuleId = req.query.module || "all";
+
+//   try {
+//     const courseResult = await pool.query("SELECT * FROM courses WHERE id = $1", [courseId]);
+//     const course = courseResult.rows[0];
+//     if (!course) return res.status(404).send("Course not found");
+
+//     const modulesResult = await pool.query("SELECT * FROM modules WHERE course_id = $1", [courseId]);
+//     const modules = modulesResult.rows;
+
+//     let assignmentsQuery = `
+//       SELECT a.*, m.title AS module_title
+//       FROM module_assignments a
+//       LEFT JOIN modules m ON a.module_id = m.id
+//       WHERE 
+//         (m.course_id = $1) 
+//         OR (a.course_id = $1)
+//     `;
+//     const queryParams = [courseId];
+
+//     if (selectedModuleId !== "all") {
+//       assignmentsQuery += " AND m.id = $2";
+//       queryParams.push(selectedModuleId);
+//     }
+
+//     const assignmentsResult = await pool.query(assignmentsQuery, queryParams);
+//     const assignments = assignmentsResult.rows;
+
+//     res.render("admin/singleCourse", {
+//       course,
+//       modules,
+//       assignments,
+//       selectedModuleId,
+//       activeTab
+//     });
+//   } catch (err) {
+//     console.error("Error loading module assignments:", err);
+//     res.status(500).send("Server error");
+//   }
+// };
+
+exports.viewCourseWithAssignments = async (req, res) => {
+  try {
+    const modulesRes = await pool.query(`
+      SELECT m.*, c.title AS course_title
+      FROM modules m
+      JOIN courses c ON m.course_id = c.id
+      ORDER BY c.title, m.title
+    `);
+
+    const selectedModuleId = req.query.module || null;
+    let assignments = [];
+
+    if (selectedModuleId) {
+      const assignmentRes = await pool.query(
+        `SELECT * FROM module_assignments WHERE module_id = $1 ORDER BY id DESC`,
+        [selectedModuleId]
+      );
+      lessons = lessonsRes.rows;
+    }
+
+    res.render("admin/adminLessons", {
+      modules: modulesRes.rows,
+      assignments,
+      selectedModuleId,
+    });
+  } catch (err) {
+    console.error("Get Lessons Error:", err.message);
+    res.status(500).send("Server Error");
+  }
+};
+
 exports.createAssignment = async (req, res) => {
-  const { title, content, lesson_id, module_id, course_id } = req.body;
+  const { title, instructions, lesson_id, module_id, course_id } = req.body;
   try {
     let field, id;
     if (lesson_id) {
@@ -246,40 +620,55 @@ exports.createAssignment = async (req, res) => {
       id = course_id;
     }
 
-    await pool.query(
-      `INSERT INTO assignments (title, content, ${field}) VALUES ($1, $2, $3)`,
-      [title, content, id]
+    const result = await pool.query(
+      `INSERT INTO module_assignments (title, instructions, ${field}) VALUES ($1, $2, $3) RETURNING *`,
+      [title, instructions, id]
     );
-    res.redirect("back");
+
+    // Add module_title before sending back
+    const mod = await pool.query(`SELECT title FROM modules WHERE id = $1`, [
+      module_id,
+    ]);
+    result.rows[0].module_title = mod.rows.length ? mod.rows[0].title : "";
+    if (req.xhr) {
+      res.json(result.rows[0]);
+    } else {
+      res.redirect(`/admin/courses/${course_id}?tab=assignment`);
+    }
   } catch (err) {
-    console.error("Error creating assignment:", err);
-    res.status(500).send("Server error");
+    console.error(err);
+    res.status(500).json({ error: "Server error" });
   }
 };
 
 exports.editAssignment = async (req, res) => {
   const { id } = req.params;
-  const { title, content } = req.body;
+  const { title, instructions } = req.body;
   try {
-    await pool.query(
-      "UPDATE assignments SET title = $1, content = $2 WHERE id = $3",
-      [title, content, id]
+    const result = await pool.query(
+      "UPDATE module_assignments SET title = $1, instructions = $2 WHERE id = $3 RETURNING *",
+      [title, instructions, id]
     );
-    res.redirect("back");
+    if (req.xhr) {
+      res.json(result.rows[0]);
+    } else {
+      res.redirect(`/admin/courses/${course_id}?tab=assignment`);
+    }
   } catch (err) {
-    console.error("Error editing assignment:", err);
-    res.status(500).send("Server error");
+    console.error(err);
+    res.status(500).json({ error: "Server error" });
   }
 };
 
 exports.deleteAssignment = async (req, res) => {
   const { id } = req.params;
   try {
-    await pool.query("DELETE FROM assignments WHERE id = $1", [id]);
-    res.redirect("back");
+    await pool.query("DELETE FROM module_assignments WHERE id = $1", [id]);
+    res.json({ success: true });
+    res.redirect(`/admin/courses/${course_id}?tab=assignment`);
   } catch (err) {
     console.error("Error deleting assignment:", err);
-    res.status(500).send("Server error");
+    res.status(500).json({ error: "Server error" });
   }
 };
 
@@ -472,9 +861,9 @@ exports.getSingleCourse = async (req, res) => {
 //     res.status(500).send("Server error");
 //   }
 // };
-
 exports.viewSingleCourse = async (req, res) => {
   const { id } = req.params;
+  const selectedModuleId = req.query.module || "all"; // ✅ define it here
 
   try {
     // Get course details
@@ -483,7 +872,6 @@ exports.viewSingleCourse = async (req, res) => {
       [id]
     );
     const course = courseResult.rows[0];
-
     if (!course) {
       return res.status(404).send("Course not found");
     }
@@ -494,16 +882,19 @@ exports.viewSingleCourse = async (req, res) => {
       [id]
     );
 
-    // Get lessons joined with module title
-    const lessons = await pool.query(
-      `
+    // Lessons (filter if module selected)
+    let lessonsQuery = `
       SELECT l.*, m.title AS module_title
       FROM lessons l
       JOIN modules m ON l.module_id = m.id
       WHERE m.course_id = $1
-    `,
-      [id]
-    );
+    `;
+    let params = [id];
+    if (selectedModuleId !== "all") {
+      lessonsQuery += " AND m.id = $2";
+      params.push(selectedModuleId);
+    }
+    const lessons = await pool.query(lessonsQuery, params);
 
     // Get module assignments
     const moduleAssignments = await pool.query(
@@ -535,26 +926,15 @@ exports.viewSingleCourse = async (req, res) => {
     );
 
     // Get quizzes
-    // const quizzes = await pool.query(
-    //   `
-    //   SELECT q.*, l.title AS lesson_title
-    //   FROM quizzes q
-    //   JOIN lessons l ON q.lesson_id = l.id
-    //   JOIN modules m ON l.module_id = m.id
-    //   WHERE m.course_id = $1
-    // `,
-    //   [id]
-    // );
-
     const quizzes = await pool.query(
       `
-  SELECT q.*, l.title AS lesson_title 
-  FROM quizzes q 
-  JOIN lessons l ON q.lesson_id = l.id 
-  WHERE l.module_id IN (
-    SELECT id FROM modules WHERE course_id = $1
-  )
-`,
+      SELECT q.*, l.title AS lesson_title 
+      FROM quizzes q 
+      JOIN lessons l ON q.lesson_id = l.id 
+      WHERE l.module_id IN (
+        SELECT id FROM modules WHERE course_id = $1
+      )
+    `,
       [id]
     );
 
@@ -568,6 +948,7 @@ exports.viewSingleCourse = async (req, res) => {
       info,
       modules: modules.rows,
       lessons: lessons.rows,
+      selectedModuleId, // ✅ pass to EJS so dropdown works
       moduleAssignments: moduleAssignments.rows,
       lessonAssignments: lessonAssignments.rows,
       projects: projects.rows,
@@ -579,3 +960,4 @@ exports.viewSingleCourse = async (req, res) => {
     res.status(500).send("Server error");
   }
 };
+
