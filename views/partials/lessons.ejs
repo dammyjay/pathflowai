@@ -86,7 +86,7 @@
   </form>
 </div>
 
-<!-- QUIZ MODAL -->
+
 <!-- QUIZ MODAL -->
 <div id="quizModal" class="modal" style="display:none;">
   <div class="modal-content">
@@ -160,131 +160,6 @@
   </div>
 </div>
 
-
-<!-- <script>
-function openQuizModal(lessonId) {
-  fetch(`/admin/lesson/${lessonId}/quiz`)
-    .then(res => res.json())
-    .then(data => {
-      if (data.success) {
-        document.getElementById('quiz_id').value = data.quiz.id;
-        renderQuestions(data.questions);
-        document.getElementById('quizModal').style.display = 'block';
-      }
-    })
-    .catch(err => console.error(err));
-}
-
-function closeQuizModal() {
-  document.getElementById('quizModal').style.display = 'none';
-}
-
-function renderQuestions(questions) {
-  const container = document.getElementById('quizQuestions');
-  container.innerHTML = '';
-
-  if (questions.length === 0) {
-    container.innerHTML = '<p>No questions yet.</p>';
-    return;
-  }
-
-  questions.forEach(q => {
-    container.innerHTML += `
-      <div class="quiz-question">
-        <p><strong>${q.question}</strong></p>
-        ${q.options ? '<p>Options: ' + q.options.join(', ') + '</p>' : ''}
-        <p>Answer: ${q.correct_option}</p>
-        <button type="button" onclick="editQuestion(${q.id}, ${JSON.stringify(q).replace(/"/g, '&quot;')})">Edit</button>
-        <button type="button" onclick="deleteQuestion(${q.id})">Delete</button>
-      </div>
-      <hr>
-    `;
-  });
-}
-
-function editQuestion(id, questionData) {
-  document.querySelector('#quizForm').action = `/admin/quiz-question/${id}/edit`;
-  
-  document.querySelector('#quizForm textarea[name="question"]').value = questionData.question;
-  document.querySelector('#quizForm select[name="question_type"]').value = questionData.question_type;
-  document.querySelector('#quizForm input[name="correct_option"]').value = questionData.correct_option;
-
-  toggleOptions(); // regenerate options field
-
-  // fill options if multiple choice
-  if (questionData.question_type === "multiple_choice" && questionData.options) {
-    const optionInputs = document.querySelectorAll('#options_container input[name="options"]');
-    questionData.options.forEach((opt, idx) => {
-      if (optionInputs[idx]) optionInputs[idx].value = opt;
-    });
-  }
-
-  // Change submit button to "Update"
-  document.querySelector('#quizForm button[type="submit"]').textContent = "Update Question";
-}
-
-
-function toggleOptions() {
-  let type = document.getElementById('question_type').value;
-  let container = document.getElementById('options_container');
-
-  if (type === 'multiple_choice') {
-    container.innerHTML = `
-      <label>Options</label>
-      <input type="text" name="options" placeholder="Option 1">
-      <input type="text" name="options" placeholder="Option 2">
-      <input type="text" name="options" placeholder="Option 3">
-      <input type="text" name="options" placeholder="Option 4">
-    `;
-  } else if (type === 'true_false') {
-    container.innerHTML = `
-      <input type="hidden" name="options" value="True">
-      <input type="hidden" name="options" value="False">
-      <p>True / False are fixed</p>
-    `;
-  } else {
-    container.innerHTML = '';
-  }
-}
-
-// Handle quiz form submit via AJAX
-document.getElementById('quizForm').addEventListener('submit', function(e) {
-  e.preventDefault();
-
-  const formData = new FormData(this);
-
-  fetch('/admin/quiz-question/create', {
-    method: 'POST',
-    body: formData
-  })
-    .then(res => res.json())
-    .then(data => {
-      if (data.success) {
-        renderQuestions(data.questions);
-        this.reset(); // clear form
-      } else {
-        alert('Error adding question');
-      }
-    })
-    .catch(err => console.error(err));
-});
-
-// Delete a question via AJAX
-function deleteQuestion(id) {
-  if (!confirm('Delete question?')) return;
-
-  fetch(`/admin/quiz-question/${id}/delete`, { method: 'POST' })
-    .then(res => res.json())
-    .then(data => {
-      if (data.success) {
-        // Reopen modal with updated list
-        openQuizModal(document.getElementById('quiz_id').value);
-      }
-    })
-    .catch(err => console.error(err));
-}
-
-</script> -->
 
 <script>
 let isEditing = false;

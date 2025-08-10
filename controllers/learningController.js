@@ -547,8 +547,8 @@ exports.editQuizQuestion = async (req, res) => {
 //       SELECT a.*, m.title AS module_title
 //       FROM module_assignments a
 //       LEFT JOIN modules m ON a.module_id = m.id
-//       WHERE 
-//         (m.course_id = $1) 
+//       WHERE
+//         (m.course_id = $1)
 //         OR (a.course_id = $1)
 //     `;
 //     const queryParams = [courseId];
@@ -574,36 +574,93 @@ exports.editQuizQuestion = async (req, res) => {
 //   }
 // };
 
+// exports.viewCourseWithAssignments = async (req, res) => {
+//   try {
+//     const modulesRes = await pool.query(`
+//       SELECT m.*, c.title AS course_title
+//       FROM modules m
+//       JOIN courses c ON m.course_id = c.id
+//       ORDER BY c.title, m.title
+//     `);
+
+//     const selectedModuleId = req.query.module || null;
+//     let assignments = [];
+
+//     if (selectedModuleId) {
+//       const assignmentRes = await pool.query(
+//         `SELECT * FROM module_assignments WHERE module_id = $1 ORDER BY id DESC`,
+//         [selectedModuleId]
+//       );
+//       assignments = assignmentRes.rows;
+//     }
+
+//     res.render("admin/singleCourse", {
+//       modules: modulesRes.rows,
+//       assignments,
+//       selectedModuleId,
+//     });
+//   } catch (err) {
+//     console.error("Get Lessons Error:", err.message);
+//     res.status(500).send("Server Error");
+//   }
+// };
+
 exports.viewCourseWithAssignments = async (req, res) => {
+  const courseId = req.params.id;
+  const selectedModuleId = req.query.module || "all";
+
   try {
-    const modulesRes = await pool.query(`
-      SELECT m.*, c.title AS course_title
-      FROM modules m
-      JOIN courses c ON m.course_id = c.id
-      ORDER BY c.title, m.title
-    `);
+    const courseRes = await pool.query(`SELECT * FROM courses WHERE id = $1`, [
+      courseId,
+    ]);
+    if (courseRes.rows.length === 0)
+      return res.status(404).send("Course not found");
+    const course = courseRes.rows[0];
 
-    const selectedModuleId = req.query.module || null;
-    let assignments = [];
+    const modulesRes = await pool.query(
+      `SELECT * FROM modules WHERE course_id = $1 ORDER BY title`,
+      [courseId]
+    );
+    const modules = modulesRes.rows;
 
-    if (selectedModuleId) {
+    let assignments;
+    if (selectedModuleId === "all") {
+      // All modules for this course
       const assignmentRes = await pool.query(
-        `SELECT * FROM module_assignments WHERE module_id = $1 ORDER BY id DESC`,
-        [selectedModuleId]
+        `SELECT a.*, m.title AS module_title
+         FROM module_assignments a
+         JOIN modules m ON a.module_id = m.id
+         WHERE m.course_id = $1
+         ORDER BY a.id DESC`,
+        [courseId]
       );
-      lessons = lessonsRes.rows;
+      assignments = assignmentRes.rows;
+    } else {
+      // Specific module only
+      const assignmentRes = await pool.query(
+        `SELECT a.*, m.title AS module_title
+         FROM module_assignments a
+         JOIN modules m ON a.module_id = m.id
+         WHERE a.module_id = $1 AND m.course_id = $2
+         ORDER BY a.id DESC`,
+        [selectedModuleId, courseId]
+      );
+      assignments = assignmentRes.rows;
     }
 
-    res.render("admin/adminLessons", {
-      modules: modulesRes.rows,
+    res.render("admin/singleCourse", {
+      course,
+      modules,
       assignments,
       selectedModuleId,
     });
   } catch (err) {
-    console.error("Get Lessons Error:", err.message);
+    console.error("Error loading course assignments:", err.message);
     res.status(500).send("Server Error");
   }
 };
+
+
 
 exports.createAssignment = async (req, res) => {
   const { title, instructions, lesson_id, module_id, course_id } = req.body;

@@ -243,7 +243,7 @@ router.post('/quiz-question/:id/delete', learningController.deleteQuizQuestion);
 
 // Handle module assignment using same function
 // View single course with assignments tab support
-router.get("/courses/:id", learningController.viewCourseWithAssignments);
+// router.get("/courses/:id", learningController.viewCourseWithAssignments);
 
 
 router.post(
