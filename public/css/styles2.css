@@ -635,8 +635,8 @@
 } */
 
 .sidebar {
-    /* width: 240px; */
-    background-color: #1e1e2f;
+    width: 200px;
+    background-color: #5b5338;
     color: #fff;
     padding: 20px;
     position: fixed;
@@ -693,7 +693,7 @@
     min-width: 0;
     width: 100%; */
     /* helps prevent overflow */
-    margin-left: 240px;
+    margin-left: 200px;
         /* Same as sidebar width */
         padding: 30px;
         flex-grow: 1;
@@ -1007,6 +1007,154 @@ canvas {
   margin-bottom: 20px;
 }
 
+.learning-container {
+    display: flex;
+}
+
+/* Mini Lesson Sidebar */
+.lesson-sidebar {
+    width: 220px;
+    position: sticky;
+    top: 0;
+    height: 100vh; /* Full screen height */
+    overflow-y: auto; /* Scroll only inside sidebar if too many items */
+    background: #f9f9f9; /* Or transparent if you want */
+    border-right: 1px solid #ddd;
+    padding: 10px;
+}
+
+/* Responsive: Sidebar at top on mobile */
+
+
+.lesson-sidebar h3 {
+    font-size: 16px;
+    margin-bottom: 10px;
+    color: #333;
+}
+
+.lesson-list {
+    list-style: none;
+    padding: 0;
+}
+
+.lesson-list li {
+    margin-bottom: 8px;
+}
+
+.lesson-list a {
+    display: block;
+    padding: 8px 10px;
+    border-radius: 5px;
+    text-decoration: none;
+    color: #444;
+    transition: background 0.2s;
+}
+
+.lesson-list a:hover {
+    background: #e3f2fd;
+}
+
+.lesson-list .active-lesson a {
+    background: #2196f3;
+    color: white;
+}
+
+/* Lesson Content */
+.lesson-content {
+    flex: 1;
+    padding: 20px;
+    background: #fff;
+    min-height: calc(100vh - 60px);
+}
+
+.lesson-video iframe {
+    width: 100%;
+    height: 350px;
+    margin-bottom: 20px;
+    border-radius: 5px;
+}
+
+/* Quiz Results Overlay */
+#quizResultsOverlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(0, 0, 0, 0.6);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 999;
+}
+
+.overlay-content {
+    background: #fff;
+    padding: 25px;
+    border-radius: 10px;
+    text-align: center;
+    width: 400px;
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.3);
+}
+
+.overlay-content h2 {
+    margin-bottom: 15px;
+}
+
+.overlay-content p {
+    margin-bottom: 15px;
+    font-size: 16px;
+}
+
+.overlay-content button {
+    margin: 5px;
+    padding: 8px 15px;
+    border: none;
+    border-radius: 5px;
+    cursor: pointer;
+}
+
+.overlay-content button:first-of-type {
+    background: #2196f3;
+    color: white;
+}
+
+.overlay-content button:nth-of-type(2) {
+    background: #4caf50;
+    color: white;
+}
+
+.overlay-content button:last-of-type {
+    background: #f44336;
+    color: white;
+}
+
+/* Make lesson + sidebar flex layout */
+
+
+.no-bg {
+    background: none;
+    border: none;
+    padding: 5px 0;
+    color: inherit;
+    cursor: pointer;
+    font-size: 14px;
+}
+
+.no-bg:hover {
+    color: #007bff;
+    text-decoration: underline;
+    background: none;
+}
+
+.lesson-list {
+    list-style: none;
+    padding-left: 15px;
+}
+
+.lesson-list li {
+    margin: 5px 0;
+}
 /* Responsive design */
 @media (max-width: 768px) {
     .event-container {
@@ -1107,6 +1255,8 @@ canvas {
     width: 100%;
     border-radius: 5px;
 }
+
+
 
 @keyframes spin {
     to {

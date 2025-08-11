@@ -23,7 +23,7 @@
       <% if (lesson.video_url) { %>
         <video src="<%= lesson.video_url %>" controls></video>
       <% } %>
-      <p><%- lesson.content.substring(0, 100) %>...</p>
+      <p><%- lesson.content.substring(0, 200) %>...</p>
       <div class="article-buttons">
         <button class="btn-edit" onclick="openEditLessonModal(<%= JSON.stringify(lesson) %>)">Edit</button>
         <form method="POST" action="/admin/lessons/<%= lesson.id %>/delete" style="display:inline;">
@@ -66,7 +66,7 @@
 </div>
 
 <!-- EDIT LESSON MODAL -->
-<div id="editLessonModal" class="modal" style="display:none;">
+<!-- <div id="editLessonModal" class="modal" style="display:none;">
   <form id="editLessonForm" method="POST" enctype="multipart/form-data" class="modal-content">
     <h2>Edit Lesson</h2>
     <input type="hidden" name="course_id" value="<%= course.id %>">
@@ -74,7 +74,30 @@
     <input type="text" name="title" id="editLessonTitle" required>
 
     <label>Content</label>
-    <textarea name="content" id="editLessonContent" required></textarea>
+    <textarea name="content" id="editLessonContent"></textarea>
+
+    <label>Video</label>
+    <input type="file" name="video_url" accept="video/*">
+
+    <div class="modal-actions">
+      <button type="submit">Update</button>
+      <button type="button" onclick="closeEditLessonModal()">Cancel</button>
+    </div>
+  </form>
+</div> -->
+
+<!-- EDIT LESSON MODAL -->
+<div id="editLessonModal" class="modal" style="display:none;">
+  <form id="editLessonForm" method="POST" enctype="multipart/form-data" class="modal-content">
+    <h2>Edit Lesson</h2>
+    <!-- Hidden course_id -->
+    <input type="hidden" name="course_id" id="editLessonCourseId">
+
+    <label>Title</label>
+    <input type="text" name="title" id="editLessonTitle" required>
+
+    <label>Content</label>
+    <textarea name="content" id="editLessonContent"></textarea>
 
     <label>Video</label>
     <input type="file" name="video_url" accept="video/*">
@@ -85,6 +108,7 @@
     </div>
   </form>
 </div>
+
 
 
 <!-- QUIZ MODAL -->
@@ -199,8 +223,10 @@ function renderQuestions(questions) {
         <p><strong>${q.question}</strong></p>
         ${q.options ? '<p>Options: ' + q.options.join(', ') + '</p>' : ''}
         <p>Answer: ${q.correct_option}</p>
-        <button type="button" onclick='editQuestion(${JSON.stringify(q)})'>Edit</button>
-        <button type="button" onclick="deleteQuestion(${q.id})">Delete</button>
+        <div class="article-buttons">
+        <button style  = "btn-edit" type="button" onclick='editQuestion(${JSON.stringify(q)})'>Edit</button>
+        <button style  = "btn-delete"  type="button" onclick="deleteQuestion(${q.id})">Delete</button>
+        </div>
       </div>
       <hr>
     `;
@@ -327,13 +353,51 @@ function closeLessonModal() {
 }
 
 // Edit Modal
+// function openEditLessonModal(lesson) {
+//   document.getElementById('editLessonForm').action = '/admin/lessons/' + lesson.id + '/edit';
+//   document.getElementById('editLessonTitle').value = lesson.title;
+
+//   document.getElementById('editLessonModal').style.display = 'block';
+
+//   // Initialize CKEditor if not already done
+//   if (!editLessonEditor) {
+//     ClassicEditor.create(document.querySelector('#editLessonContent'))
+//       .then(editor => {
+//         editLessonEditor = editor;
+//         editLessonEditor.setData(lesson.content || '');
+//       })
+//       .catch(error => console.error('Edit Lesson CKEditor error:', error));
+//   } else {
+//     editLessonEditor.setData(lesson.content || '');
+//   }
+// }
+
+// function openEditLessonModal(lesson) {
+//   document.getElementById('editLessonForm').action = '/admin/lessons/' + lesson.id + '/edit';
+//   document.getElementById('editLessonTitle').value = lesson.title;
+//   document.querySelector('#editLessonForm input[name="course_id"]').value = lesson.course_id;
+
+//   document.getElementById('editLessonModal').style.display = 'block';
+
+//   if (!editLessonEditor) {
+//     ClassicEditor.create(document.querySelector('#editLessonContent'))
+//       .then(editor => {
+//         editLessonEditor = editor;
+//         editLessonEditor.setData(lesson.content || '');
+//       })
+//       .catch(error => console.error('Edit Lesson CKEditor error:', error));
+//   } else {
+//     editLessonEditor.setData(lesson.content || '');
+//   }
+// }
+
 function openEditLessonModal(lesson) {
   document.getElementById('editLessonForm').action = '/admin/lessons/' + lesson.id + '/edit';
   document.getElementById('editLessonTitle').value = lesson.title;
+  document.querySelector('#editLessonForm input[name="course_id"]').value = lesson.course_id;
 
   document.getElementById('editLessonModal').style.display = 'block';
 
-  // Initialize CKEditor if not already done
   if (!editLessonEditor) {
     ClassicEditor.create(document.querySelector('#editLessonContent'))
       .then(editor => {
@@ -345,6 +409,23 @@ function openEditLessonModal(lesson) {
     editLessonEditor.setData(lesson.content || '');
   }
 }
+
+// Validate before submit
+document.getElementById('editLessonForm').addEventListener('submit', function (e) {
+  const content = editLessonEditor.getData().trim();
+  if (!content) {
+    e.preventDefault();
+    alert('Content is required.');
+    return;
+  }
+  document.querySelector('#editLessonContent').value = content;
+});
+
+function closeEditLessonModal() {
+  document.getElementById('editLessonModal').style.display = 'none';
+}
+
+
 
 function closeEditLessonModal() {
   document.getElementById('editLessonModal').style.display = 'none';

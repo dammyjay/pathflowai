@@ -28,5 +28,26 @@ router.post(
   studentController.editProfile
 );
 
+router.get(
+  "/lessons/:lessonId",
+  ensureAuthenticated,
+  studentController.viewLesson
+);
+
+router.get(
+  "/modules/:moduleId",
+  ensureAuthenticated,
+  studentController.getModuleDetails
+);
+
+// Get quiz questions for a lesson
+router.get('/lessons/:id/quiz', studentController.getLessonQuiz);
+
+// Submit quiz answers
+router.post('/lessons/:id/quiz/submit', studentController.submitLessonQuiz);
+
+// routes/student.js
+router.get('/lessons/:id', studentController.getLesson);
+
 
 module.exports = router;

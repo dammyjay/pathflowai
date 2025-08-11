@@ -607,58 +607,109 @@ exports.editQuizQuestion = async (req, res) => {
 
 exports.viewCourseWithAssignments = async (req, res) => {
   const courseId = req.params.id;
+  const activeTab = req.query.tab || "assignment";
   const selectedModuleId = req.query.module || "all";
 
   try {
-    const courseRes = await pool.query(`SELECT * FROM courses WHERE id = $1`, [
-      courseId,
-    ]);
-    if (courseRes.rows.length === 0)
-      return res.status(404).send("Course not found");
+    // Get course info
+    const courseRes = await pool.query("SELECT * FROM courses WHERE id = $1", [courseId]);
     const course = courseRes.rows[0];
+    if (!course) return res.status(404).send("Course not found");
 
+    // Get all modules for this course
     const modulesRes = await pool.query(
-      `SELECT * FROM modules WHERE course_id = $1 ORDER BY title`,
+      "SELECT * FROM modules WHERE course_id = $1 ORDER BY title",
       [courseId]
     );
     const modules = modulesRes.rows;
 
-    let assignments;
-    if (selectedModuleId === "all") {
-      // All modules for this course
-      const assignmentRes = await pool.query(
-        `SELECT a.*, m.title AS module_title
-         FROM module_assignments a
-         JOIN modules m ON a.module_id = m.id
-         WHERE m.course_id = $1
-         ORDER BY a.id DESC`,
-        [courseId]
-      );
-      assignments = assignmentRes.rows;
-    } else {
-      // Specific module only
-      const assignmentRes = await pool.query(
-        `SELECT a.*, m.title AS module_title
-         FROM module_assignments a
-         JOIN modules m ON a.module_id = m.id
-         WHERE a.module_id = $1 AND m.course_id = $2
-         ORDER BY a.id DESC`,
-        [selectedModuleId, courseId]
-      );
-      assignments = assignmentRes.rows;
+    // Get assignments for this course (and module filter if selected)
+    let assignmentsQuery = `
+      SELECT a.*, m.title AS module_title
+      FROM module_assignments a
+      LEFT JOIN modules m ON a.module_id = m.id
+      WHERE m.course_id = $1
+    `;
+    const queryParams = [courseId];
+
+    if (selectedModuleId !== "all") {
+      assignmentsQuery += " AND m.id = $2";
+      queryParams.push(selectedModuleId);
     }
+
+    assignmentsQuery += " ORDER BY a.id DESC";
+
+    const assignmentsRes = await pool.query(assignmentsQuery, queryParams);
+    const assignments = assignmentsRes.rows;
 
     res.render("admin/singleCourse", {
       course,
       modules,
       assignments,
       selectedModuleId,
+      activeTab
     });
   } catch (err) {
-    console.error("Error loading course assignments:", err.message);
-    res.status(500).send("Server Error");
+    console.error("Error loading assignments:", err);
+    res.status(500).send("Server error");
   }
 };
+
+
+// exports.viewCourseWithAssignments = async (req, res) => {
+//   const courseId = req.params.id;
+//   const selectedModuleId = req.query.module || "all";
+
+//   try {
+//     const courseRes = await pool.query(`SELECT * FROM courses WHERE id = $1`, [
+//       courseId,
+//     ]);
+//     if (courseRes.rows.length === 0)
+//       return res.status(404).send("Course not found");
+//     const course = courseRes.rows[0];
+
+//     const modulesRes = await pool.query(
+//       `SELECT * FROM modules WHERE course_id = $1 ORDER BY title`,
+//       [courseId]
+//     );
+//     const modules = modulesRes.rows;
+
+//     let assignments;
+//     if (selectedModuleId === "all") {
+//       // All modules for this course
+//       const assignmentRes = await pool.query(
+//         `SELECT a.*, m.title AS module_title
+//          FROM module_assignments a
+//          JOIN modules m ON a.module_id = m.id
+//          WHERE m.course_id = $1
+//          ORDER BY a.id DESC`,
+//         [courseId]
+//       );
+//       assignments = assignmentRes.rows;
+//     } else {
+//       // Specific module only
+//       const assignmentRes = await pool.query(
+//         `SELECT a.*, m.title AS module_title
+//          FROM module_assignments a
+//          JOIN modules m ON a.module_id = m.id
+//          WHERE a.module_id = $1 AND m.course_id = $2
+//          ORDER BY a.id DESC`,
+//         [selectedModuleId, courseId]
+//       );
+//       assignments = assignmentRes.rows;
+//     }
+
+//     res.render("admin/singleCourse", {
+//       course,
+//       modules,
+//       assignments,
+//       selectedModuleId,
+//     });
+//   } catch (err) {
+//     console.error("Error loading course assignments:", err.message);
+//     res.status(500).send("Server Error");
+//   }
+// };
 
 
 

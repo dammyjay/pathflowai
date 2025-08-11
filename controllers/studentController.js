@@ -3,103 +3,672 @@ const pool = require("../models/db");
 // GET: Student Dashboard
 
 
+// exports.getDashboard = async (req, res) => {
+//   const studentId = req.user.id;
+
+//   try {
+//     const infoResult = await pool.query(
+//       "SELECT * FROM company_info ORDER BY id DESC LIMIT 1"
+//     );
+//     const info = infoResult.rows[0] || {};
+
+//     const profilePic = req.session.user?.profile_picture || null;
+//     const walletResult = await pool.query(
+//       "SELECT wallet_balance2 FROM users2 WHERE id = $1",
+//       [studentId]
+//     );
+//     const walletBalance = walletResult.rows[0]?.wallet_balance2 || 0;
+
+//     const studentRes = await pool.query("SELECT * FROM users2 WHERE id = $1", [
+//       studentId,
+//     ]);
+//     const student = studentRes.rows[0];
+
+//     // 1️⃣ Get all enrolled courses with pathway
+//     const enrolledCoursesRes = await pool.query(
+//       `
+//       SELECT c.*, p.title AS pathway_name, e.progress
+//       FROM course_enrollments e
+//       JOIN courses c ON c.id = e.course_id
+//       JOIN career_pathways p ON c.career_pathway_id = p.id
+//       WHERE e.user_id = $1
+//       ORDER BY p.title, c.title
+//       `,
+//       [studentId]
+//     );
+
+//     // 2️⃣ Get all modules for these courses
+//     const courseIds = enrolledCoursesRes.rows.map((course) => course.id);
+//     let modulesRes = { rows: [] };
+//     if (courseIds.length > 0) {
+//       modulesRes = await pool.query(
+//         `
+//         SELECT id, title, course_id, thumbnail
+//         FROM modules
+//         WHERE course_id = ANY($1)
+//         ORDER BY order_number ASC
+//         `,
+//         [courseIds]
+//       );
+//     }
+
+
+//     // Count lessons per module
+//     const moduleIds = modulesRes.rows.map((m) => m.id);
+//     let lessonCounts = {};
+//     if (moduleIds.length > 0) {
+//       const countRes = await pool.query(
+//         `SELECT module_id, COUNT(*) AS total_lessons
+//      FROM lessons
+//      WHERE module_id = ANY($1)
+//      GROUP BY module_id`,
+//         [moduleIds]
+//       );
+//       countRes.rows.forEach((row) => {
+//         lessonCounts[row.module_id] = parseInt(row.total_lessons);
+//       });
+//     }
+
+//     // 4️⃣ Group courses by pathway & modules by course
+//     let pathwayCourses = {};
+//     let courseModules = {};
+
+//     for (const course of enrolledCoursesRes.rows) {
+//       if (!pathwayCourses[course.pathway_name]) {
+//         pathwayCourses[course.pathway_name] = [];
+//       }
+//       pathwayCourses[course.pathway_name].push(course);
+//     }
+
+//     for (const mod of modulesRes.rows) {
+//       if (!courseModules[mod.course_id]) {
+//         courseModules[mod.course_id] = [];
+//       }
+//       courseModules[mod.course_id].push(mod);
+//     }
+
+//     // 5️⃣ Completed courses
+//     const completedCoursesRes = await pool.query(
+//       `SELECT COUNT(*) FROM course_enrollments WHERE user_id = $1 AND progress = 100`,
+//       [studentId]
+//     );
+//     const completedCourses = parseInt(completedCoursesRes.rows[0].count);
+
+//     // 6️⃣ Completed projects
+//     const completedProjectsRes = await pool.query(
+//       `
+//       SELECT COUNT(*) FROM course_projects
+//       WHERE course_id IN (
+//         SELECT course_id FROM course_enrollments WHERE user_id = $1
+//       )
+//       `,
+//       [studentId]
+//     );
+//     const completedProjects = parseInt(completedProjectsRes.rows[0].count);
+
+//     // 7️⃣ Badges & Certificates
+//     const badgesRes = await pool.query(
+//       "SELECT * FROM user_badges WHERE user_id = $1",
+//       [studentId]
+//     );
+
+//     const certificatesRes = await pool.query(
+//       `SELECT COUNT(*) FROM course_enrollments WHERE user_id = $1 AND progress = 100`,
+//       [studentId]
+//     );
+//     const certificatesCount = parseInt(certificatesRes.rows[0].count);
+
+//     // 8️⃣ XP History
+//     const xpHistoryRes = await pool.query(
+//       `SELECT * FROM xp_history WHERE user_id = $1 ORDER BY earned_at DESC LIMIT 10`,
+//       [studentId]
+//     );
+
+//     // 9️⃣ Weekly engagement
+//     const engagementRes = await pool.query(
+//       `
+//       SELECT
+//         TO_CHAR(completed_at, 'Day') AS day,
+//         COUNT(*) AS count
+//       FROM user_lesson_progress
+//       WHERE user_id = $1 AND completed_at >= NOW() - INTERVAL '6 days'
+//       GROUP BY day
+//       ORDER BY MIN(completed_at)
+//       `,
+//       [studentId]
+//     );
+
+//     const engagementData = {
+//       labels: engagementRes.rows.map((r) => r.day.trim()),
+//       data: engagementRes.rows.map((r) => parseInt(r.count)),
+//     };
+
+//     const selectedPathway = req.query.pathway || null;
+//     const section = req.query.section || null;
+
+//     // 🔟 Render with lessons added
+//     res.render("student/dashboard", {
+//       student,
+//       profilePic,
+//       isLoggedIn: !!req.session.user,
+//       users: req.session.user,
+//       info,
+//       walletBalance,
+//       subscribed: req.query.subscribed,
+//       enrolledCourses: enrolledCoursesRes.rows,
+//       pathwayCourses,
+//       courseModules,
+//       // moduleLessons, // ✅ now available in EJS
+//       lessonCounts,
+//       courses: enrolledCoursesRes.rows,
+//       completedCourses,
+//       completedProjects,
+//       certificatesCount,
+//       badges: badgesRes.rows,
+//       xpHistory: xpHistoryRes.rows,
+//       engagementData,
+//       selectedPathway,
+//       section,
+//     });
+//   } catch (err) {
+//     console.error("Dashboard Error:", err.message);
+//     res.status(500).send("Server Error");
+//   }
+// };
+
+// exports.getDashboard = async (req, res) => {
+//   const studentId = req.user.id;
+
+//   try {
+//     // 1️⃣ Company Info
+//     const infoResult = await pool.query(
+//       "SELECT * FROM company_info ORDER BY id DESC LIMIT 1"
+//     );
+//     const info = infoResult.rows[0] || {};
+
+//     const profilePic = req.session.user?.profile_picture || null;
+
+//     // 2️⃣ Wallet
+//     const walletResult = await pool.query(
+//       "SELECT wallet_balance2 FROM users2 WHERE id = $1",
+//       [studentId]
+//     );
+//     const walletBalance = walletResult.rows[0]?.wallet_balance2 || 0;
+
+//     // 3️⃣ Student
+//     const studentRes = await pool.query("SELECT * FROM users2 WHERE id = $1", [
+//       studentId,
+//     ]);
+//     const student = studentRes.rows[0];
+
+//     // 4️⃣ Enrolled Courses
+//     const enrolledCoursesRes = await pool.query(
+//       `
+//       SELECT c.*, p.title AS pathway_name, e.progress
+//       FROM course_enrollments e
+//       JOIN courses c ON c.id = e.course_id
+//       JOIN career_pathways p ON c.career_pathway_id = p.id
+//       WHERE e.user_id = $1
+//       ORDER BY p.title, c.title
+//       `,
+//       [studentId]
+//     );
+
+//     // 5️⃣ Modules
+//     const courseIds = enrolledCoursesRes.rows.map((c) => c.id);
+//     let modulesRes = { rows: [] };
+//     if (courseIds.length > 0) {
+//       modulesRes = await pool.query(
+//         `
+//         SELECT id, title, course_id, thumbnail
+//         FROM modules
+//         WHERE course_id = ANY($1)
+//         ORDER BY id ASC
+//         `,
+//         [courseIds]
+//       );
+//     }
+
+//     // Lesson counts
+//     const moduleIds = modulesRes.rows.map((m) => m.id);
+//     let lessonCounts = {};
+//     if (moduleIds.length > 0) {
+//       const countRes = await pool.query(
+//         `SELECT module_id, COUNT(*) AS total_lessons
+//          FROM lessons
+//          WHERE module_id = ANY($1)
+//          GROUP BY module_id`,
+//         [moduleIds]
+//       );
+//       countRes.rows.forEach((row) => {
+//         lessonCounts[row.module_id] = parseInt(row.total_lessons);
+//       });
+      
+//     }
+
+//     // Group by pathway & course
+//     let pathwayCourses = {};
+//     let courseModules = {};
+//     for (const course of enrolledCoursesRes.rows) {
+//       if (!pathwayCourses[course.pathway_name]) {
+//         pathwayCourses[course.pathway_name] = [];
+//       }
+//       pathwayCourses[course.pathway_name].push(course);
+//     }
+//     for (const mod of modulesRes.rows) {
+//       if (!courseModules[mod.course_id]) {
+//         courseModules[mod.course_id] = [];
+//       }
+//       courseModules[mod.course_id].push(mod);
+//     }
+
+//     // 6️⃣ Module Learning Mode
+//     const section = req.query.section || null;
+//     let moduleInfo = null;
+//     let lessons = [];
+//     let selectedLesson = null;
+
+//     if (section === "module" && req.query.moduleId) {
+//       const moduleId = parseInt(req.query.moduleId);
+
+//       // Module info
+//       const moduleRes = await pool.query(
+//         "SELECT * FROM modules WHERE id = $1",
+//         [moduleId]
+//       );
+//       moduleInfo = moduleRes.rows[0];
+
+//       // Lessons
+//       const lessonsRes = await pool.query(
+//         "SELECT * FROM lessons WHERE module_id = $1 ORDER BY id ASC",
+//         [moduleId]
+//       );
+//       lessons = lessonsRes.rows;
+
+//       // Selected lesson
+//       let lessonId = req.query.lessonId || (lessons[0] ? lessons[0].id : null);
+//       if (lessonId) {
+//         const lessonRes = await pool.query(
+//           "SELECT * FROM lessons WHERE id = $1",
+//           [lessonId]
+//         );
+//         selectedLesson = lessonRes.rows[0];
+//       }
+//     }
+
+//     // 7️⃣ Stats
+//     const completedCoursesRes = await pool.query(
+//       `SELECT COUNT(*) FROM course_enrollments WHERE user_id = $1 AND progress = 100`,
+//       [studentId]
+//     );
+//     const completedCourses = parseInt(completedCoursesRes.rows[0].count);
+
+//     const completedProjectsRes = await pool.query(
+//       `
+//       SELECT COUNT(*) FROM course_projects
+//       WHERE course_id IN (
+//         SELECT course_id FROM course_enrollments WHERE user_id = $1
+//       )
+//       `,
+//       [studentId]
+//     );
+//     const completedProjects = parseInt(completedProjectsRes.rows[0].count);
+
+//     const badgesRes = await pool.query(
+//       "SELECT * FROM user_badges WHERE user_id = $1",
+//       [studentId]
+//     );
+
+//     const certificatesRes = await pool.query(
+//       `SELECT COUNT(*) FROM course_enrollments WHERE user_id = $1 AND progress = 100`,
+//       [studentId]
+//     );
+//     const certificatesCount = parseInt(certificatesRes.rows[0].count);
+
+//     const xpHistoryRes = await pool.query(
+//       `SELECT * FROM xp_history WHERE user_id = $1 ORDER BY earned_at DESC LIMIT 10`,
+//       [studentId]
+//     );
+
+//     const engagementRes = await pool.query(
+//       `
+//       SELECT
+//         TO_CHAR(completed_at, 'Day') AS day,
+//         COUNT(*) AS count
+//       FROM user_lesson_progress
+//       WHERE user_id = $1 AND completed_at >= NOW() - INTERVAL '6 days'
+//       GROUP BY day
+//       ORDER BY MIN(completed_at)
+//       `,
+//       [studentId]
+//     );
+//     const engagementData = {
+//       labels: engagementRes.rows.map((r) => r.day.trim()),
+//       data: engagementRes.rows.map((r) => parseInt(r.count)),
+//     };
+
+//     const selectedPathway = req.query.pathway || null;
+
+//     // Render
+//     res.render("student/dashboard", {
+//       student,
+//       profilePic,
+//       isLoggedIn: !!req.session.user,
+//       users: req.session.user,
+//       info,
+//       walletBalance,
+//       subscribed: req.query.subscribed,
+//       enrolledCourses: enrolledCoursesRes.rows,
+//       pathwayCourses,
+//       courseModules,
+//       lessonCounts,
+//       courses: enrolledCoursesRes.rows,
+//       completedCourses,
+//       completedProjects,
+//       certificatesCount,
+//       badges: badgesRes.rows,
+//       xpHistory: xpHistoryRes.rows,
+//       engagementData,
+//       selectedPathway,
+//       section,
+//       moduleInfo,
+//       lessons,
+//       selectedLesson,
+//     });
+//   } catch (err) {
+//     console.error("Dashboard Error:", err.message);
+//     res.status(500).send("Server Error");
+//   }
+// };
+
+// exports.getDashboard = async (req, res) => {
+//   const studentId = req.user.id;
+
+//   try {
+//     // Company Info
+//     const infoResult = await pool.query(
+//       "SELECT * FROM company_info ORDER BY id DESC LIMIT 1"
+//     );
+//     const info = infoResult.rows[0] || {};
+
+//     const profilePic = req.session.user?.profile_picture || null;
+
+//     // Wallet
+//     const walletResult = await pool.query(
+//       "SELECT wallet_balance2 FROM users2 WHERE id = $1",
+//       [studentId]
+//     );
+//     const walletBalance = walletResult.rows[0]?.wallet_balance2 || 0;
+
+//     // Student
+//     const studentRes = await pool.query("SELECT * FROM users2 WHERE id = $1", [
+//       studentId,
+//     ]);
+//     const student = studentRes.rows[0];
+
+//     // Enrolled Courses
+//     const enrolledCoursesRes = await pool.query(
+//       `
+//       SELECT c.*, p.title AS pathway_name, e.progress
+//       FROM course_enrollments e
+//       JOIN courses c ON c.id = e.course_id
+//       JOIN career_pathways p ON c.career_pathway_id = p.id
+//       WHERE e.user_id = $1
+//       ORDER BY p.title, c.title
+//       `,
+//       [studentId]
+//     );
+
+//     // Modules
+//     const courseIds = enrolledCoursesRes.rows.map((c) => c.id);
+//     let modulesRes = { rows: [] };
+//     if (courseIds.length > 0) {
+//       modulesRes = await pool.query(
+//         `
+//         SELECT id, title, course_id, thumbnail
+//         FROM modules
+//         WHERE course_id = ANY($1)
+//         ORDER BY id ASC
+//         `,
+//         [courseIds]
+//       );
+//     }
+
+//     // Lessons & quiz indicator
+//     const moduleIds = modulesRes.rows.map((m) => m.id);
+//     let lessonCounts = {};
+//     let moduleLessons = {};
+//     if (moduleIds.length > 0) {
+//       // Count
+//       const countRes = await pool.query(
+//         `SELECT module_id, COUNT(*) AS total_lessons
+//          FROM lessons
+//          WHERE module_id = ANY($1)
+//          GROUP BY module_id`,
+//         [moduleIds]
+//       );
+//       countRes.rows.forEach((row) => {
+//         lessonCounts[row.module_id] = parseInt(row.total_lessons);
+//       });
+
+//       // Lessons with quiz info
+//       const lessonsRes = await pool.query(
+//         `
+//         SELECT l.id, l.title, l.module_id, l.content, l.video_url,
+//                EXISTS(SELECT 1 FROM quizzes q WHERE q.lesson_id = l.id) AS has_quiz
+//         FROM lessons l
+//         WHERE l.module_id = ANY($1)
+//         ORDER BY l.id ASC
+//       `,
+//         [moduleIds]
+//       );
+
+//       lessonsRes.rows.forEach((lesson) => {
+//         if (!moduleLessons[lesson.module_id])
+//           moduleLessons[lesson.module_id] = [];
+//         moduleLessons[lesson.module_id].push(lesson);
+//       });
+//     }
+
+//     // Group by pathway & course
+//     let pathwayCourses = {};
+//     let courseModules = {};
+//     for (const course of enrolledCoursesRes.rows) {
+//       if (!pathwayCourses[course.pathway_name]) {
+//         pathwayCourses[course.pathway_name] = [];
+//       }
+//       pathwayCourses[course.pathway_name].push(course);
+//     }
+//     for (const mod of modulesRes.rows) {
+//       if (!courseModules[mod.course_id]) {
+//         courseModules[mod.course_id] = [];
+//       }
+//       courseModules[mod.course_id].push(mod);
+//     }
+
+//     // Stats
+//     const completedCoursesRes = await pool.query(
+//       `SELECT COUNT(*) FROM course_enrollments WHERE user_id = $1 AND progress = 100`,
+//       [studentId]
+//     );
+//     const completedCourses = parseInt(completedCoursesRes.rows[0].count);
+
+//     const completedProjectsRes = await pool.query(
+//       `
+//       SELECT COUNT(*) FROM course_projects
+//       WHERE course_id IN (
+//         SELECT course_id FROM course_enrollments WHERE user_id = $1
+//       )
+//       `,
+//       [studentId]
+//     );
+//     const completedProjects = parseInt(completedProjectsRes.rows[0].count);
+
+//     const badgesRes = await pool.query(
+//       "SELECT * FROM user_badges WHERE user_id = $1",
+//       [studentId]
+//     );
+
+//     const certificatesRes = await pool.query(
+//       `SELECT COUNT(*) FROM course_enrollments WHERE user_id = $1 AND progress = 100`,
+//       [studentId]
+//     );
+//     const certificatesCount = parseInt(certificatesRes.rows[0].count);
+
+//     const xpHistoryRes = await pool.query(
+//       `SELECT * FROM xp_history WHERE user_id = $1 ORDER BY earned_at DESC LIMIT 10`,
+//       [studentId]
+//     );
+
+//     const engagementRes = await pool.query(
+//       `
+//       SELECT
+//         TO_CHAR(completed_at, 'Day') AS day,
+//         COUNT(*) AS count
+//       FROM user_lesson_progress
+//       WHERE user_id = $1 AND completed_at >= NOW() - INTERVAL '6 days'
+//       GROUP BY day
+//       ORDER BY MIN(completed_at)
+//       `,
+//       [studentId]
+//     );
+//     const engagementData = {
+//       labels: engagementRes.rows.map((r) => r.day.trim()),
+//       data: engagementRes.rows.map((r) => parseInt(r.count)),
+//     };
+
+//     // Render
+//     res.render("student/dashboard", {
+//       student,
+//       profilePic,
+//       isLoggedIn: !!req.session.user,
+//       users: req.session.user,
+//       info,
+//       walletBalance,
+//       subscribed: req.query.subscribed,
+//       enrolledCourses: enrolledCoursesRes.rows,
+//       pathwayCourses,
+//       courseModules,
+//       moduleLessons, // ✅ for sidebar dropdown
+//       lessonCounts,
+//       courses: enrolledCoursesRes.rows,
+//       completedCourses,
+//       completedProjects,
+//       certificatesCount,
+//       badges: badgesRes.rows,
+//       xpHistory: xpHistoryRes.rows,
+//       engagementData,
+//       selectedPathway: req.query.pathway || null,
+//       section: req.query.section || null,
+//       moduleInfo: null,
+//       lessons: [],
+//       selectedLesson: null,
+//     });
+//   } catch (err) {
+//     console.error("Dashboard Error:", err.message);
+//     res.status(500).send("Server Error");
+//   }
+// };
+
+
 exports.getDashboard = async (req, res) => {
   const studentId = req.user.id;
 
   try {
+    // Company Info
     const infoResult = await pool.query(
       "SELECT * FROM company_info ORDER BY id DESC LIMIT 1"
     );
     const info = infoResult.rows[0] || {};
 
     const profilePic = req.session.user?.profile_picture || null;
+
+    // Wallet
     const walletResult = await pool.query(
       "SELECT wallet_balance2 FROM users2 WHERE id = $1",
       [studentId]
     );
     const walletBalance = walletResult.rows[0]?.wallet_balance2 || 0;
 
-    // Get main student record
+    // Student
     const studentRes = await pool.query("SELECT * FROM users2 WHERE id = $1", [
       studentId,
     ]);
     const student = studentRes.rows[0];
 
     // Enrolled Courses
-    // const enrolledCoursesRes = await pool.query(
-    //   `
-    //   SELECT c.*, e.progress
-    //   FROM course_enrollments e
-    //   JOIN courses c ON c.id = e.course_id
-    //   WHERE e.user_id = $1
-    //   ORDER BY c.created_at DESC
-    // `,
-    //   [studentId]
-    // );
-
-    // Add this after fetching enrolledCoursesRes
-    //   const courseIds = enrolledCoursesRes.rows.map((course) => course.id);
-    //   let courseModules = {};
-
-    //   if (courseIds.length > 0) {
-    //     const modulesRes = await pool.query(
-    //       `
-    //   SELECT id, title, course_id
-    //   FROM modules
-    //   WHERE course_id = ANY($1)
-    //   ORDER BY order_number ASC
-    // `,
-    //       [courseIds]
-    //     );
-
-    //     // Group modules by course_id
-    //     modulesRes.rows.forEach((mod) => {
-    //       if (!courseModules[mod.course_id]) {
-    //         courseModules[mod.course_id] = [];
-    //       }
-    //       courseModules[mod.course_id].push(mod);
-    //     });
-    //   }
-
-    // 1. Get all enrolled courses
     const enrolledCoursesRes = await pool.query(
       `
-  SELECT c.*, p.title AS pathway_name, e.progress
-  FROM course_enrollments e
-  JOIN courses c ON c.id = e.course_id
-  JOIN career_pathways p ON c.career_pathway_id = p.id
-  WHERE e.user_id = $1
-  ORDER BY p.title, c.title
-  `,
+      SELECT c.*, p.title AS pathway_name, e.progress
+      FROM course_enrollments e
+      JOIN courses c ON c.id = e.course_id
+      JOIN career_pathways p ON c.career_pathway_id = p.id
+      WHERE e.user_id = $1
+      ORDER BY p.title, c.title
+      `,
       [studentId]
     );
 
-    // 2. Get all modules under those courses
-    const courseIds = enrolledCoursesRes.rows.map((course) => course.id);
+    // Modules
+    const courseIds = enrolledCoursesRes.rows.map((c) => c.id);
     let modulesRes = { rows: [] };
     if (courseIds.length > 0) {
       modulesRes = await pool.query(
         `
-    SELECT id, title, course_id
-    FROM modules
-    WHERE course_id = ANY($1)
-    ORDER BY order_number ASC
-  `,
+        SELECT id, title, course_id, thumbnail
+        FROM modules
+        WHERE course_id = ANY($1)
+        ORDER BY id ASC
+        `,
         [courseIds]
       );
     }
 
-    // 3. Group by pathway → courses → modules
-    let pathwayCourses = {}; // { pathwayName: [course1, course2, ...] }
-    let courseModules = {}; // { courseId: [module1, module2, ...] }
+    // Lessons & quiz indicator
+    const moduleIds = modulesRes.rows.map((m) => m.id);
+    let lessonCounts = {};
+    let moduleLessons = {};
+    if (moduleIds.length > 0) {
+      // Count
+      const countRes = await pool.query(
+        `SELECT module_id, COUNT(*) AS total_lessons
+         FROM lessons
+         WHERE module_id = ANY($1)
+         GROUP BY module_id`,
+        [moduleIds]
+      );
+      countRes.rows.forEach((row) => {
+        lessonCounts[row.module_id] = parseInt(row.total_lessons);
+      });
 
+      // Lessons with quiz info
+      const lessonsRes = await pool.query(
+        `
+        SELECT l.id, l.title, l.module_id, l.content, l.video_url,
+               EXISTS(SELECT 1 FROM quizzes q WHERE q.lesson_id = l.id) AS has_quiz
+        FROM lessons l
+        WHERE l.module_id = ANY($1)
+        ORDER BY l.id ASC
+      `,
+        [moduleIds]
+      );
+
+      lessonsRes.rows.forEach((lesson) => {
+        if (!moduleLessons[lesson.module_id])
+          moduleLessons[lesson.module_id] = [];
+        moduleLessons[lesson.module_id].push(lesson);
+      });
+    }
+
+    // Group by pathway & course
+    let pathwayCourses = {};
+    let courseModules = {};
     for (const course of enrolledCoursesRes.rows) {
       if (!pathwayCourses[course.pathway_name]) {
         pathwayCourses[course.pathway_name] = [];
       }
       pathwayCourses[course.pathway_name].push(course);
     }
-
     for (const mod of modulesRes.rows) {
       if (!courseModules[mod.course_id]) {
         courseModules[mod.course_id] = [];
@@ -107,52 +676,40 @@ exports.getDashboard = async (req, res) => {
       courseModules[mod.course_id].push(mod);
     }
 
-    // Completed courses = progress 100%
+    // Stats
     const completedCoursesRes = await pool.query(
-      `
-      SELECT COUNT(*) FROM course_enrollments
-      WHERE user_id = $1 AND progress = 100
-    `,
+      `SELECT COUNT(*) FROM course_enrollments WHERE user_id = $1 AND progress = 100`,
       [studentId]
     );
     const completedCourses = parseInt(completedCoursesRes.rows[0].count);
 
-    // Completed Projects
     const completedProjectsRes = await pool.query(
       `
       SELECT COUNT(*) FROM course_projects
       WHERE course_id IN (
         SELECT course_id FROM course_enrollments WHERE user_id = $1
       )
-    `,
+      `,
       [studentId]
     );
     const completedProjects = parseInt(completedProjectsRes.rows[0].count);
 
-    // Badges
     const badgesRes = await pool.query(
       "SELECT * FROM user_badges WHERE user_id = $1",
       [studentId]
     );
 
-    // Certificates (assuming you're awarding certificate when course is completed)
     const certificatesRes = await pool.query(
-      `
-      SELECT COUNT(*) FROM course_enrollments WHERE user_id = $1 AND progress = 100
-    `,
+      `SELECT COUNT(*) FROM course_enrollments WHERE user_id = $1 AND progress = 100`,
       [studentId]
     );
     const certificatesCount = parseInt(certificatesRes.rows[0].count);
 
-    // XP History
     const xpHistoryRes = await pool.query(
-      `
-      SELECT * FROM xp_history WHERE user_id = $1 ORDER BY earned_at DESC LIMIT 10
-    `,
+      `SELECT * FROM xp_history WHERE user_id = $1 ORDER BY earned_at DESC LIMIT 10`,
       [studentId]
     );
 
-    // Weekly Engagement (lessons completed per day)
     const engagementRes = await pool.query(
       `
       SELECT
@@ -162,17 +719,46 @@ exports.getDashboard = async (req, res) => {
       WHERE user_id = $1 AND completed_at >= NOW() - INTERVAL '6 days'
       GROUP BY day
       ORDER BY MIN(completed_at)
-    `,
+      `,
       [studentId]
     );
-
     const engagementData = {
       labels: engagementRes.rows.map((r) => r.day.trim()),
       data: engagementRes.rows.map((r) => parseInt(r.count)),
     };
-    const selectedPathway = req.query.pathway || null;
-    const section = req.query.section || null;
 
+    // If viewing a module, load its info and lessons
+    let moduleInfo = null;
+    let lessons = [];
+    let selectedLesson = null;
+    if (req.query.section === "module" && req.query.moduleId) {
+      const moduleRes = await pool.query(
+        `SELECT * FROM modules WHERE id = $1 LIMIT 1`,
+        [req.query.moduleId]
+      );
+      moduleInfo = moduleRes.rows[0] || null;
+
+      const lessonsRes = await pool.query(
+        `
+        SELECT l.*, EXISTS(SELECT 1 FROM quizzes q WHERE q.lesson_id = l.id) AS has_quiz
+        FROM lessons l
+        WHERE module_id = $1
+        ORDER BY l.id ASC
+        `,
+        [req.query.moduleId]
+      );
+      lessons = lessonsRes.rows;
+
+      if (req.query.lessonId) {
+        const lessonRes = await pool.query(
+          `SELECT * FROM lessons WHERE id = $1 LIMIT 1`,
+          [req.query.lessonId]
+        );
+        selectedLesson = lessonRes.rows[0] || null;
+      }
+    }
+
+    // Render
     res.render("student/dashboard", {
       student,
       profilePic,
@@ -184,6 +770,8 @@ exports.getDashboard = async (req, res) => {
       enrolledCourses: enrolledCoursesRes.rows,
       pathwayCourses,
       courseModules,
+      moduleLessons,
+      lessonCounts,
       courses: enrolledCoursesRes.rows,
       completedCourses,
       completedProjects,
@@ -191,15 +779,19 @@ exports.getDashboard = async (req, res) => {
       badges: badgesRes.rows,
       xpHistory: xpHistoryRes.rows,
       engagementData,
-      selectedPathway: req.query.pathway || "null",
-      selectedPathway,
-      section,
+      selectedPathway: req.query.pathway || null,
+      section: req.query.section || null,
+      moduleInfo,
+      lessons,
+      selectedLesson,
     });
   } catch (err) {
     console.error("Dashboard Error:", err.message);
     res.status(500).send("Server Error");
   }
 };
+
+
 
 
 // GET: All Enrolled Courses
@@ -567,3 +1159,226 @@ exports.editProfile = async (req, res) => {
 
   res.redirect("/student/dashboard?section=profile");
 };
+
+// exports.viewLesson = async (req, res) => {
+//   const lessonId = req.params.lessonId;
+//   const studentId = req.user.id;
+
+//   try {
+//     const lessonRes = await pool.query(
+//       `SELECT l.*, m.title AS module_title, c.title AS course_title
+//        FROM lessons l
+//        JOIN modules m ON l.module_id = m.id
+//        JOIN courses c ON m.course_id = c.id
+//        WHERE l.id = $1`,
+//       [lessonId]
+//     );
+
+//     if (lessonRes.rows.length === 0) {
+//       return res.status(404).send("Lesson not found");
+//     }
+
+//     const lesson = lessonRes.rows[0];
+
+//     res.render("student/lessonView", {
+//       lesson,
+//       studentId,
+//     });
+//   } catch (err) {
+//     console.error("Error loading lesson:", err);
+//     res.status(500).send("Server error");
+//   }
+// };
+
+exports.viewLesson = async (req, res) => {
+  const lessonId = req.params.lessonId;
+
+  try {
+    const lessonRes = await pool.query(
+      `SELECT l.*, m.title AS module_title, c.title AS course_title
+       FROM lessons l
+       JOIN modules m ON l.module_id = m.id
+       JOIN courses c ON m.course_id = c.id
+       WHERE l.id = $1`,
+      [lessonId]
+    );
+
+    if (lessonRes.rows.length === 0) {
+      return res.status(404).json({ success: false, message: "Lesson not found" });
+    }
+
+    const lesson = lessonRes.rows[0];
+
+    res.json({
+      success: true,
+      id: lesson.id,
+      title: lesson.title,
+      module_title: lesson.module_title,
+      course_title: lesson.course_title,
+      video_url: lesson.video_url,
+      content: lesson.content,
+      has_quiz: !!lesson.quiz_id
+    });
+  } catch (err) {
+    console.error("Error loading lesson:", err);
+    res.status(500).json({ success: false, message: "Server error" });
+  }
+};
+
+
+exports.getModuleDetails = async (req, res) => {
+  const moduleId = req.params.moduleId;
+  const studentId = req.user.id;
+
+  try {
+    const infoResult = await pool.query(
+      "SELECT * FROM company_info ORDER BY id DESC LIMIT 1"
+    );
+    const info = infoResult.rows[0] || {};
+
+    const profilePic = req.session.user?.profile_picture || null;
+    const walletResult = await pool.query(
+      "SELECT wallet_balance2 FROM users2 WHERE id = $1",
+      [studentId]
+    );
+    const walletBalance = walletResult.rows[0]?.wallet_balance2 || 0;
+    const moduleRes = await pool.query("SELECT * FROM modules WHERE id = $1", [
+      moduleId,
+    ]);
+    const module = moduleRes.rows[0];
+    if (!module) return res.status(404).send("Module not found");
+
+    const lessonsRes = await pool.query(
+      `SELECT * FROM lessons WHERE module_id = $1 ORDER BY id ASC`,
+      [moduleId]
+    );
+
+    res.render("student/moduleDetails", {
+      profilePic,
+      isLoggedIn: !!req.session.user,
+      users: req.session.user,
+      info,
+      walletBalance,
+      subscribed: req.query.subscribed,
+      module,
+      lessons: lessonsRes.rows,
+    });
+  } catch (err) {
+    console.error("Error loading module:", err.message);
+    res.status(500).send("Server error");
+  }
+};
+
+exports.getLessonQuiz = async (req, res) => {
+  const { id } = req.params;
+  try {
+    const quizRes = await pool.query(
+      `SELECT id, question, question_type, options
+       FROM quizzes
+       WHERE lesson_id = $1
+       ORDER BY id ASC`,
+      [id]
+    );
+
+    if (quizRes.rows.length === 0) {
+      return res.json({
+        success: false,
+        message: "No quiz found for this lesson",
+      });
+    }
+
+    // Parse JSON options if stored as string
+    const questions = quizRes.rows.map((q) => ({
+      ...q,
+      options: q.options ? JSON.parse(q.options) : [],
+    }));
+
+    res.json({ success: true, questions });
+  } catch (err) {
+    console.error("Error fetching quiz:", err);
+    res.status(500).json({ success: false, message: "Server error" });
+  }
+};
+
+exports.submitLessonQuiz = async (req, res) => {
+  const { id } = req.params;
+  const answers = req.body; // FormData sent from frontend
+  const studentId = req.user.id;
+
+  try {
+    const quizRes = await pool.query(
+      `SELECT id, question, correct_answer, question_type, options
+       FROM quizzes
+       WHERE lesson_id = $1`,
+      [id]
+    );
+
+    let score = 0;
+    let reviewData = [];
+
+    quizRes.rows.forEach((q) => {
+      const yourAnswer = answers[`q${q.id}`];
+      const isCorrect =
+        yourAnswer &&
+        yourAnswer.trim().toLowerCase() ===
+          q.correct_answer.trim().toLowerCase();
+      if (isCorrect) score++;
+
+      reviewData.push({
+        question: q.question,
+        yourAnswer,
+        correctAnswer: q.correct_answer,
+        isCorrect,
+      });
+    });
+
+    const percentage = Math.round((score / quizRes.rows.length) * 100);
+    const passed = percentage >= 50;
+
+    // Get next lesson ID
+    const nextLessonRes = await pool.query(
+      `SELECT id FROM lessons
+       WHERE module_id = (SELECT module_id FROM lessons WHERE id = $1)
+       AND id > $1
+       ORDER BY id ASC
+       LIMIT 1`,
+      [id]
+    );
+
+    const nextLessonId =
+      nextLessonRes.rows.length > 0 ? nextLessonRes.rows[0].id : null;
+
+    res.json({
+      success: true,
+      score: percentage,
+      passed,
+      reviewData,
+      nextLessonId,
+    });
+  } catch (err) {
+    console.error("Error submitting quiz:", err);
+    res.status(500).json({ success: false, message: "Server error" });
+  }
+};
+
+// controllers/studentController.js
+exports.getLesson = async (req, res) => {
+  try {
+    const lessonId = req.params.id;
+    const lesson = await Lesson.findByPk(lessonId); // or your DB query
+    if (!lesson) return res.status(404).json({ error: 'Lesson not found' });
+
+    res.json({
+      id: lesson.id,
+      title: lesson.title,
+      video_url: lesson.video_url,
+      content: lesson.content,
+      has_quiz: !!lesson.quiz_id
+    });
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+};
+
+
+

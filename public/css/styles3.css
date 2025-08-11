@@ -1,4 +1,17 @@
 @media screen and (max-width: 600px) {
+    .learning-container {
+        flex-direction: column;
+    }
+    .lesson-sidebar {
+        width: 100%;
+        height: auto;
+        position: static;
+        border-right: none;
+        border-bottom: 1px solid #ddd;
+        display: block;
+        padding: 10px 0;
+        overflow-y: visible;
+    }
 
     .tab-content {
             background-color: #fff;

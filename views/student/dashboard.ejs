@@ -23,7 +23,7 @@
       />
       <% } %>
     </div>
-    <h2>👤 <%= student.fullname %></h2>
+    <h2 style="font-size: 14px;">👤 <%= student.fullname %></h2>
 
     <!-- <ul>
       <li>
@@ -67,39 +67,6 @@
     </ul>
   </aside>
 
-  <!-- <main class="main-content">
-    <h1>Welcome, <%= student.fullname %>!</h1>
-
-    <section class="progress-summary">
-      <h3>Course Progress Overview</h3>
-      <% enrolledCourses.forEach(course => { %>
-      <div class="course-card">
-        <h4><%= course.title %></h4>
-        <div class="progress-bar">
-          <div class="filled" style="width: <%= course.progress %>%"></div>
-        </div>
-        <p><%= course.progress %>% complete</p>
-      </div>
-      <% }) %>
-    </section>
-
-    <section class="gamification">
-      <h3>🏅 My Gamification</h3>
-      <p>XP Points: <strong><%= student.xp %></strong></p>
-      <p>Level: <strong><%= student.level %></strong></p>
-      <div class="badges">
-        <% badges.forEach(badge => { %>
-        <span class="badge"><%= badge.title %></span>
-        <% }) %>
-      </div>
-    </section>
-
-    <section class="charts">
-      <h3>Analytics</h3>
-      <canvas id="progressChart"></canvas>
-    </section>
-  </main> -->
-
  <main class="main-content">
   <% if (section === 'profile') { %>
     <!-- 👤 PROFILE SECTION -->
@@ -111,7 +78,7 @@
         <p><strong>Full Name:</strong> <%= student.fullname %></p>
         <p><strong>Gender:</strong> <%= student.gender %></p>
         <p><strong>Date of Birth:</strong> <%= student.dob ? student.dob.toISOString().split('T')[0] : 'N/A' %></p>
-        <p style="color: black;">💰 Wallet: ₦<%= walletBalance.toLocaleString() %></p>
+        <p style="color: rgb(247, 247, 247);">💰 Wallet: ₦<%= walletBalance.toLocaleString() %></p>
         <button class="btn-create" onclick="openEditModal('profile')">✏️ Edit Profile</button>
       </div>
 
@@ -144,8 +111,63 @@
       </div>
     </div>
 
-  <% }
-   else if (!selectedPathway || !pathwayCourses[selectedPathway]) { %>
+  <% } else if (section === 'module' && moduleInfo) { %>
+  <!-- LEARNING VIEW -->
+  <div class="learning-container">
+    <!-- Mini Sidebar -->
+    
+<aside class="lesson-sidebar">
+  <h3>All Modules</h3>
+  <% Object.keys(courseModules).forEach(courseId => { %>
+    <% courseModules[courseId].forEach(module => { %>
+      <div class="module-block">
+        <button class="module-toggle no-bg" onclick="toggleModule(<%= module.id %>)">
+          📦 <%= module.title %> ▾
+        </button>
+        <ul id="module-<%= module.id %>" class="lesson-list" style="display:none;">
+          <% (moduleLessons[module.id] || []).forEach(lesson => { %>
+            <li>
+              <button class="lesson-toggle no-bg" onclick="toggleLessonMenu(<%= lesson.id %>)">
+                📚 <%= lesson.title %> ▾
+              </button>
+              <ul id="lesson-menu-<%= lesson.id %>" style="display:none; padding-left:15px;">
+                <% /* Video */ %>
+                <li><button class="no-bg" onclick="loadLessonPart(<%= lesson.id %>, 'video')">🎥 Video</button></li>
+                <% /* Lesson Note */ %>
+                <li><button class="no-bg" onclick="loadLessonPart(<%= lesson.id %>, 'content')">📝 Lesson Note</button></li>
+                <% /* Quiz */ %>
+                <li><button class="no-bg" onclick="loadLessonPart(<%= lesson.id %>, 'quiz')">📝 Quiz</button></li>
+              </ul>
+            </li>
+          <% }) %>
+        </ul>
+      </div>
+    <% }) %>
+  <% }) %>
+</aside>
+
+
+    <!-- Lesson Content Area -->
+
+    <div class="lesson-main-area" id="lessonMainArea">
+      <p>Select a lesson to start learning.</p>
+    </div>
+
+
+    <!-- Quiz Results Overlay -->
+    <div id="quizResultsOverlay" style="display:none;">
+      <div class="overlay-content">
+        <h2>Your Quiz Results</h2>
+        <p id="quizScore"></p>
+        <p id="quizMessage"></p>
+        <button onclick="reviewQuiz()">🔍 Review Quiz</button>
+        <button onclick="goToNextLesson()">➡ Next Lesson</button>
+        <button onclick="closeResults()">❌ Close</button>
+      </div>
+    </div>
+  </div>
+
+  <% } else if (!selectedPathway || !pathwayCourses[selectedPathway]) { %>
     <!-- DASHBOARD VIEW -->
     <section class="stats-boxes">
       <div class="stat-box light-blue">
@@ -204,20 +226,25 @@
       <% pathwayCourses[selectedPathway].forEach(course => { %>
       <div class="course-section">
         <h3><%= course.title %></h3>
-        <div class="modules-scroll">
-          <% (courseModules[course.id] || []).forEach(mod => { %>
-          <div class="module-card">
-            <img
-              style="width: 100%; height: 100px; object-fit: contain"
-              src="<%= mod.thumbnail || '/images/JKT logo bg.png' %>"
-              alt=""
-            />
-            <h4><%= mod.title %></h4>
-            <a href="/student/courses/<%= course.id %>/modules/<%= mod.id %>">View Module</a>
-          </div>
-          <% }) %>
-        </div>
-      </div>
+
+      <div class="modules-scroll">
+  <% (courseModules[course.id] || []).forEach(mod => { %>
+    <div class="module-card">
+      <img
+        style="width: 100%; height: 100px; object-fit: contain"
+        src="<%= mod.thumbnail || '/images/JKT logo bg.png' %>"
+        alt=""
+      />
+      <h4><%= mod.title %></h4>
+      <p><%= lessonCounts[mod.id] || 0 %> Lessons</p>
+       <a href="/student/dashboard?section=module&moduleId=<%= mod.id %>">View Module</a>
+
+      
+    </div>
+  <% }) %>
+</div>
+
+
       <% }) %>
     </section>
   <% } %>
@@ -348,4 +375,187 @@
   function closeEditModal(id) {
     document.getElementById("editModal-" + id).style.display = "none";
   }
+</script>
+
+<!-- Lesson and quiz script -->
+ 
+
+<script>
+function toggleModule(moduleId) {
+  const el = document.getElementById(`module-${moduleId}`);
+  el.style.display = (el.style.display === "none" || !el.style.display) ? "block" : "none";
+}
+
+function toggleLessonMenu(lessonId) {
+  const el = document.getElementById(`lesson-menu-${lessonId}`);
+  el.style.display = (el.style.display === "none" || !el.style.display) ? "block" : "none";
+}
+
+function loadLessonPart(lessonId, part) {
+  fetch(`/student/lessons/${lessonId}`)
+    .then(res => res.json())
+    .then(lesson => {
+      let html = `<h2>${lesson.title}</h2>`;
+
+      if (part === 'video' && lesson.video_url) {
+        html += `<div class="lesson-video"><iframe src="${lesson.video_url}" frameborder="0" allowfullscreen></iframe></div>`;
+      }
+
+      if (part === 'content') {
+        // Wrap content in a div and add a style to make images responsive
+        html += `<div class="lesson-text" style="overflow:auto;">${lesson.content || '<p>No content available.</p>'}</div>
+        <style>
+          .lesson-text img {
+            max-width: 100%;
+            height: auto;
+            display: block;
+            margin: 10px 0;
+          }
+        </style>`;
+      }
+
+      if (part === 'quiz') {
+        loadQuizInMain(lessonId);
+        return;
+      }
+
+      document.getElementById("lessonMainArea").innerHTML = html;
+    });
+}
+
+function loadQuizInMain(lessonId) {
+  fetch(`/student/lessons/${lessonId}/quiz`)
+    .then(res => res.json())
+    .then(data => {
+      let html = `<h2>Lesson Quiz</h2>`;
+      if (!data.success) {
+        html += `<p>No quiz for this lesson.</p>`;
+      } else {
+        html += `<form onsubmit="submitQuizMain(event, ${lessonId})">`;
+        data.questions.forEach((q, idx) => {
+          html += `<p><strong>Q${idx+1}:</strong> ${q.question}</p>`;
+          q.options.forEach(opt => {
+            html += `<label><input type="radio" name="q${q.id}" value="${opt}" required> ${opt}</label><br>`;
+          });
+        });
+        html += `<button type="submit">Submit Quiz</button></form>`;
+      }
+      document.getElementById("lessonMainArea").innerHTML = html;
+    });
+}
+
+function submitQuizMain(e, lessonId) {
+  e.preventDefault();
+  const formData = new FormData(e.target);
+  fetch(`/student/lessons/${lessonId}/quiz/submit`, { method: "POST", body: formData })
+    .then(res => res.json())
+    .then(result => {
+      let html = `<h3>Your Score: ${result.score}%</h3>`;
+      html += `<p>${result.passed ? '✅ Passed' : '❌ Failed'}</p>`;
+      html += `<button onclick="reviewQuizMain()">Review Quiz</button>`;
+      if (result.passed && result.nextLessonId) {
+        html += `<button onclick="loadLessonPart(${result.nextLessonId}, 'video')">Next Lesson</button>`;
+      }
+      document.getElementById("lessonMainArea").innerHTML = html;
+      window.quizReviewData = result.reviewData;
+    });
+}
+
+function reviewQuizMain() {
+  let html = "<h3>Quiz Review</h3>";
+  window.quizReviewData.forEach((q, idx) => {
+    html += `<p><strong>Q${idx+1}:</strong> ${q.question}</p>
+             <p>Your Answer: ${q.yourAnswer}</p>
+             <p>Correct: ${q.correctAnswer}</p>
+             <hr>`;
+  });
+  document.getElementById("lessonMainArea").innerHTML = html;
+}
+</script>
+
+
+
+
+
+<script>
+function toggleModule(moduleId) {
+  const el = document.getElementById(`module-${moduleId}`);
+  el.style.display = (el.style.display === "none" || !el.style.display) ? "block" : "none";
+}
+
+function toggleLesson(lessonId) {
+  const el = document.getElementById(`lesson-expand-${lessonId}`);
+  if (el.style.display === "block") {
+    el.style.display = "none";
+    return;
+  }
+  // Load lesson details
+  fetch(`/student/lessons/${lessonId}`)
+    .then(res => res.json())
+    .then(lesson => {
+      let html = "";
+      if (lesson.video_url) {
+        html += `<div class="lesson-video">
+          <iframe src="${lesson.video_url}" frameborder="0" allowfullscreen></iframe>
+        </div>`;
+      }
+      html += `<div class="lesson-text">${lesson.content || '<p>No content available.</p>'}</div>`;
+      if (lesson.has_quiz) {
+        html += `<button class="btn-quiz" onclick="loadQuizInline(${lesson.id})">Take Quiz</button>
+                 <div id="quiz-area-${lesson.id}" class="quiz-inline"></div>`;
+      }
+      el.innerHTML = html;
+      el.style.display = "block";
+    });
+}
+
+function loadQuizInline(lessonId) {
+  fetch(`/student/lessons/${lessonId}/quiz`)
+    .then(res => res.json())
+    .then(data => {
+      const quizContainer = document.getElementById(`quiz-area-${lessonId}`);
+      if (!data.success) {
+        quizContainer.innerHTML = "<p>No quiz for this lesson.</p>";
+        return;
+      }
+      let quizHTML = `<form onsubmit="submitQuizInline(event, ${lessonId})">`;
+      data.questions.forEach((q, idx) => {
+        quizHTML += `<p><strong>Q${idx+1}:</strong> ${q.question}</p>`;
+        q.options.forEach(opt => {
+          quizHTML += `<label><input type="radio" name="q${q.id}" value="${opt}" required> ${opt}</label><br>`;
+        });
+      });
+      quizHTML += `<button type="submit">Submit Quiz</button></form>`;
+      quizContainer.innerHTML = quizHTML;
+    });
+}
+
+function submitQuizInline(e, lessonId) {
+  e.preventDefault();
+  const formData = new FormData(e.target);
+  fetch(`/student/lessons/${lessonId}/quiz/submit`, { method: "POST", body: formData })
+    .then(res => res.json())
+    .then(result => {
+      const quizContainer = document.getElementById(`quiz-area-${lessonId}`);
+      quizContainer.innerHTML = `
+        <h4>Your Score: ${result.score}%</h4>
+        <p>${result.passed ? '✅ Passed' : '❌ Failed'}</p>
+        <button onclick="reviewQuizInline(${lessonId})">Review Quiz</button>
+        ${result.passed && result.nextLessonId ? `<button onclick="toggleLesson(${result.nextLessonId})">Next Lesson</button>` : ''}
+      `;
+      window.quizReviewData = result.reviewData;
+      window.currentReviewLesson = lessonId;
+    });
+}
+
+function reviewQuizInline(lessonId) {
+  let reviewHTML = "<h3>Quiz Review</h3>";
+  window.quizReviewData.forEach((q, idx) => {
+    reviewHTML += `<p><strong>Q${idx+1}:</strong> ${q.question}</p>
+                   <p>Your Answer: ${q.yourAnswer}</p>
+                   <p>Correct: ${q.correctAnswer}</p>
+                   <hr>`;
+  });
+  document.getElementById(`quiz-area-${lessonId}`).innerHTML = reviewHTML;
+}
 </script>
