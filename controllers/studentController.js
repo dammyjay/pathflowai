@@ -1269,14 +1269,129 @@ exports.getModuleDetails = async (req, res) => {
   }
 };
 
+// exports.getLessonQuiz = async (req, res) => {
+//   const { id } = req.params;
+//   try {
+//     const quizRes = await pool.query(
+//       `SELECT id, question, question_type, options
+//        FROM quizzes
+//        WHERE lesson_id = $1
+//        ORDER BY id ASC`,
+//       [id]
+//     );
+
+//     if (quizRes.rows.length === 0) {
+//       return res.json({
+//         success: false,
+//         message: "No quiz found for this lesson",
+//       });
+//     }
+
+//     // Parse JSON options if stored as string
+//     const questions = quizRes.rows.map((q) => ({
+//       ...q,
+//       options: q.options ? JSON.parse(q.options) : [],
+//     }));
+
+//     res.json({ success: true, questions });
+//   } catch (err) {
+//     console.error("Error fetching quiz:", err);
+//     res.status(500).json({ success: false, message: "Server error" });
+//   }
+// };
+
 exports.getLessonQuiz = async (req, res) => {
-  const { id } = req.params;
+  const lessonId = req.params.id;
+
   try {
+    // Get quiz id(s) for this lesson
     const quizRes = await pool.query(
+      `SELECT id FROM quizzes WHERE lesson_id = $1`,
+      [lessonId]
+    );
+
+    if (quizRes.rows.length === 0) {
+      return res.json({
+        success: false,
+        message: "No quiz found for this lesson",
+      });
+    }
+
+    const quizId = quizRes.rows[0].id;
+
+    // Get questions for this quiz
+    const questionsRes = await pool.query(
       `SELECT id, question, question_type, options
-       FROM quizzes
-       WHERE lesson_id = $1
+       FROM quiz_questions
+       WHERE quiz_id = $1
        ORDER BY id ASC`,
+      [quizId]
+    );
+
+    if (questionsRes.rows.length === 0) {
+      return res.json({
+        success: false,
+        message: "No quiz questions found for this lesson",
+      });
+    }
+
+    const questions = questionsRes.rows.map((q) => {
+      let options = [];
+      if (q.options) {
+        if (Array.isArray(q.options)) {
+          options = q.options;
+        } else if (typeof q.options === "string") {
+          // Split by comma and trim whitespace
+          options = q.options.split(",").map(opt => opt.trim());
+        }
+      }
+      return {
+        ...q,
+        options,
+      };
+    });
+
+    res.json({ success: true, questions });
+  } catch (err) {
+    console.error("Error fetching quiz:", err);
+    res.status(500).json({ success: false, message: "Server error" });
+  }
+};
+
+
+exports.submitLessonQuiz = async (req, res) => {
+  const { id } = req.params;
+  let answers = {};
+
+  // Accept both FormData (from browser) and JSON (from API tools)
+  if (
+    req.is('multipart/form-data') ||
+    req.is('application/x-www-form-urlencoded')
+  ) {
+    answers = req.body || {};
+  } else if (req.is('application/json')) {
+    answers = req.body || {};
+  }
+
+  // If answers is still undefined/null, set to empty object
+  if (!answers || typeof answers !== "object") answers = {};
+
+  // If answers is empty, try to parse from raw body (for edge cases)
+  if (Object.keys(answers).length === 0 && req.body && typeof req.body === "string") {
+    try {
+      answers = JSON.parse(req.body);
+    } catch (e) {
+      // ignore parse error
+    }
+  }
+
+  // Debug: log the received answers object to verify its structure
+  console.log("Received answers object:", answers);
+
+  try {
+    // Get the quiz id for this lesson
+    const quizRes = await pool.query(
+      `SELECT id FROM quizzes WHERE lesson_id = $1 LIMIT 1`,
       [id]
     );
 
@@ -1287,52 +1402,59 @@ exports.getLessonQuiz = async (req, res) => {
       });
     }
 
-    // Parse JSON options if stored as string
-    const questions = quizRes.rows.map((q) => ({
-      ...q,
-      options: q.options ? JSON.parse(q.options) : [],
-    }));
+    const quizId = quizRes.rows[0].id;
 
-    res.json({ success: true, questions });
-  } catch (err) {
-    console.error("Error fetching quiz:", err);
-    res.status(500).json({ success: false, message: "Server error" });
-  }
-};
-
-exports.submitLessonQuiz = async (req, res) => {
-  const { id } = req.params;
-  const answers = req.body; // FormData sent from frontend
-  const studentId = req.user.id;
-
-  try {
-    const quizRes = await pool.query(
-      `SELECT id, question, correct_answer, question_type, options
-       FROM quizzes
-       WHERE lesson_id = $1`,
-      [id]
+    // Get quiz questions for this quiz
+    const questionsRes = await pool.query(
+      `SELECT id, question, correct_option, question_type, options
+       FROM quiz_questions
+       WHERE quiz_id = $1
+       ORDER BY id ASC`,
+      [quizId]
     );
 
     let score = 0;
     let reviewData = [];
 
-    quizRes.rows.forEach((q) => {
-      const yourAnswer = answers[`q${q.id}`];
-      const isCorrect =
-        yourAnswer &&
-        yourAnswer.trim().toLowerCase() ===
-          q.correct_answer.trim().toLowerCase();
+    questionsRes.rows.forEach((q) => {
+      // Accept both q1 and 1 as keys
+      const answerKey = answers[`q${q.id}`] !== undefined
+        ? `q${q.id}`
+        : answers[`${q.id}`] !== undefined
+          ? `${q.id}`
+          : null;
+      const yourAnswer = answerKey ? answers[answerKey] : "";
+
+      // Normalize both to string and trim for comparison
+      const yourAnswerStr =
+        yourAnswer !== null && yourAnswer !== undefined
+          ? String(yourAnswer).trim().toLowerCase()
+          : "";
+      const correctOptionStr =
+        q.correct_option !== null && q.correct_option !== undefined
+          ? String(q.correct_option).trim().toLowerCase()
+          : "";
+      const isCorrect = yourAnswerStr && yourAnswerStr === correctOptionStr;
+
+      // Log user option and correct option for each question
+      console.log(
+        `Question ID: ${q.id}, User Option: "${yourAnswer}", Correct Option: "${q.correct_option}"`
+      );
+
       if (isCorrect) score++;
 
       reviewData.push({
         question: q.question,
         yourAnswer,
-        correctAnswer: q.correct_answer,
+        correctAnswer: q.correct_option,
         isCorrect,
       });
     });
 
-    const percentage = Math.round((score / quizRes.rows.length) * 100);
+    const percentage =
+      questionsRes.rows.length > 0
+        ? Math.round((score / questionsRes.rows.length) * 100)
+        : 0;
     const passed = percentage >= 50;
 
     // Get next lesson ID

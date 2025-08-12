@@ -521,7 +521,13 @@ function loadQuizInline(lessonId) {
       let quizHTML = `<form onsubmit="submitQuizInline(event, ${lessonId})">`;
       data.questions.forEach((q, idx) => {
         quizHTML += `<p><strong>Q${idx+1}:</strong> ${q.question}</p>`;
-        q.options.forEach(opt => {
+        let options = q.options;
+        // If options is a string, split by comma
+        if (typeof options === "string") {
+          options = options.split(",").map(opt => opt.trim());
+        }
+        if (!Array.isArray(options)) options = [];
+        options.forEach(opt => {
           quizHTML += `<label><input type="radio" name="q${q.id}" value="${opt}" required> ${opt}</label><br>`;
         });
       });
