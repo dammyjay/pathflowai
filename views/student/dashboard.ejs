@@ -44,7 +44,7 @@
       <!-- Profile -->
       <!-- <li><a href="/student/profile">👤 My Profile</a></li> -->
        <li><a href="/student/dashboard?section=profile">👤 My Profile</a></li>
-       <p style="color: black;">💰 Wallet: ₦<%= walletBalance.toLocaleString() %></p>
+       <p style="color: rgb(255, 255, 255);">💰 Wallet: ₦<%= walletBalance.toLocaleString() %></p>
 
       <!-- Pathways / Courses -->
       <li>
@@ -78,7 +78,7 @@
         <p><strong>Full Name:</strong> <%= student.fullname %></p>
         <p><strong>Gender:</strong> <%= student.gender %></p>
         <p><strong>Date of Birth:</strong> <%= student.dob ? student.dob.toISOString().split('T')[0] : 'N/A' %></p>
-        <p style="color: rgb(247, 247, 247);">💰 Wallet: ₦<%= walletBalance.toLocaleString() %></p>
+        <p style="color: rgb(0, 0, 0);">💰 Wallet: ₦<%= walletBalance.toLocaleString() %></p>
         <button class="btn-create" onclick="openEditModal('profile')">✏️ Edit Profile</button>
       </div>
 
@@ -472,8 +472,6 @@ function reviewQuizMain() {
   document.getElementById("lessonMainArea").innerHTML = html;
 }
 </script>
-
-
 
 
 
