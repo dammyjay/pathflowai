@@ -507,50 +507,145 @@ function toggleLesson(lessonId) {
     });
 }
 
+// function loadQuizInline(lessonId) {
+//   fetch(`/student/lessons/${lessonId}/quiz`)
+//     .then(res => res.json())
+//     .then(data => {
+//       const quizContainer = document.getElementById(`quiz-area-${lessonId}`);
+//       if (!data.success) {
+//         quizContainer.innerHTML = "<p>No quiz for this lesson.</p>";
+//         return;
+//       }
+//       let quizHTML = `<form onsubmit="submitQuizInline(event, ${lessonId})">`;
+//       data.questions.forEach((q, idx) => {
+//         quizHTML += `<p><strong>Q${idx+1}:</strong> ${q.question}</p>`;
+//         let options = q.options;
+//         // If options is a string, split by comma
+//         if (typeof options === "string") {
+//           options = options.split(",").map(opt => opt.trim());
+//         }
+//         if (!Array.isArray(options)) options = [];
+//         options.forEach(opt => {
+//           quizHTML += `<label><input type="radio" name="q${q.id}" value="${opt}" required> ${opt}</label><br>`;
+//         });
+//       });
+//       quizHTML += `<button type="submit">Submit Quiz</button></form>`;
+//       quizContainer.innerHTML = quizHTML;
+//     });
+// }
+
 function loadQuizInline(lessonId) {
   fetch(`/student/lessons/${lessonId}/quiz`)
     .then(res => res.json())
     .then(data => {
       const quizContainer = document.getElementById(`quiz-area-${lessonId}`);
+
       if (!data.success) {
         quizContainer.innerHTML = "<p>No quiz for this lesson.</p>";
         return;
       }
+
       let quizHTML = `<form onsubmit="submitQuizInline(event, ${lessonId})">`;
+
       data.questions.forEach((q, idx) => {
-        quizHTML += `<p><strong>Q${idx+1}:</strong> ${q.question}</p>`;
-        let options = q.options;
-        // If options is a string, split by comma
-        if (typeof options === "string") {
-          options = options.split(",").map(opt => opt.trim());
-        }
-        if (!Array.isArray(options)) options = [];
+        quizHTML += `<p><strong>Q${idx + 1}:</strong> ${q.question}</p>`;
+
+        let options = Array.isArray(q.options)
+          ? q.options
+          : (typeof q.options === "string" ? q.options.split(",").map(opt => opt.trim()) : []);
+
         options.forEach(opt => {
-          quizHTML += `<label><input type="radio" name="q${q.id}" value="${opt}" required> ${opt}</label><br>`;
+          quizHTML += `
+            <label>
+              <input type="radio" name="q${q.id}" value="${opt}" required>
+              ${opt}
+            </label><br>
+          `;
         });
       });
+
       quizHTML += `<button type="submit">Submit Quiz</button></form>`;
       quizContainer.innerHTML = quizHTML;
+    })
+    .catch(err => {
+      console.error("Error loading quiz:", err);
     });
 }
 
+
+// function submitQuizInline(e, lessonId) {
+//   e.preventDefault();
+//   const formData = new FormData(e.target);
+//   fetch(`/student/lessons/${lessonId}/quiz/submit`, { method: "POST", body: formData })
+//     .then(res => res.json())
+//     .then(result => {
+//       const quizContainer = document.getElementById(`quiz-area-${lessonId}`);
+//       quizContainer.innerHTML = `
+//         <h4>Your Score: ${result.score}%</h4>
+//         <p>${result.passed ? '✅ Passed' : '❌ Failed'}</p>
+//         <button onclick="reviewQuizInline(${lessonId})">Review Quiz</button>
+//         ${result.passed && result.nextLessonId ? `<button onclick="toggleLesson(${result.nextLessonId})">Next Lesson</button>` : ''}
+//       `;
+//       window.quizReviewData = result.reviewData;
+//       window.currentReviewLesson = lessonId;
+//     });
+// }
+
+
 function submitQuizInline(e, lessonId) {
   e.preventDefault();
+
   const formData = new FormData(e.target);
-  fetch(`/student/lessons/${lessonId}/quiz/submit`, { method: "POST", body: formData })
-    .then(res => res.json())
-    .then(result => {
-      const quizContainer = document.getElementById(`quiz-area-${lessonId}`);
-      quizContainer.innerHTML = `
-        <h4>Your Score: ${result.score}%</h4>
-        <p>${result.passed ? '✅ Passed' : '❌ Failed'}</p>
-        <button onclick="reviewQuizInline(${lessonId})">Review Quiz</button>
-        ${result.passed && result.nextLessonId ? `<button onclick="toggleLesson(${result.nextLessonId})">Next Lesson</button>` : ''}
-      `;
-      window.quizReviewData = result.reviewData;
-      window.currentReviewLesson = lessonId;
-    });
+  const answers = {};
+  for (let [key, value] of formData.entries()) {
+    answers[key] = value;
+  }
+
+  console.log("📤 Sending answers object:", answers);
+
+  fetch(`/student/lessons/${lessonId}/quiz/submit`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify(answers)
+  })
+  .then(res => res.json())
+  .then(result => {
+    console.log("📥 Server response:", result);
+  })
+  .catch(err => console.error(err));
 }
+
+
+
+// function submitQuizInline(e, lessonId) {
+//   e.preventDefault();
+
+//   const formData = new FormData(e.target);
+//   const answers = {};
+//   for (let [key, value] of formData.entries()) {
+//     answers[key] = value;
+//   }
+
+//   fetch(`/student/lessons/${lessonId}/quiz/submit`, {
+//     method: "POST",
+//     headers: { "Content-Type": "application/json" },
+//     body: JSON.stringify(answers)
+//   })
+//     .then(res => res.json())
+//     .then(result => {
+//       const quizContainer = document.getElementById(`quiz-area-${lessonId}`);
+//       quizContainer.innerHTML = `
+//         <h4>Your Score: ${result.score}%</h4>
+//         <p>${result.passed ? '✅ Passed' : '❌ Failed'}</p>
+//         <button onclick="reviewQuizInline(${lessonId})">Review Quiz</button>
+//         ${result.passed && result.nextLessonId ? `<button onclick="toggleLesson(${result.nextLessonId})">Next Lesson</button>` : ''}
+//       `;
+//       window.quizReviewData = result.reviewData;
+//       window.currentReviewLesson = lessonId;
+//     });
+// }
+
+
 
 function reviewQuizInline(lessonId) {
   let reviewHTML = "<h3>Quiz Review</h3>";
@@ -562,4 +657,6 @@ function reviewQuizInline(lessonId) {
   });
   document.getElementById(`quiz-area-${lessonId}`).innerHTML = reviewHTML;
 }
+
+
 </script>

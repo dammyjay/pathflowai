@@ -44,7 +44,30 @@ router.get(
 router.get('/lessons/:id/quiz', studentController.getLessonQuiz);
 
 // Submit quiz answers
-router.post('/lessons/:id/quiz/submit', studentController.submitLessonQuiz);
+// router.post('/lessons/:id/quiz/submit', studentController.submitLessonQuiz);
+
+// router.post(
+//   "/lessons/:id/quiz/submit",
+//   express.json(), // This parses JSON bodies
+//   studentController.submitLessonQuiz
+// );
+
+// router.post(
+//   "/lessons/:id/quiz/submit",
+//   express.json(),
+//   studentController.submitLessonQuiz
+// );
+
+// router.post("/lessons/:id/quiz/submit", studentController.submitLessonQuiz);
+
+router.post(
+  "/lessons/:id/quiz/submit",
+  express.json(),
+  studentController.submitLessonQuiz
+);
+
+
+
 
 // routes/student.js
 router.get('/lessons/:id', studentController.getLesson);

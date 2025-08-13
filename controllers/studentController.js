@@ -1359,37 +1359,140 @@ exports.getLessonQuiz = async (req, res) => {
 };
 
 
+// exports.submitLessonQuiz = async (req, res) => {
+//   const { id } = req.params;
+//   let answers = {};
+
+//   // Accept both FormData (from browser) and JSON (from API tools)
+//   if (
+//     req.is('multipart/form-data') ||
+//     req.is('application/x-www-form-urlencoded')
+//   ) {
+//     answers = req.body || {};
+//   } else if (req.is('application/json')) {
+//     answers = req.body || {};
+//   }
+
+//   // If answers is still undefined/null, set to empty object
+//   if (!answers || typeof answers !== "object") answers = {};
+
+//   // If answers is empty, try to parse from raw body (for edge cases)
+//   if (Object.keys(answers).length === 0 && req.body && typeof req.body === "string") {
+//     try {
+//       answers = JSON.parse(req.body);
+//     } catch (e) {
+//       // ignore parse error
+//     }
+//   }
+
+//   // Debug: log the received answers object to verify its structure
+//   console.log("Received answers object:", answers);
+
+//   try {
+//     // Get the quiz id for this lesson
+//     const quizRes = await pool.query(
+//       `SELECT id FROM quizzes WHERE lesson_id = $1 LIMIT 1`,
+//       [id]
+//     );
+
+//     if (quizRes.rows.length === 0) {
+//       return res.json({
+//         success: false,
+//         message: "No quiz found for this lesson",
+//       });
+//     }
+
+//     const quizId = quizRes.rows[0].id;
+
+//     // Get quiz questions for this quiz
+//     const questionsRes = await pool.query(
+//       `SELECT id, question, correct_option, question_type, options
+//        FROM quiz_questions
+//        WHERE quiz_id = $1
+//        ORDER BY id ASC`,
+//       [quizId]
+//     );
+
+//     let score = 0;
+//     let reviewData = [];
+
+//     questionsRes.rows.forEach((q) => {
+//       // Accept both q1 and 1 as keys
+//       const answerKey = answers[`q${q.id}`] !== undefined
+//         ? `q${q.id}`
+//         : answers[`${q.id}`] !== undefined
+//           ? `${q.id}`
+//           : null;
+//       const yourAnswer = answerKey ? answers[answerKey] : "";
+
+//       // Normalize both to string and trim for comparison
+//       const yourAnswerStr =
+//         yourAnswer !== null && yourAnswer !== undefined
+//           ? String(yourAnswer).trim().toLowerCase()
+//           : "";
+//       const correctOptionStr =
+//         q.correct_option !== null && q.correct_option !== undefined
+//           ? String(q.correct_option).trim().toLowerCase()
+//           : "";
+//       const isCorrect = yourAnswerStr && yourAnswerStr === correctOptionStr;
+
+//       // Log user option and correct option for each question
+//       console.log(
+//         `Question ID: ${q.id}, User Option: "${yourAnswer}", Correct Option: "${q.correct_option}"`
+//       );
+
+//       if (isCorrect) score++;
+
+//       reviewData.push({
+//         question: q.question,
+//         yourAnswer,
+//         correctAnswer: q.correct_option,
+//         isCorrect,
+//       });
+//     });
+
+//     const percentage =
+//       questionsRes.rows.length > 0
+//         ? Math.round((score / questionsRes.rows.length) * 100)
+//         : 0;
+//     const passed = percentage >= 50;
+
+//     // Get next lesson ID
+//     const nextLessonRes = await pool.query(
+//       `SELECT id FROM lessons
+//        WHERE module_id = (SELECT module_id FROM lessons WHERE id = $1)
+//        AND id > $1
+//        ORDER BY id ASC
+//        LIMIT 1`,
+//       [id]
+//     );
+
+//     const nextLessonId =
+//       nextLessonRes.rows.length > 0 ? nextLessonRes.rows[0].id : null;
+
+//     res.json({
+//       success: true,
+//       score: percentage,
+//       passed,
+//       reviewData,
+//       nextLessonId,
+//     });
+//   } catch (err) {
+//     console.error("Error submitting quiz:", err);
+//     res.status(500).json({ success: false, message: "Server error" });
+//   }
+// };
+
+// controllers/studentController.js
+
+
 exports.submitLessonQuiz = async (req, res) => {
   const { id } = req.params;
-  let answers = {};
+  const answers = req.body || {};
 
-  // Accept both FormData (from browser) and JSON (from API tools)
-  if (
-    req.is('multipart/form-data') ||
-    req.is('application/x-www-form-urlencoded')
-  ) {
-    answers = req.body || {};
-  } else if (req.is('application/json')) {
-    answers = req.body || {};
-  }
-
-  // If answers is still undefined/null, set to empty object
-  if (!answers || typeof answers !== "object") answers = {};
-
-  // If answers is empty, try to parse from raw body (for edge cases)
-  if (Object.keys(answers).length === 0 && req.body && typeof req.body === "string") {
-    try {
-      answers = JSON.parse(req.body);
-    } catch (e) {
-      // ignore parse error
-    }
-  }
-
-  // Debug: log the received answers object to verify its structure
   console.log("Received answers object:", answers);
 
   try {
-    // Get the quiz id for this lesson
     const quizRes = await pool.query(
       `SELECT id FROM quizzes WHERE lesson_id = $1 LIMIT 1`,
       [id]
@@ -1404,9 +1507,8 @@ exports.submitLessonQuiz = async (req, res) => {
 
     const quizId = quizRes.rows[0].id;
 
-    // Get quiz questions for this quiz
     const questionsRes = await pool.query(
-      `SELECT id, question, correct_option, question_type, options
+      `SELECT id, question, correct_option
        FROM quiz_questions
        WHERE quiz_id = $1
        ORDER BY id ASC`,
@@ -1417,29 +1519,14 @@ exports.submitLessonQuiz = async (req, res) => {
     let reviewData = [];
 
     questionsRes.rows.forEach((q) => {
-      // Accept both q1 and 1 as keys
-      const answerKey = answers[`q${q.id}`] !== undefined
-        ? `q${q.id}`
-        : answers[`${q.id}`] !== undefined
-          ? `${q.id}`
-          : null;
-      const yourAnswer = answerKey ? answers[answerKey] : "";
+      const yourAnswer =
+        answers[`q${q.id}`] !== undefined
+          ? answers[`q${q.id}`]
+          : answers[q.id] || "";
 
-      // Normalize both to string and trim for comparison
-      const yourAnswerStr =
-        yourAnswer !== null && yourAnswer !== undefined
-          ? String(yourAnswer).trim().toLowerCase()
-          : "";
-      const correctOptionStr =
-        q.correct_option !== null && q.correct_option !== undefined
-          ? String(q.correct_option).trim().toLowerCase()
-          : "";
+      const yourAnswerStr = yourAnswer.toString().trim().toLowerCase();
+      const correctOptionStr = q.correct_option.toString().trim().toLowerCase();
       const isCorrect = yourAnswerStr && yourAnswerStr === correctOptionStr;
-
-      // Log user option and correct option for each question
-      console.log(
-        `Question ID: ${q.id}, User Option: "${yourAnswer}", Correct Option: "${q.correct_option}"`
-      );
 
       if (isCorrect) score++;
 
@@ -1451,13 +1538,12 @@ exports.submitLessonQuiz = async (req, res) => {
       });
     });
 
-    const percentage =
-      questionsRes.rows.length > 0
-        ? Math.round((score / questionsRes.rows.length) * 100)
-        : 0;
+    const percentage = questionsRes.rows.length
+      ? Math.round((score / questionsRes.rows.length) * 100)
+      : 0;
+
     const passed = percentage >= 50;
 
-    // Get next lesson ID
     const nextLessonRes = await pool.query(
       `SELECT id FROM lessons
        WHERE module_id = (SELECT module_id FROM lessons WHERE id = $1)
@@ -1467,15 +1553,12 @@ exports.submitLessonQuiz = async (req, res) => {
       [id]
     );
 
-    const nextLessonId =
-      nextLessonRes.rows.length > 0 ? nextLessonRes.rows[0].id : null;
-
     res.json({
       success: true,
       score: percentage,
       passed,
       reviewData,
-      nextLessonId,
+      nextLessonId: nextLessonRes.rows[0]?.id || null,
     });
   } catch (err) {
     console.error("Error submitting quiz:", err);
@@ -1483,7 +1566,83 @@ exports.submitLessonQuiz = async (req, res) => {
   }
 };
 
-// controllers/studentController.js
+
+// exports.submitLessonQuiz = async (req, res) => {
+//   const { id } = req.params;
+//   let answers = req.body || {}; // Directly assign
+
+//   console.log("Received answers object:", answers);
+
+//   try {
+//     const quizRes = await pool.query(
+//       `SELECT id FROM quizzes WHERE lesson_id = $1 LIMIT 1`,
+//       [id]
+//     );
+
+//     if (quizRes.rows.length === 0) {
+//       return res.json({
+//         success: false,
+//         message: "No quiz found for this lesson",
+//       });
+//     }
+
+//     const quizId = quizRes.rows[0].id;
+
+//     const questionsRes = await pool.query(
+//       `SELECT id, question, correct_option, question_type, options
+//        FROM quiz_questions
+//        WHERE quiz_id = $1
+//        ORDER BY id ASC`,
+//       [quizId]
+//     );
+
+//     let score = 0;
+//     let reviewData = [];
+
+//     questionsRes.rows.forEach((q) => {
+//       const yourAnswer = answers[`q${q.id}`] || "";
+//       const yourAnswerStr = yourAnswer.toString().trim().toLowerCase();
+//       const correctOptionStr = q.correct_option.toString().trim().toLowerCase();
+//       const isCorrect = yourAnswerStr && yourAnswerStr === correctOptionStr;
+
+//       if (isCorrect) score++;
+
+//       reviewData.push({
+//         question: q.question,
+//         yourAnswer,
+//         correctAnswer: q.correct_option,
+//         isCorrect,
+//       });
+//     });
+
+//     const percentage = Math.round((score / questionsRes.rows.length) * 100);
+//     const passed = percentage >= 50;
+
+//     const nextLessonRes = await pool.query(
+//       `SELECT id FROM lessons
+//        WHERE module_id = (SELECT module_id FROM lessons WHERE id = $1)
+//        AND id > $1
+//        ORDER BY id ASC
+//        LIMIT 1`,
+//       [id]
+//     );
+
+//     const nextLessonId = nextLessonRes.rows[0]?.id || null;
+
+//     res.json({
+//       success: true,
+//       score: percentage,
+//       passed,
+//       reviewData,
+//       nextLessonId,
+//     });
+//   } catch (err) {
+//     console.error("Error submitting quiz:", err);
+//     res.status(500).json({ success: false, message: "Server error" });
+//   }
+// };
+
+
 exports.getLesson = async (req, res) => {
   try {
     const lessonId = req.params.id;

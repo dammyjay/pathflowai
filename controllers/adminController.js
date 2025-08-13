@@ -1075,37 +1075,58 @@ exports.deleteBenefit = async (req, res) => {
 };
 
 
-exports.createEvent = async (req, res) => {
-  const show_on_homepage = req.body.show_on_homepage === "on";
-  const { title, description, event_date, time, location, is_paid, amount } =
-    req.body;
-  let image_url = null;
+// exports.createEvent = async (req, res) => {
+//   const show_on_homepage = req.body.show_on_homepage === "on";
+//   const { title, description, event_date, time, location, is_paid, amount } =
+//     req.body;
+//   let image_url = null;
 
-  if (req.file) {
-    const result = await cloudinary.uploader.upload(req.file.path, {
-      folder: "events",
-    });
-    image_url = result.secure_url;
-    if (fs.existsSync(req.file.path)) fs.unlinkSync(req.file.path);
-  }
+//   if (req.file) {
+//     const result = await cloudinary.uploader.upload(req.file.path, {
+//       folder: "events",
+//     });
+//     image_url = result.secure_url;
+//     if (fs.existsSync(req.file.path)) fs.unlinkSync(req.file.path);
+//   }
 
-  await pool.query(
-    `INSERT INTO events (title, description, event_date, time, location, is_paid, amount, image_url)
-     VALUES ($1, $2, $3, $4, $5, $6, $7, $8)`,
-    [
-      title,
-      description,
-      event_date,
-      time,
-      location,
-      is_paid === "true",
-      amount || 0,
-      image_url,
-    ]
-  );
 
-  res.redirect("/admin/events");
-};
+//   // await pool.query(
+//   //   `INSERT INTO events (title, description, event_date, time, location, is_paid, amount, image_url)
+//   //    VALUES ($1, $2, $3, $4, $5, $6, $7, $8)`,
+//   //   [
+//   //     title,
+//   //     description,
+//   //     event_date,
+//   //     time,
+//   //     location,
+//   //     is_paid === "true",
+//   //     amount || 0,
+//   //     image_url,
+//   //   ]
+//   // );
+
+//   const { early_bird_discount, early_bird_deadline } = req.body;
+
+//   await pool.query(
+//     `INSERT INTO events (title, description, event_date, time, location, is_paid, amount, image_url, early_bird_discount, early_bird_deadline)
+//    VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10)`,
+//     [
+//       title,
+//       description,
+//       event_date,
+//       time,
+//       location,
+//       is_paid === "true",
+//       amount || 0,
+//       image_url,
+//       early_bird_discount || 0,
+//       early_bird_deadline || null,
+//     ]
+//   );
+
+
+//   res.redirect("/admin/events");
+// };
 
 // exports.viewEventRegistrations = async (req, res) => {
 //   const eventId = req.params.id;
@@ -1128,6 +1149,63 @@ exports.createEvent = async (req, res) => {
 //     registrations: registrations.rows,
 //   });
 // };
+
+// CREATE EVENT
+exports.createEvent = async (req, res) => {
+  try {
+    const show_on_homepage = req.body.show_on_homepage === "on";
+    const is_paid = req.body.is_paid === "true" || req.body.is_paid === "on";
+    const allow_split_payment = req.body.allow_split_payment === "on";
+
+    const {
+      title,
+      description,
+      event_date,
+      time,
+      location,
+      amount,
+      discount_amount,
+      discount_deadline
+    } = req.body;
+
+    let image_url = null;
+
+    if (req.file) {
+      const result = await cloudinary.uploader.upload(req.file.path, {
+        folder: "events",
+      });
+      image_url = result.secure_url;
+      if (fs.existsSync(req.file.path)) fs.unlinkSync(req.file.path);
+    }
+
+    await pool.query(
+      `INSERT INTO events 
+        (title, description, event_date, time, location, is_paid, amount, discount_amount, discount_deadline, allow_split_payment, image_url, show_on_homepage)
+       VALUES 
+        ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12)`,
+      [
+        title,
+        description,
+        event_date,
+        time,
+        location,
+        is_paid,
+        amount || 0,
+        discount_amount || 0,
+        discount_deadline || null,
+        allow_split_payment,
+        image_url,
+        show_on_homepage
+      ]
+    );
+
+    res.redirect("/admin/events");
+  } catch (err) {
+    console.error("Error creating event:", err.message);
+    res.status(500).send("Server error while creating event");
+  }
+};
+
 
 exports.viewEventRegistrations = async (req, res) => {
   const eventId = req.params.id;
@@ -1183,19 +1261,45 @@ exports.viewEventRegistrations = async (req, res) => {
 };
 
 
-exports.showEvents = async (req, res) => {
-  const infoResult = await pool.query(
-    "SELECT * FROM company_info ORDER BY id DESC LIMIT 1"
-  );
-  const eventsResult = await pool.query(
-    "SELECT * FROM events ORDER BY event_date DESC"
-  );
+// exports.showEvents = async (req, res) => {
+//   const infoResult = await pool.query(
+//     "SELECT * FROM company_info ORDER BY id DESC LIMIT 1"
+//   );
+//   const eventsResult = await pool.query(
+//     "SELECT * FROM events ORDER BY event_date DESC"
+//   );
 
-  res.render("admin/events", {
-    info: infoResult.rows[0] || {},
-    events: eventsResult.rows,
-  });
+//   res.render("admin/events", {
+//     info: infoResult.rows[0] || {},
+//     events: eventsResult.rows,
+//     event: {}, // empty for create form
+//     formAction: "/admin/events/create", // form action for create
+//     submitLabel: "Create Event", // 🔹 default submit label
+//   });
+// };
+
+exports.showEvents = async (req, res) => {
+  try {
+    const infoResult = await pool.query(
+      "SELECT * FROM company_info ORDER BY id DESC LIMIT 1"
+    );
+    const eventsResult = await pool.query(
+      "SELECT * FROM events ORDER BY event_date DESC"
+    );
+
+    res.render("admin/events", {
+      info: infoResult.rows[0] || {},
+      events: eventsResult.rows,
+      event: {}, // default for create form
+      formAction: "/admin/events/create",
+      submitLabel: "Create Event",
+    });
+  } catch (err) {
+    console.error("Error loading events:", err);
+    res.status(500).send("Server error");
+  }
 };
+
 
 exports.exportEventRegistrations = async (req, res) => {
   const eventId = req.params.id;
@@ -1229,15 +1333,76 @@ exports.exportEventRegistrations = async (req, res) => {
 };
 
 // UPDATE EVENT
+// exports.updateEvent = async (req, res) => {
+//   const { id } = req.params;
+//   const { title, description, event_date, time, location, is_paid, amount } =
+//     req.body;
+
+//   const show_on_homepage = req.body.show_on_homepage === "on"; // ✅ Checkbox logic
+//   let image_url;
+
+//   try {
+//     if (req.file) {
+//       const result = await cloudinary.uploader.upload(req.file.path, {
+//         folder: "events",
+//       });
+//       image_url = result.secure_url;
+//       if (fs.existsSync(req.file.path)) fs.unlinkSync(req.file.path);
+//     }
+
+//     // Prepare base query and values
+//     let query = `
+//       UPDATE events
+//       SET title=$1, description=$2, event_date=$3, time=$4, location=$5, is_paid=$6, amount=$7, show_on_homepage=$8
+//     `;
+//     const values = [
+//       title,
+//       description,
+//       event_date,
+//       time,
+//       location,
+//       is_paid === "true" || is_paid === "on",
+//       amount || 0,
+//       show_on_homepage,
+//     ];
+
+//     if (image_url) {
+//       query += `, image_url=$9 WHERE id=$10`;
+//       values.push(image_url, id);
+//     } else {
+//       query += ` WHERE id=$9`;
+//       values.push(id);
+//     }
+
+//     await pool.query(query, values);
+//     res.redirect("/admin/events");
+//   } catch (err) {
+//     console.error("Error updating event:", err.message);
+//     res.status(500).send("Error updating event.");
+//   }
+// };
+
+// UPDATE EVENT
 exports.updateEvent = async (req, res) => {
-  const { id } = req.params;
-  const { title, description, event_date, time, location, is_paid, amount } =
-    req.body;
-
-  const show_on_homepage = req.body.show_on_homepage === "on"; // ✅ Checkbox logic
-  let image_url;
-
   try {
+    const eventId = req.params.id;
+    const show_on_homepage = req.body.show_on_homepage === "on";
+    const is_paid = req.body.is_paid === "true" || req.body.is_paid === "on";
+    const allow_split_payment = req.body.allow_split_payment === "on";
+
+    const {
+      title,
+      description,
+      event_date,
+      time,
+      location,
+      amount,
+      discount_amount,
+      discount_deadline
+    } = req.body;
+
+    let image_url = req.body.current_image || null;
+
     if (req.file) {
       const result = await cloudinary.uploader.upload(req.file.path, {
         folder: "events",
@@ -1246,35 +1411,33 @@ exports.updateEvent = async (req, res) => {
       if (fs.existsSync(req.file.path)) fs.unlinkSync(req.file.path);
     }
 
-    // Prepare base query and values
-    let query = `
-      UPDATE events
-      SET title=$1, description=$2, event_date=$3, time=$4, location=$5, is_paid=$6, amount=$7, show_on_homepage=$8
-    `;
-    const values = [
-      title,
-      description,
-      event_date,
-      time,
-      location,
-      is_paid === "true" || is_paid === "on",
-      amount || 0,
-      show_on_homepage,
-    ];
+    await pool.query(
+      `UPDATE events 
+       SET title = $1, description = $2, event_date = $3, time = $4, location = $5, 
+           is_paid = $6, amount = $7, discount_amount = $8, discount_deadline = $9, 
+           allow_split_payment = $10, image_url = $11, show_on_homepage = $12
+       WHERE id = $13`,
+      [
+        title,
+        description,
+        event_date,
+        time,
+        location,
+        is_paid,
+        amount || 0,
+        discount_amount || 0,
+        discount_deadline || null,
+        allow_split_payment,
+        image_url,
+        show_on_homepage,
+        eventId
+      ]
+    );
 
-    if (image_url) {
-      query += `, image_url=$9 WHERE id=$10`;
-      values.push(image_url, id);
-    } else {
-      query += ` WHERE id=$9`;
-      values.push(id);
-    }
-
-    await pool.query(query, values);
     res.redirect("/admin/events");
   } catch (err) {
     console.error("Error updating event:", err.message);
-    res.status(500).send("Error updating event.");
+    res.status(500).send("Server error while updating event");
   }
 };
 

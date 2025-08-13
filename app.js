@@ -17,6 +17,14 @@ const methodOverride = require("method-override");
 const app = express();
 const layout = require("express-ejs-layouts");
 
+
+// app.use(express.json());
+// app.use(bodyParser.urlencoded({ extended: false }));
+
+app.use(express.json());
+app.use(express.urlencoded({ extended: true }));
+
+
 // Set EJS as view engine
 app.set("view engine", "ejs");
 
@@ -27,8 +35,7 @@ app.use(layout);
 // app.set('layout', 'partials/adminLayout'); // default layout for all .ejs files unless overridden
 
 // Middleware
-app.use(express.json());
-app.use(bodyParser.urlencoded({ extended: false }));
+
 app.set("view engine", "ejs");
 app.set("view cache", false);
 app.use(express.static(path.join(__dirname, "public")));

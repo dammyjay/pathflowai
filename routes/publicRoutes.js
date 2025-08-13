@@ -444,12 +444,118 @@ router.get("/courses", async (req, res) => {
   });
 });
 
+// router.get("/pay-event/:regId", async (req, res) => {
+//   const { regId } = req.params;
+
+//   try {
+//     const regResult = await pool.query(
+//       `SELECT r.*, e.title, e.amount, e.image_url
+//        FROM event_registrations r
+//        JOIN events e ON r.event_id = e.id
+//        WHERE r.id = $1`,
+//       [regId]
+//     );
+
+//     if (regResult.rows.length === 0) {
+//       return res.status(404).send("Registration not found");
+//     }
+
+//     const reg = regResult.rows[0];
+
+//     res.render("eventPayment", {
+//       reg,
+//       title: "Event Payment",
+//     });
+//   } catch (err) {
+//     console.error("Error loading payment page:", err);
+//     res.status(500).send("Server error");
+//   }
+// });
+
+// router.post("/verify-event-payment", async (req, res) => {
+//   const { reference, regId } = req.body;
+
+//   try {
+//     const response = await axios.get(
+//       `https://api.paystack.co/transaction/verify/${reference}`,
+//       {
+//         headers: {
+//           Authorization: `Bearer ${process.env.PAYSTACK_SECRET_KEY}`,
+//         },
+//       }
+//     );
+
+//     const payment = response.data.data;
+
+//     if (payment.status === "success") {
+//       const amount = payment.amount / 100;
+
+//       // ✅ Update registration as paid
+//       await pool.query(
+//         `UPDATE event_registrations
+//          SET payment_status = 'completed', amount_paid = $1
+//          WHERE id = $2`,
+//         [amount, regId]
+//       );
+
+//       // ✅ Fetch registration + event details
+//       // const regResult = await pool.query(
+//       //   `SELECT r.*, e.title, e.event_date, e.time, e.location
+//       //    FROM event_registrations r
+//       //    JOIN events e ON r.event_id = e.id
+//       //    WHERE r.id = $1`,
+//       //   [regId]
+//       // );
+
+//       // const reg = regResult.rows[0];
+//       // if (!reg || !reg.registrant_email) {
+//       //   console.error("❌ No registrant email found for ID:", regId);
+//       //   return res.status(400).json({
+//       //     success: false,
+//       //     message: "Email not found for registrant",
+//       //   });
+//       // }
+
+//       // console.log("📧 Sending to:", reg.registrant_email);
+//       // // ✅ Send confirmation email
+//       // await sendEmail({
+//       //   to: reg.registrant_email,
+//       //   subject: `✅ Event Registration Successful: ${reg.title}`,
+//       //   html: `
+//       //     <h2>🎉 Thank You for Registering!</h2>
+//       //     <p>Hello ${reg.registrant_name},</p>
+//       //     <p>Your payment of <strong>₦${amount}</strong> for the event "<strong>${
+//       //     reg.title
+//       //   }</strong>" has been confirmed.</p>
+//       //     <p><strong>Date:</strong> ${new Date(
+//       //       reg.event_date
+//       //     ).toDateString()}<br />
+//       //     <strong>Time:</strong> ${reg.time}<br />
+//       //     <strong>Location:</strong> ${reg.location}</p>
+//       //     <p>We're excited to have you join us!</p>
+//       //     <p>— JKT EdTech Team</p>
+//       //   `,
+//       // });
+
+//       return res.json({ success: true, message: "Payment Sucessful" });
+//     } else {
+//       return res.json({ success: false, message: "Payment failed" });
+//     }
+//   } catch (err) {
+//     console.error("❌ Error verifying event payment:", err.message);
+//     return res.status(500).json({ success: false, message: "Server error" });
+//   }
+// });
+
+// =========================
+// GET Payment Page
+// =========================
 router.get("/pay-event/:regId", async (req, res) => {
   const { regId } = req.params;
 
   try {
     const regResult = await pool.query(
-      `SELECT r.*, e.title, e.amount, e.image_url
+      `SELECT r.*, e.title, e.amount, e.image_url, e.event_date, e.discount_deadline, e.location
        FROM event_registrations r
        JOIN events e ON r.event_id = e.id
        WHERE r.id = $1`,
@@ -462,6 +568,9 @@ router.get("/pay-event/:regId", async (req, res) => {
 
     const reg = regResult.rows[0];
 
+    // ✅ Ensure correct amount is sent to Paystack
+    reg.amount_paid = reg.total_amount || reg.amount_paid || e.amount || 0;
+
     res.render("eventPayment", {
       reg,
       title: "Event Payment",
@@ -471,6 +580,46 @@ router.get("/pay-event/:regId", async (req, res) => {
     res.status(500).send("Server error");
   }
 });
+
+
+// =========================
+// POST Verify Payment
+// =========================
+// router.post("/verify-event-payment", async (req, res) => {
+//   const { reference, regId } = req.body;
+
+//   try {
+//     const response = await axios.get(
+//       `https://api.paystack.co/transaction/verify/${reference}`,
+//       {
+//         headers: {
+//           Authorization: `Bearer ${process.env.PAYSTACK_SECRET_KEY}`,
+//         },
+//       }
+//     );
+
+//     const payment = response.data.data;
+
+//     if (payment.status === "success") {
+//       const amount = payment.amount / 100;
+
+//       // ✅ Update registration as paid
+//       await pool.query(
+//         `UPDATE event_registrations
+//          SET payment_status = 'completed', amount_paid = $1
+//          WHERE id = $2`,
+//         [amount, regId]
+//       );
+
+//       return res.json({ success: true, message: "Payment Successful" });
+//     } else {
+//       return res.json({ success: false, message: "Payment failed" });
+//     }
+//   } catch (err) {
+//     console.error("❌ Error verifying event payment:", err.message);
+//     return res.status(500).json({ success: false, message: "Server error" });
+//   }
+// });
 
 router.post("/verify-event-payment", async (req, res) => {
   const { reference, regId } = req.body;
@@ -488,56 +637,43 @@ router.post("/verify-event-payment", async (req, res) => {
     const payment = response.data.data;
 
     if (payment.status === "success") {
-      const amount = payment.amount / 100;
+      const amountPaid = payment.amount / 100; // Convert kobo to naira
 
-      // ✅ Update registration as paid
-      await pool.query(
-        `UPDATE event_registrations
-         SET payment_status = 'completed', amount_paid = $1
-         WHERE id = $2`,
-        [amount, regId]
+      // Fetch existing registration details
+      const regResult = await pool.query(
+        `SELECT total_amount, amount_paid, payment_status 
+         FROM event_registrations 
+         WHERE id = $1`,
+        [regId]
       );
 
-      // ✅ Fetch registration + event details
-      // const regResult = await pool.query(
-      //   `SELECT r.*, e.title, e.event_date, e.time, e.location
-      //    FROM event_registrations r
-      //    JOIN events e ON r.event_id = e.id
-      //    WHERE r.id = $1`,
-      //   [regId]
-      // );
+      if (regResult.rows.length === 0) {
+        return res.json({ success: false, message: "Registration not found" });
+      }
 
-      // const reg = regResult.rows[0];
-      // if (!reg || !reg.registrant_email) {
-      //   console.error("❌ No registrant email found for ID:", regId);
-      //   return res.status(400).json({
-      //     success: false,
-      //     message: "Email not found for registrant",
-      //   });
-      // }
+      const reg = regResult.rows[0];
+      const newTotalPaid = (reg.amount_paid || 0) + amountPaid;
 
-      // console.log("📧 Sending to:", reg.registrant_email);
-      // // ✅ Send confirmation email
-      // await sendEmail({
-      //   to: reg.registrant_email,
-      //   subject: `✅ Event Registration Successful: ${reg.title}`,
-      //   html: `
-      //     <h2>🎉 Thank You for Registering!</h2>
-      //     <p>Hello ${reg.registrant_name},</p>
-      //     <p>Your payment of <strong>₦${amount}</strong> for the event "<strong>${
-      //     reg.title
-      //   }</strong>" has been confirmed.</p>
-      //     <p><strong>Date:</strong> ${new Date(
-      //       reg.event_date
-      //     ).toDateString()}<br />
-      //     <strong>Time:</strong> ${reg.time}<br />
-      //     <strong>Location:</strong> ${reg.location}</p>
-      //     <p>We're excited to have you join us!</p>
-      //     <p>— JKT EdTech Team</p>
-      //   `,
-      // });
+      let newStatus = "partial";
+      if (newTotalPaid >= reg.total_amount) {
+        newStatus = "completed";
+      }
 
-      return res.json({ success: true, message: "Payment Sucessful" });
+      // ✅ Update registration with new payment
+      await pool.query(
+        `UPDATE event_registrations
+         SET payment_status = $1, amount_paid = $2
+         WHERE id = $3`,
+        [newStatus, newTotalPaid, regId]
+      );
+
+      return res.json({
+        success: true,
+        message:
+          newStatus === "completed"
+            ? "🎉 Full payment completed!"
+            : "✅ Half payment recorded, please pay the remaining balance later.",
+      });
     } else {
       return res.json({ success: false, message: "Payment failed" });
     }
@@ -546,6 +682,8 @@ router.post("/verify-event-payment", async (req, res) => {
     return res.status(500).json({ success: false, message: "Server error" });
   }
 });
+
+
 
 router.get("/pathways/:id", async (req, res) => {
    const { id } = req.params;

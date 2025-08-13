@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <html>
   <head>
-    <title>Manage Courses</title>
+    <title>Manage Events</title>
     <link rel="stylesheet" href="/css/style.css" />
     <link rel="stylesheet" href="/css/styles2.css" />
     <link rel="stylesheet" href="/css/styles3.css" />
@@ -12,58 +12,39 @@
     <!-- Header -->
     <header class="header">
       <div class="logo-title">
-        <% info = info || {}; %> <% if (info.logo_url) { %>
-        <img src="<%= info.logo_url %>" alt="Logo" />
+        <% info = info || {}; %>
+        <% if (info.logo_url) { %>
+          <img src="<%= info.logo_url %>" alt="Logo" />
         <% } %>
-        <p><%= info?.company_name || 'Jaykirch Tech Hub' %></p>
+        <p><%= (info && info.company_name) || 'Jaykirch Tech Hub' %></p>
       </div>
       <button class="nav-toggle" onclick="toggleNav()">☰</button>
       <nav id="main-nav">
         <a href="/admin/dashboard">Dashboard</a>
         <a href="/admin/pathways">Pathways</a>
         <a href="/admin/courses">Courses</a>
-
         <div class="dropdown">
-          <button class="dropbtn" onclick="toggleDropdown('galleryMenu')">
-            Gallery ▾
-          </button>
+          <button class="dropbtn" onclick="toggleDropdown('galleryMenu')">Gallery ▾</button>
           <div class="dropdown-content" id="galleryMenu">
             <a href="/admin/gallery">Gallery</a>
-            <!-- <a href="/admin/gallery/categories">Categories</a> -->
-            <!-- <a href="/admin/demo-videos">Demo</a> -->
           </div>
         </div>
-
         <div class="dropdown">
-          <button
-            class="dropbtn active"
-            onclick="toggleDropdown('ministryMenu')"
-          >
-            company ▾
-          </button>
+          <button class="dropbtn active" onclick="toggleDropdown('ministryMenu')">Company ▾</button>
           <div class="dropdown-content" id="ministryMenu">
             <a href="/admin/company">Company Details</a>
             <a href="/admin/about">About Us</a>
-            <!-- <a href="/admin/devotionals">Devotionals</a> -->
             <a href="/admin/benefits">Benefits</a>
             <a href="/admin/events">Events</a>
           </div>
         </div>
-
         <a href="/profile">Profile</a>
         <a href="/admin/logout" class="logout-button">Logout</a>
       </nav>
     </header>
 
-    <!-- Existing Events -->
-
     <h2>Manage Events</h2>
-
-    <!-- Button to trigger create modal -->
-
-    <button onclick="openEventModal()" class="btn-create">
-      + Create Event
-    </button>
+    <button onclick="openEventModal()" class="btn-create">+ Create Event</button>
 
     <!-- Event Table -->
     <div class="table-responsive">
@@ -79,46 +60,24 @@
           </tr>
         </thead>
         <tbody>
-          <% events.forEach(event => { %>
-          <tr>
-            <td><%= event.title %></td>
-            <td><%= event.event_date.toDateString() %></td>
-            <td><%= event.time %></td>
-            <td><%= event.location %></td>
-            <td><%= event.is_paid ? `Yes ($${event.amount})` : 'No' %></td>
-            <!-- <td>
-                <a
-                href="/admin/events/registrations/<%= event.id %>"
-                class="btn btn-sm btn-info"
-                >View Registrations</a
-                >
-            </td> -->
-            <td>
-              <div class="article-buttons">
-                <a
-                  href="/admin/events/registrations/<%= event.id %>"
-                  style="background-color: black"
-                  class="btn-edit"
-                  >View</a
-                >
-                <button
-                  class="btn-edit"
-                  onclick="openEditModal(<%= event.id %>)"
-                >
-                  Edit
-                </button>
-                <form
-                  action="/admin/events/<%= event.id %>?_method=DELETE"
-                  method="POST"
-                  style="display: inline"
-                  onsubmit="return confirm('Are you sure you want to delete this event?')"
-                >
-                  <button type="submit" class="btn-delete">Delete</button>
-                </form>
-              </div>
-            </td>
-          </tr>
-          <% }) %>
+          <% events.forEach(function(event){ %>
+            <tr>
+              <td><%= event.title %></td>
+              <td><%= event.event_date.toDateString() %></td>
+              <td><%= event.time %></td>
+              <td><%= event.location %></td>
+              <td><%= event.is_paid ? ('Yes (₦' + event.amount + ')') : 'No' %></td>
+              <td>
+                <div class="article-buttons">
+                  <a href="/admin/events/registrations/<%= event.id %>" style="background-color: black" class="btn-edit">View</a>
+                  <button class="btn-edit" onclick="openEditModal(<%= event.id %>)">Edit</button>
+                  <form action="/admin/events/<%= event.id %>?_method=DELETE" method="POST" style="display:inline" onsubmit="return confirm('Are you sure you want to delete this event?')">
+                    <button type="submit" class="btn-delete">Delete</button>
+                  </form>
+                </div>
+              </td>
+            </tr>
+          <% }); %>
         </tbody>
       </table>
     </div>
@@ -128,295 +87,119 @@
       <div class="modal-content">
         <span class="close" onclick="closeEventModal()">&times;</span>
         <h2>Create New Event</h2>
+        <form action="<%= (typeof formAction !== 'undefined' ? formAction : '/admin/events/create') %>" method="POST" enctype="multipart/form-data" class="event-form">
+          <label>Event Title:</label>
+          <input type="text" name="title" value="<%= (typeof event !== 'undefined' && event.title) ? event.title : '' %>" required />
 
-        <form
-          action="/admin/events"
-          method="POST"
-          enctype="multipart/form-data"
-        >
-          <div class="container">
-            <input
-              type="text"
-              name="title"
-              placeholder="Event Title"
-              required
-            /><br />
+          <label>Description:</label>
+          <textarea id="eventDescription" name="description" rows="5" required>
+            <%= (typeof event !== 'undefined' && event.description) ? event.description : '' %>
+          </textarea>
+          <label>Event Date:</label>
+          <input type="date" name="event_date" value="<%= (typeof event !== 'undefined' && event.event_date) ? event.event_date.toISOString().split('T')[0] : '' %>" required />
+
+          <label>Time:</label>
+          <input type="time" name="time" value="<%= (typeof event !== 'undefined' && event.time) ? event.time : '' %>" />
+
+          <label>Location:</label>
+          <input type="text" name="location" value="<%= (typeof event !== 'undefined' && event.location) ? event.location : '' %>" />
+
+          <label>Show on Homepage:</label>
+          <input type="checkbox" name="show_on_homepage" <%= (typeof event !== 'undefined' && event.show_on_homepage) ? 'checked' : '' %> />
+
+          <label>Is Paid Event?</label>
+          <input type="checkbox" name="is_paid" <%= (typeof event !== 'undefined' && event.is_paid) ? 'checked' : '' %> />
+
+          <div id="payment-section" style="<%= (typeof event !== 'undefined' && event.is_paid) ? '' : 'display:none;' %>">
+            <label>Amount (₦):</label>
+            <input type="number" step="0.01" name="amount" value="<%= (typeof event !== 'undefined' && event.amount) ? event.amount : '' %>" />
+
+            <label>Discount Amount (₦):</label>
+            <input type="number" step="0.01" name="discount_amount" value="<%= (typeof event !== 'undefined' && event.discount_amount) ? event.discount_amount : '' %>" />
+
+            <label>Discount Deadline:</label>
+            <input type="date" name="discount_deadline" value="<%= (typeof event !== 'undefined' && event.discount_deadline) ? event.discount_deadline.toISOString().split('T')[0] : '' %>" />
+
+            <label>Allow Split Payment?</label>
+            <input type="checkbox" name="allow_split_payment" <%= (typeof event !== 'undefined' && event.allow_split_payment) ? 'checked' : '' %> />
           </div>
 
-          <textarea
-            name="description"
-            id="eventDescription"
-            placeholder="Event Description"
-          ></textarea
-          ><br />
-
-          <div class="container">
-            <input
-              type="date"
-              name="event_date"
-              placeholder="Event Date"
-              required
-            /><br />
-          </div>
-
-          <div class="container">
-            <input
-              type="text"
-              name="time"
-              placeholder="Event Time (e.g. 4:00 PM)"
-            /><br />
-          </div>
-
-          <div class="container">
-            <input
-              type="text"
-              name="location"
-              placeholder="Location"
-              required
-            /><br />
-          </div>
-
-          <div class="container">
-            <label>
-              <input
-                type="checkbox"
-                name="is_paid"
-                id="isPaidCheckbox"
-                onchange="toggleAmountInput()"
-              />
-              This is a paid event </label
-            ><br />
-          </div>
-
-          <div class="container" id="amountContainer" style="display: none">
-            <input
-              type="number"
-              name="amount"
-              step="0.01"
-              placeholder="Amount in ₦"
-            /><br />
-          </div>
-
-          <input type="file" name="image" /><br />
-          <button type="submit">Create Event</button>
-        </form>
-      </div>
-    </div>
-
-    <!-- edit event modal -->
-    <% events.forEach(event => { %>
-    <div id="editModal-<%= event.id %>" class="modal">
-      <div class="modal-content">
-        <span class="close" onclick="closeEditModal(<%= event.id %>)"
-          >&times;</span
-        >
-        <h2>Edit Event</h2>
-
-        <form
-          action="/admin/events/<%= event.id %>?_method=PUT"
-          method="POST"
-          enctype="multipart/form-data"
-        >
-          <div class="container">
-            <input
-              type="text"
-              name="title"
-              value="<%= event.title %>"
-              required
-            /><br />
-          </div>
-
-          <textarea name="description" id="editDescription-<%= event.id %>">
-<%= event.description %></textarea
-          ><br />
-
-          <div class="container">
-            <input
-              type="date"
-              name="event_date"
-              value="<%= event.event_date.toISOString().split('T')[0] %>"
-              required
-            /><br />
-          </div>
-
-          <div class="container">
-            <input type="text" name="time" value="<%= event.time %>" /><br />
-          </div>
-
-          <div class="container">
-            <input
-              type="text"
-              name="location"
-              value="<%= event.location %>"
-              required
-            /><br />
-          </div>
-
-          <div class="container">
-            <label>
-              <input type="checkbox" name="is_paid" value="true" <%=
-              event.is_paid ? 'checked' : '' %> onchange="toggleEditAmount(<%=
-              event.id %>)" /> This is a paid event </label
-            ><br />
-          </div>
-
-          <div
-            class="container"
-            id="editAmountContainer-<%= event.id %>"
-            style="<%= event.is_paid ? '' : 'display:none;' %>"
-          >
-            <input
-              type="number"
-              name="amount"
-              step="0.01"
-              value="<%= event.amount || '' %>"
-            /><br />
-          </div>
-
-          <div class="container">
-            <label>
-              <input type="checkbox" name="show_on_homepage" <%=
-              event?.show_on_homepage ? 'checked' : '' %> /> Show on Homepage
-            </label>
-          </div>
-
-          <% if (event.image_url) { %>
-          <div class="container">
-            <img
-              src="<%= event.image_url %>"
-              alt="Current Image"
-              style="max-width: 100%; height: auto; margin-bottom: 10px"
-            />
-          </div>
+          <label>Event Image:</label>
+          <% if (typeof event !== 'undefined' && event.image_url) { %>
+            <div>
+              <img src="<%= event.image_url %>" alt="Event Image" width="150" />
+              <input type="hidden" name="current_image" value="<%= event.image_url %>" />
+            </div>
           <% } %>
+          <input type="file" name="image" />
 
-          <input type="file" name="image" /><br />
-          <button type="submit">Update Event</button>
+          <button type="submit"><%= (typeof submitLabel !== 'undefined') ? submitLabel : 'Create Event' %></button>
         </form>
       </div>
     </div>
-    <% }) %>
 
-    <!-- script for ckeditor -->
+    <!-- EDIT modals -->
+    <% events.forEach(function(event){ %>
+      <div id="editModal-<%= event.id %>" class="modal">
+        <div class="modal-content">
+          <span class="close" onclick="closeEditModal(<%= event.id %>)">&times;</span>
+          <h2>Edit Event</h2>
+          <form action="/admin/events/<%= event.id %>?_method=PUT" method="POST" enctype="multipart/form-data">
+            <input type="text" name="title" value="<%= event.title %>" required /><br />
+            <textarea name="description" id="editDescription-<%= event.id %>"><%= event.description %></textarea><br />
+            <input type="date" name="event_date" value="<%= event.event_date.toISOString().split('T')[0] %>" required /><br />
+            <input type="text" name="time" value="<%= event.time %>" /><br />
+            <input type="text" name="location" value="<%= event.location %>" required /><br />
+            <label>
+              <input type="checkbox" name="is_paid" value="true" <%= event.is_paid ? 'checked' : '' %> onchange="toggleEditAmount(<%= event.id %>)" /> This is a paid event
+            </label><br />
+            <div id="editAmountContainer-<%= event.id %>" style="<%= event.is_paid ? '' : 'display:none;' %>">
+              <input type="number" name="amount" step="0.01" value="<%= event.amount || '' %>" /><br />
+            </div>
+            <label>
+              <input type="checkbox" name="show_on_homepage" <%= event.show_on_homepage ? 'checked' : '' %> /> Show on Homepage
+            </label>
+            <% if (event.image_url) { %>
+              <img src="<%= event.image_url %>" alt="Current Image" style="max-width: 100%; height: auto; margin-bottom: 10px" />
+            <% } %>
+            <input type="file" name="image" /><br />
+            <button type="submit">Update Event</button>
+          </form>
+        </div>
+      </div>
+    <% }); %>
+
+    <!-- Scripts -->
+    <script>CKEDITOR.replace("eventDescription");</script>
+    <% events.forEach(function(event){ %>
+      <script>CKEDITOR.replace("editDescription-<%= event.id %>");</script>
+    <% }); %>
+
+    <script>
+      function openEventModal(){ document.getElementById("createEventModal").style.display="block"; }
+      function closeEventModal(){ document.getElementById("createEventModal").style.display="none"; }
+      function openEditModal(id){ document.getElementById("editModal-"+id).style.display="block"; }
+      function closeEditModal(id){ document.getElementById("editModal-"+id).style.display="none"; }
+      function toggleEditAmount(id){
+        const cb = document.querySelector(`#editModal-${id} input[name='is_paid']`);
+        document.getElementById("editAmountContainer-"+id).style.display = cb.checked ? "block" : "none";
+      }
+      document.querySelector('input[name="is_paid"]').addEventListener("change", function(){
+        document.getElementById("payment-section").style.display = this.checked ? "" : "none";
+      });
+    </script>
+
+    <!-- CKEditor for create event description -->
     <script>
       CKEDITOR.replace("eventDescription");
     </script>
 
-    <!-- script to toggle navigation menu -->
-    <script>
-      // Close nav when clicking outside of it
-      document.addEventListener("click", function (event) {
-        const nav = document.getElementById("main-nav");
-        const toggleBtn = document.querySelector(".nav-toggle");
-
-        if (
-          nav.classList.toggle("open") &&
-          !nav.contains(event.target) &&
-          !toggleBtn.contains(event.target)
-        ) {
-          nav.classList.remove("open");
-        }
-      });
-    </script>
-
-    <!-- Script not to be able to copy content from article body -->
-    <script>
-      document.querySelectorAll(".article-body").forEach(function (el) {
-        el.addEventListener("contextmenu", function (e) {
-          e.preventDefault();
-        });
-        el.addEventListener("copy", function (e) {
-          e.preventDefault();
-        });
-      });
-    </script>
-
-    <!-- script to preview image before upload -->
-    <script>
-      document
-        .getElementById("imageInput")
-        .addEventListener("change", function () {
-          const preview = document.getElementById("imagePreview");
-          const file = this.files[0];
-          if (file) {
-            const reader = new FileReader();
-            reader.onload = function (e) {
-              preview.src = e.target.result;
-              preview.style.display = "block";
-            };
-            reader.readAsDataURL(file);
-          } else {
-            preview.src = "#";
-            preview.style.display = "none";
-          }
-        });
-    </script>
-
-    <script>
-      function filterByPathway(pathway) {
-        const groups = document.querySelectorAll(".pathway-group");
-        groups.forEach((group) => {
-          const groupName = group.getAttribute("data-pathway");
-          if (pathway === "All" || groupName === pathway) {
-            group.style.display = "block";
-          } else {
-            group.style.display = "none";
-          }
-        });
-      }
-    </script>
-
-    <!-- script for opening and closing the create event modal -->
-    <script>
-      function openEventModal() {
-        document.getElementById("createEventModal").style.display = "block";
-      }
-
-      function closeEventModal() {
-        document.getElementById("createEventModal").style.display = "none";
-      }
-
-      function toggleAmountInput() {
-        const isPaid = document.getElementById("isPaidCheckbox").checked;
-        const amountContainer = document.getElementById("amountContainer");
-        amountContainer.style.display = isPaid ? "block" : "none";
-      }
-
-      // Close modal when clicking outside
-      window.onclick = function (event) {
-        const modal = document.getElementById("createEventModal");
-        if (event.target === modal) {
-          modal.style.display = "none";
-        }
-      };
-    </script>
-
-    <!-- script for opening and closing the edit event modal -->
-    <script>
-      function openEditModal(id) {
-        document.getElementById("editModal-" + id).style.display = "block";
-      }
-
-      function closeEditModal(id) {
-        document.getElementById("editModal-" + id).style.display = "none";
-      }
-
-      function toggleEditAmount(id) {
-        const checkbox = document.querySelector(
-          `#editModal-${id} input[name='is_paid']`
-        );
-        const amountContainer = document.getElementById(
-          "editAmountContainer-" + id
-        );
-        amountContainer.style.display = checkbox.checked ? "block" : "none";
-      }
-    </script>
-
-    <!-- ckeditor script for the textarea -->
-    <script>
-      <% events.forEach(event => { %>
+    <!-- CKEditor for edit event descriptions -->
+    <% events.forEach(function(event){ %>
+      <script>
         CKEDITOR.replace("editDescription-<%= event.id %>");
-      <% }); %>
-    </script>
+      </script>
+    <% }); %>
+
   </body>
 </html>

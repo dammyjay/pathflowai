@@ -281,7 +281,13 @@ router.post("/benefits/delete/:id", adminController.deleteBenefit);
 
 
 // router.get("/admin/events", adminController.listEvents);
-router.post("/events", upload.single("image"), adminController.createEvent);
+// router.post("/events", upload.single("image"), adminController.createEvent);
+router.post(
+  "/events/create",
+  upload.single("image"),
+  adminController.createEvent
+);
+
 router.get(
   "/events/registrations/:id",
   adminController.viewEventRegistrations

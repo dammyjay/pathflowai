@@ -71,48 +71,150 @@ router.get("/register/:id", async (req, res) => {
   }
 });
 
+// router.post("/register/:id", async (req, res) => {
+//   const { id } = req.params;
+//   const {
+//     registrant_name,
+//     registrant_email,
+//     registrant_phone,
+//     is_parent,
+//     child_name,
+//   } = req.body;
+
+//   try {
+//     // Get event details
+//     const eventRes = await pool.query("SELECT * FROM events WHERE id = $1", [
+//       id,
+//     ]);
+//     const event = eventRes.rows[0];
+//     if (!event) return res.status(404).send("Event not found");
+
+//     // Create registration
+//     const regRes = await pool.query(
+//       `INSERT INTO event_registrations
+//        (event_id, registrant_name, registrant_email, registrant_phone, is_parent, child_name, amount_paid)
+//        VALUES ($1, $2, $3, $4, $5, $6, $7)
+//        RETURNING id`,
+//       [
+//         id,
+//         registrant_name,
+//         registrant_email,
+//         registrant_phone || null,
+//         is_parent === "on",
+//         child_name || null,
+//         event.amount || 0,
+//       ]
+//     );
+
+//     const registrationId = regRes.rows[0].id;
+
+//     if (event.is_paid) {
+//       // Redirect to event payment page
+//       return res.redirect(`/pay-event/${registrationId}`);
+//     } else {
+//       // Free event
+//       await pool.query(
+//         `UPDATE event_registrations SET payment_status = 'completed' WHERE id = $1`,
+//         [registrationId]
+//       );
+//       return res.redirect(`/events/${id}?registered=success`);
+//     }
+//   } catch (err) {
+//     console.error("Error registering for event:", err.message);
+//     res.status(500).send("Registration failed");
+//   }
+// });
+
 router.post("/register/:id", async (req, res) => {
   const { id } = req.params;
-  const {
-    registrant_name,
-    registrant_email,
-    registrant_phone,
-    is_parent,
-    child_name,
-  } = req.body;
+  const { registrant_name, registrant_email, registrant_phone, num_people } =
+    req.body;
 
   try {
-    // Get event details
     const eventRes = await pool.query("SELECT * FROM events WHERE id = $1", [
       id,
     ]);
     const event = eventRes.rows[0];
     if (!event) return res.status(404).send("Event not found");
 
-    // Create registration
+    const peopleCount = parseInt(num_people) || 1;
+    const childNames = [];
+    for (let i = 1; i <= peopleCount; i++) {
+      const key = `child_name_${i}`;
+      if (req.body[key]) childNames.push(req.body[key]);
+    }
+
+    // let totalAmount = 0;
+    // if (event.is_paid) {
+    //   if (event.allow_split_payment) {
+    //     totalAmount = (event.amount || 0) * peopleCount;
+    //   } else {
+    //     totalAmount = event.amount || 0;
+    //   }
+
+    //   // Apply discount if available
+    //   if (
+    //     event.discount_amount &&
+    //     event.discount_deadline &&
+    //     new Date() <= event.discount_deadline
+    //   ) {
+    //     totalAmount -= event.discount_amount;
+    //     if (totalAmount < 0) totalAmount = 0;
+    //   }
+    // }
+
+    let totalAmount = 0;
+    const paymentOption = req.body.payment_option || "full"; // default full
+
+    if (event.is_paid) {
+      let basePrice = event.amount || 0;
+
+      // Apply half payment option
+      if (paymentOption === "half") {
+        basePrice = basePrice / 2;
+      }
+
+      if (event.allow_split_payment) {
+        totalAmount = basePrice * peopleCount;
+      } else {
+        totalAmount = basePrice;
+      }
+
+      // Apply discount if available
+      if (
+        event.discount_amount &&
+        event.discount_deadline &&
+        new Date() <= event.discount_deadline
+      ) {
+        totalAmount -= event.discount_amount;
+        if (totalAmount < 0) totalAmount = 0;
+      }
+    }
+
+
     const regRes = await pool.query(
       `INSERT INTO event_registrations 
-       (event_id, registrant_name, registrant_email, registrant_phone, is_parent, child_name, amount_paid)
-       VALUES ($1, $2, $3, $4, $5, $6, $7)
+        (event_id, registrant_name, registrant_email, registrant_phone, num_people, child_names, amount_paid, total_amount, payment_option)
+       VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9)
        RETURNING id`,
       [
         id,
         registrant_name,
         registrant_email,
         registrant_phone || null,
-        is_parent === "on",
-        child_name || null,
-        event.amount || 0,
+        peopleCount,
+        JSON.stringify(childNames),
+        totalAmount,
+        totalAmount,
+        paymentOption,
       ]
     );
 
     const registrationId = regRes.rows[0].id;
 
     if (event.is_paid) {
-      // Redirect to event payment page
       return res.redirect(`/pay-event/${registrationId}`);
     } else {
-      // Free event
       await pool.query(
         `UPDATE event_registrations SET payment_status = 'completed' WHERE id = $1`,
         [registrationId]
@@ -124,6 +226,8 @@ router.post("/register/:id", async (req, res) => {
     res.status(500).send("Registration failed");
   }
 });
+
+
 
 
 module.exports = router;

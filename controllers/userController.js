@@ -163,6 +163,8 @@ exports.showEvent = async (req, res) => {
 
     if (!event) return res.status(404).send("Event not found");
 
+    
+
     // ✅ Extract paid status from query
     const paid = req.query.paid;
 
