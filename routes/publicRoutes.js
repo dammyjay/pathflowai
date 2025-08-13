@@ -621,6 +621,68 @@ router.get("/pay-event/:regId", async (req, res) => {
 //   }
 // });
 
+// router.post("/verify-event-payment", async (req, res) => {
+//   const { reference, regId } = req.body;
+
+//   try {
+//     const response = await axios.get(
+//       `https://api.paystack.co/transaction/verify/${reference}`,
+//       {
+//         headers: {
+//           Authorization: `Bearer ${process.env.PAYSTACK_SECRET_KEY}`,
+//         },
+//       }
+//     );
+
+//     const payment = response.data.data;
+
+//     if (payment.status === "success") {
+//       const amountPaid = payment.amount / 100; // Convert kobo to naira
+
+//       // Fetch existing registration details
+//       const regResult = await pool.query(
+//         `SELECT total_amount, amount_paid, payment_status
+//          FROM event_registrations
+//          WHERE id = $1`,
+//         [regId]
+//       );
+
+//       if (regResult.rows.length === 0) {
+//         return res.json({ success: false, message: "Registration not found" });
+//       }
+
+//       const reg = regResult.rows[0];
+//       const newTotalPaid = (reg.amount_paid || 0) + amountPaid;
+
+//       let newStatus = "partial";
+//       if (newTotalPaid >= reg.total_amount) {
+//         newStatus = "completed";
+//       }
+
+//       // ✅ Update registration with new payment
+//       await pool.query(
+//         `UPDATE event_registrations
+//          SET payment_status = $1, amount_paid = $2
+//          WHERE id = $3`,
+//         [newStatus, newTotalPaid, regId]
+//       );
+
+//       return res.json({
+//         success: true,
+//         message:
+//           newStatus === "completed"
+//             ? "🎉 Full payment completed!"
+//             : "✅ Half payment recorded, please pay the remaining balance later.",
+//       });
+//     } else {
+//       return res.json({ success: false, message: "Payment failed" });
+//     }
+//   } catch (err) {
+//     console.error("❌ Error verifying event payment:", err.message);
+//     return res.status(500).json({ success: false, message: "Server error" });
+//   }
+// });
+
 router.post("/verify-event-payment", async (req, res) => {
   const { reference, regId } = req.body;
 
@@ -637,42 +699,48 @@ router.post("/verify-event-payment", async (req, res) => {
     const payment = response.data.data;
 
     if (payment.status === "success") {
-      const amountPaid = payment.amount / 100; // Convert kobo to naira
+      const amountPaid = payment.amount / 100; // convert from kobo
 
-      // Fetch existing registration details
+      // Fetch registration details
       const regResult = await pool.query(
-        `SELECT total_amount, amount_paid, payment_status 
-         FROM event_registrations 
-         WHERE id = $1`,
+        `SELECT * FROM event_registrations WHERE id = $1`,
         [regId]
       );
 
       if (regResult.rows.length === 0) {
-        return res.json({ success: false, message: "Registration not found" });
+        return res
+          .status(404)
+          .json({ success: false, message: "Registration not found" });
       }
 
       const reg = regResult.rows[0];
-      const newTotalPaid = (reg.amount_paid || 0) + amountPaid;
+      const totalEventFee =
+        reg.total_amount || reg.amount * (reg.num_people || 1);
 
-      let newStatus = "partial";
-      if (newTotalPaid >= reg.total_amount) {
-        newStatus = "completed";
+      // Calculate cumulative amount
+      const newTotalPaid = (reg.amount_paid || 0) + amountPaid;
+      let paymentStatus = "partial";
+
+      if (newTotalPaid >= totalEventFee) {
+        paymentStatus = "completed";
       }
 
-      // ✅ Update registration with new payment
+      // Update registration record
       await pool.query(
         `UPDATE event_registrations
-         SET payment_status = $1, amount_paid = $2
+         SET amount_paid = $1, payment_status = $2
          WHERE id = $3`,
-        [newStatus, newTotalPaid, regId]
+        [newTotalPaid, paymentStatus, regId]
       );
 
       return res.json({
         success: true,
         message:
-          newStatus === "completed"
-            ? "🎉 Full payment completed!"
-            : "✅ Half payment recorded, please pay the remaining balance later.",
+          paymentStatus === "completed"
+            ? "Full payment completed"
+            : "Partial payment recorded",
+        remainingBalance:
+          paymentStatus === "partial" ? totalEventFee - newTotalPaid : 0,
       });
     } else {
       return res.json({ success: false, message: "Payment failed" });

@@ -184,7 +184,7 @@ async function createTables() {
     balance_due NUMERIC DEFAULT 0,
     total_amount NUMERIC,
     num_people INTEGER DEFAULT 1,
-    child_names JSON,
+    child_names JSON DEFAULT [],
     payment_option TEXT DEFAULT 'full'
 );
 `

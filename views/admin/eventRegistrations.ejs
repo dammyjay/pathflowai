@@ -90,8 +90,9 @@
               <th>Email</th>
               <th>Phone</th>
               <th>Parent?</th>
-              <th>Child's Name</th>
+              <th>Child's Names</th>
               <th>Amount Paid</th>
+              <th>Payment Option</th>
               <th>Status</th>
               <th>Registered At</th>
             </tr>
@@ -103,8 +104,9 @@
               <td><%= reg.registrant_email %></td>
               <td><%= reg.registrant_phone %></td>
               <td><%= reg.is_parent ? "Yes" : "No" %></td>
-              <td><%= reg.child_name || "-" %></td>
+              <td><%= reg.child_names || "-" %></td>
               <td>₦<%= reg.amount_paid.toLocaleString() %></td>
+              <td><%= reg.payment_option %></td>
               <td>
                 <% if (reg.payment_status === 'completed') { %>
                 <span style="color: green; font-weight: bold">✔ Completed</span>
