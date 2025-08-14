@@ -151,25 +151,7 @@ async function createTables() {
     `);
 
     // table for event registrations
-    // await pool.query(
-    //   `CREATE TABLE IF NOT EXISTS event_registrations (
-    //     id SERIAL PRIMARY KEY,
-    //     event_id INTEGER REFERENCES events(id) ON DELETE CASCADE,
-    //     registrant_name TEXT NOT NULL,
-    //     registrant_email TEXT NOT NULL,
-    //     registrant_phone TEXT,
-    //     is_parent BOOLEAN DEFAULT FALSE,
-    //     child_name TEXT,
-    //     amount_paid NUMERIC DEFAULT 0,
-    //     payment_status TEXT DEFAULT 'pending',
-    //     created_at TIMESTAMP DEFAULT NOW(),
-    //     balance_due NUMERIC(10,2) DEFAULT 0,
-    //     total_amount NUMERIC,
-    //     num_people INTEGER DEFAULT 1,
-    //     child_names JSONB DEFAULT '[]'::jsonb;
-    //   );
-    //   `
-    // );
+ 
 
     await pool.query(
       `CREATE TABLE IF NOT EXISTS event_registrations (
@@ -184,7 +166,7 @@ async function createTables() {
     balance_due NUMERIC DEFAULT 0,
     total_amount NUMERIC,
     num_people INTEGER DEFAULT 1,
-    child_names JSON DEFAULT [],
+    child_names JSONB DEFAULT '[]',
     payment_option TEXT DEFAULT 'full'
 );
 `

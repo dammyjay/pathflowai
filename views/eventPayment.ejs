@@ -89,23 +89,34 @@
   today.setHours(0, 0, 0, 0);
 
   // Only create Date if discount_deadline exists
-  let deadline = null;
+  let deadline = null || 0;
   if (reg.discount_deadline) {
     deadline = new Date(reg.discount_deadline);
     deadline.setHours(0, 0, 0, 0);
   }
 
   // Debug logs
+  
+  const discountFromDB = Number(reg.discount_amount) || 0;
   console.log("📅 Today (normalized):", today.toLocaleString());
   console.log("📅 Deadline (normalized):", deadline ? deadline.toLocaleString() : "None");
 
   // Calculate discount
-  const isDiscountValid = Number(reg.discount_amount) > 0 && deadline instanceof Date && !isNaN(deadline) && today.getTime() <= deadline.getTime();
-  const discountPerPerson = isDiscountValid ? Number(reg.discount_amount) : 0;
-  console.log(isDiscountValid ? "✅ Discount is valid" : "❌ Discount is not valid");
+  <!-- const isDiscountValid = Number(reg.discount_amount) > 0 && deadline instanceof Date && !isNaN(deadline) && today.getTime() <= deadline.getTime(); -->
+  const isDiscountValid = today.getDate() <= deadline.getDate();
+  console.log(isDiscountValid);
+  if (isDiscountValid) {
+    console.log("✅ Discount is valid");
+    console.log(discountFromDB);
+    var discountPerPerson = discountFromDB;
+    console.log("💰 Discount per person:", discountPerPerson);
+  } else {
+    console.log("❌ Discount is not valid");
+  }
+  <!-- const discountPerPerson = isDiscountValid ? Number(reg.discount_amount) : 0; -->
 
   // Calculate payable
-  const feePerPerson = baseAmount - discountPerPerson;
+  const feePerPerson = discountPerPerson;
   console.log("💰 Discount per person:", discountPerPerson);
   let totalAmount = feePerPerson * numPeople;
 
