@@ -509,7 +509,18 @@
     color: inherit;
 }
 
+.article-card2-link {
+    text-decoration: none;
+    color: inherit;
+}
+
 .article-card:hover {
+    cursor: pointer;
+    transform: scale(1.02);
+    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
+}
+
+.article-card2:hover {
     cursor: pointer;
     transform: scale(1.02);
     box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
@@ -973,6 +984,17 @@ canvas {
 }
 
 .article-card a {
+    display: inline-block;
+    margin-top: 10px;
+    /* background-color: #2196f3; */
+    color: white;
+    padding: 8px 12px;
+    border-radius: 4px;
+    text-decoration: none;
+    font-size: 14px;
+}
+
+.article-card2 a {
     display: inline-block;
     margin-top: 10px;
     background-color: #2196f3;
