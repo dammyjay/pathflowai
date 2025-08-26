@@ -1499,11 +1499,12 @@ exports.getLessonQuiz = async (req, res) => {
 //     const lessonId = req.params.id;
 //     const answers = req.body;
 
+//     // ✅ Fetch questions from quiz_questions (correct schema)
 //     const qRes = await pool.query(
 //       `SELECT qq.id, qq.question, qq.options, qq.correct_option
 //        FROM quiz_questions qq
 //        JOIN quizzes q ON q.id = qq.quiz_id
-//        WHERE q.lesson_id=$1`,
+//        WHERE q.lesson_id = $1`,
 //       [lessonId]
 //     );
 //     const questions = qRes.rows;
@@ -1515,10 +1516,15 @@ exports.getLessonQuiz = async (req, res) => {
 //     let score = 0;
 //     const reviewData = [];
 
+//     // ✅ Compare submitted answers
 //     questions.forEach((q) => {
 //       const yourAnswer = answers[`q${q.id}`] || "";
-//       const isCorrect = yourAnswer === q.correct_option;
+//       const isCorrect =
+//         yourAnswer.toString().trim().toLowerCase() ===
+//         q.correct_option.toString().trim().toLowerCase();
+
 //       if (isCorrect) score++;
+
 //       reviewData.push({
 //         id: q.id,
 //         question: q.question,
@@ -1530,16 +1536,16 @@ exports.getLessonQuiz = async (req, res) => {
 
 //     const percent = Math.round((score / questions.length) * 100);
 
-//     // Build prompt for AI per-question feedback
+//     // ✅ AI Feedback Prompt
 //     const feedbackPrompt = `
 //       You are an AI tutor. Here is a student's quiz attempt:
 //       ${reviewData
 //         .map(
 //           (r, i) =>
 //             `Q${i + 1}: ${r.question}
-//         Student answered: ${r.yourAnswer || "No answer"}
-//         Correct answer: ${r.correctAnswer}
-//         Result: ${r.isCorrect ? "✅ Correct" : "❌ Wrong"}`
+// Student answered: ${r.yourAnswer || "No answer"}
+// Correct answer: ${r.correctAnswer}
+// Result: ${r.isCorrect ? "✅ Correct" : "❌ Wrong"}`
 //         )
 //         .join("\n\n")}
 
@@ -1547,26 +1553,32 @@ exports.getLessonQuiz = async (req, res) => {
 //       - Explain briefly why it's wrong
 //       - Provide a clear explanation of the correct answer
 //       - Keep it short and supportive (1–2 sentences each)
-//       - Return in JSON format as an array of objects: 
-//       [{questionId, feedback}]
+//       - Return in JSON format: 
+//       [{ "questionId": number, "feedback": string }]
 //     `;
 
 //     let perQuestionFeedback = [];
 //     try {
 //       const raw = await askTutor({ question: feedbackPrompt });
-//       perQuestionFeedback = JSON.parse(raw); // Expect AI to return JSON
+
+//       // ✅ Ensure JSON
+//       if (raw.trim().startsWith("[")) {
+//         perQuestionFeedback = JSON.parse(raw);
+//       } else {
+//         console.warn("AI returned non-JSON, skipping feedback");
+//       }
 //     } catch (err) {
 //       console.error("AI per-question feedback error:", err.message);
 //     }
 
-//     // Attach feedback to reviewData
+//     // ✅ Attach AI feedback safely
 //     reviewData.forEach((r) => {
 //       const fb = perQuestionFeedback.find((f) => f.questionId == r.id);
 //       r.feedback = fb
 //         ? fb.feedback
 //         : r.isCorrect
-//         ? "Well done!"
-//         : "Review this question.";
+//         ? "✅ Well done!"
+//         : "❌ Review this question.";
 //     });
 
 //     res.json({
@@ -1576,10 +1588,10 @@ exports.getLessonQuiz = async (req, res) => {
 //       reviewData,
 //       feedback:
 //         percent >= 80
-//           ? "Excellent work! You clearly understood this lesson."
+//           ? "🌟 Excellent work! You clearly understood this lesson."
 //           : percent >= 50
-//           ? "Good attempt. Review the explanations for the wrong answers."
-//           : "Don't worry! Go back through the lesson and retry.",
+//           ? "👍 Good attempt. Review the explanations for the wrong answers."
+//           : "📘 Don't worry! Go back through the lesson and retry.",
 //     });
 //   } catch (err) {
 //     console.error("Quiz submit error:", err.message);
@@ -1587,14 +1599,22 @@ exports.getLessonQuiz = async (req, res) => {
 //   }
 // };
 
-// controllers/studentController.js
-
 exports.submitLessonQuiz = async (req, res) => {
   try {
     const lessonId = req.params.id;
     const answers = req.body;
 
-    // ✅ Fetch questions from quiz_questions (correct schema)
+    // ✅ Fetch lesson content
+    const lessonRes = await pool.query(
+      `SELECT id, title, content FROM lessons WHERE id=$1`,
+      [lessonId]
+    );
+    if (lessonRes.rows.length === 0) {
+      return res.status(404).json({ error: "Lesson not found" });
+    }
+    const lesson = lessonRes.rows[0];
+
+    // ✅ Fetch quiz questions
     const qRes = await pool.query(
       `SELECT qq.id, qq.question, qq.options, qq.correct_option
        FROM quiz_questions qq
@@ -1603,15 +1623,13 @@ exports.submitLessonQuiz = async (req, res) => {
       [lessonId]
     );
     const questions = qRes.rows;
-
     if (questions.length === 0) {
       return res.json({ success: false, message: "No quiz found." });
     }
 
+    // ✅ Score student answers
     let score = 0;
     const reviewData = [];
-
-    // ✅ Compare submitted answers
     questions.forEach((q) => {
       const yourAnswer = answers[`q${q.id}`] || "";
       const isCorrect =
@@ -1631,49 +1649,62 @@ exports.submitLessonQuiz = async (req, res) => {
 
     const percent = Math.round((score / questions.length) * 100);
 
-    // ✅ AI Feedback Prompt
+    // ✅ AI Prompt WITH lesson content
     const feedbackPrompt = `
-      You are an AI tutor. Here is a student's quiz attempt:
-      ${reviewData
-        .map(
-          (r, i) =>
-            `Q${i + 1}: ${r.question}
+You are an AI tutor. Use the following LESSON CONTENT to explain quiz answers:
+
+"${lesson.content}"
+
+Now here is a student's quiz attempt for the lesson "${lesson.title}":
+
+${reviewData
+  .map(
+    (r, i) =>
+      `Q${i + 1}: ${r.question}
 Student answered: ${r.yourAnswer || "No answer"}
 Correct answer: ${r.correctAnswer}
 Result: ${r.isCorrect ? "✅ Correct" : "❌ Wrong"}`
-        )
-        .join("\n\n")}
+  )
+  .join("\n\n")}
 
-      For each WRONG answer:
-      - Explain briefly why it's wrong
-      - Provide a clear explanation of the correct answer
-      - Keep it short and supportive (1–2 sentences each)
-      - Return in JSON format: 
-      [{ "questionId": number, "feedback": string }]
-    `;
+TASK:
+For EACH question (correct OR wrong):
+- If correct → give a short reinforcement explanation from the lesson.
+- If wrong → explain why their answer is incorrect AND what the correct answer means (2–3 sentences).
+- Always base your explanation on the LESSON CONTENT.
+- Be supportive and encouraging.
+
+OUTPUT:
+Return only JSON in this format:
+[
+  { "questionId": 12, "feedback": "..." },
+  { "questionId": 15, "feedback": "..." }
+]
+`;
 
     let perQuestionFeedback = [];
     try {
       const raw = await askTutor({ question: feedbackPrompt });
 
-      // ✅ Ensure JSON
-      if (raw.trim().startsWith("[")) {
-        perQuestionFeedback = JSON.parse(raw);
+      // Extract JSON safely
+      const jsonMatch = raw.match(/\[[\s\S]*\]/);
+      if (jsonMatch) {
+        perQuestionFeedback = JSON.parse(jsonMatch[0]);
       } else {
-        console.warn("AI returned non-JSON, skipping feedback");
+        console.warn("⚠️ AI returned non-JSON, raw:", raw);
       }
     } catch (err) {
       console.error("AI per-question feedback error:", err.message);
     }
 
-    // ✅ Attach AI feedback safely
+    // ✅ Attach AI feedback
     reviewData.forEach((r) => {
       const fb = perQuestionFeedback.find((f) => f.questionId == r.id);
       r.feedback = fb
         ? fb.feedback
         : r.isCorrect
-        ? "✅ Well done!"
-        : "❌ Review this question.";
+        ? "✅ Correct! Great understanding."
+        : "❌ Incorrect. Review the lesson content.";
     });
 
     res.json({
@@ -1686,7 +1717,7 @@ Result: ${r.isCorrect ? "✅ Correct" : "❌ Wrong"}`
           ? "🌟 Excellent work! You clearly understood this lesson."
           : percent >= 50
           ? "👍 Good attempt. Review the explanations for the wrong answers."
-          : "📘 Don't worry! Go back through the lesson and retry.",
+          : "📘 Don’t worry! Revisit the lesson content and try again.",
     });
   } catch (err) {
     console.error("Quiz submit error:", err.message);
@@ -1694,97 +1725,6 @@ Result: ${r.isCorrect ? "✅ Correct" : "❌ Wrong"}`
   }
 };
 
-
-// exports.submitLessonQuiz = async (req, res) => {
-//   try {
-//     const lessonId = req.params.id;
-//     const answers = req.body;
-
-//     const qRes = await pool.query(
-//       `SELECT id, question, options, correct_answer 
-//        FROM quizzes WHERE lesson_id=$1`,
-//       [lessonId]
-//     );
-//     const questions = qRes.rows;
-
-//     if (questions.length === 0) {
-//       return res.json({ success: false, message: "No quiz found." });
-//     }
-
-//     let score = 0;
-//     const reviewData = [];
-
-//     questions.forEach((q) => {
-//       const yourAnswer = answers[`q${q.id}`] || "";
-//       const isCorrect = yourAnswer === q.correct_answer;
-//       if (isCorrect) score++;
-//       reviewData.push({
-//         id: q.id,
-//         question: q.question,
-//         yourAnswer,
-//         correctAnswer: q.correct_answer,
-//         isCorrect,
-//       });
-//     });
-
-//     const percent = Math.round((score / questions.length) * 100);
-
-//     // Build prompt for AI per-question feedback
-//     const feedbackPrompt = `
-//       You are an AI tutor. Here is a student's quiz attempt:
-//       ${reviewData
-//         .map(
-//           (r, i) =>
-//             `Q${i + 1}: ${r.question}
-//         Student answered: ${r.yourAnswer || "No answer"}
-//         Correct answer: ${r.correctAnswer}
-//         Result: ${r.isCorrect ? "✅ Correct" : "❌ Wrong"}`
-//         )
-//         .join("\n\n")}
-
-//       For each WRONG answer:
-//       - Explain briefly why it's wrong
-//       - Provide a clear explanation of the correct answer
-//       - Keep it short and supportive (1–2 sentences each)
-//       - Return in JSON format as an array of objects: 
-//       [{questionId, feedback}]
-//     `;
-
-//     let perQuestionFeedback = [];
-//     try {
-//       const raw = await askTutor({ question: feedbackPrompt });
-//       perQuestionFeedback = JSON.parse(raw); // Expect AI to return JSON
-//     } catch (err) {
-//       console.error("AI per-question feedback error:", err.message);
-//     }
-
-//     // Attach feedback to reviewData
-//     reviewData.forEach((r) => {
-//       const fb = perQuestionFeedback.find((f) => f.questionId == r.id);
-//       r.feedback = fb
-//         ? fb.feedback
-//         : r.isCorrect
-//         ? "Well done!"
-//         : "Review this question.";
-//     });
-
-//     res.json({
-//       success: true,
-//       score: percent,
-//       passed: percent >= 50,
-//       reviewData,
-//       feedback:
-//         percent >= 80
-//           ? "Excellent work! You clearly understood this lesson."
-//           : percent >= 50
-//           ? "Good attempt. Review the explanations for the wrong answers."
-//           : "Don't worry! Go back through the lesson and retry.",
-//     });
-//   } catch (err) {
-//     console.error("Quiz submit error:", err.message);
-//     res.status(500).json({ success: false, message: "Failed to submit quiz." });
-//   }
-// };
 
 
 
