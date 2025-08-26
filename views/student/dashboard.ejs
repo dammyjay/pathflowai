@@ -749,8 +749,18 @@ function loadLessonPart(lessonId, part) {
       }
 
       if (part === "content") {
-        html += `<div class="lesson-text">${lesson.content || "<p>No content available.</p>"}</div>`;
+        html += `<div class="lesson-text">${lesson.content || "<p>No content available.</p>"}</div>` +
+                `<style>
+                  .lesson-text img {
+                    max-width: 100%;
+                    height: auto;
+                    display: block;
+                    margin: 10px 0;
+                  }
+                </style>`;
         document.getElementById("ai-tutor").style.display = "flex";
+
+        
 
         // ✅ Generate 2–3 suggested Qs
         const suggestions = [
@@ -796,69 +806,6 @@ function loadQuizInMain(lessonId) {
       document.getElementById("lessonMainArea").innerHTML = html;
     });
 }
-
-// function submitQuizMain(e, lessonId) {
-//   e.preventDefault();
-//   const formData = new FormData(e.target);
-//   fetch(`/student/lessons/${lessonId}/quiz/submit`, { method: "POST", body: formData })
-//     .then(res => res.json())
-//     .then(result => {
-//       let html = `<h3>Your Score: ${result.score}%</h3>`;
-//       html += `<p>${result.passed ? '✅ Passed' : '❌ Failed'}</p>`;
-//       html += `<button onclick="reviewQuizMain()">Review Quiz</button>`;
-//       if (result.passed && result.nextLessonId) {
-//         html += `<button onclick="loadLessonPart(${result.nextLessonId}, 'video')">Next Lesson</button>`;
-//       }
-//       document.getElementById("lessonMainArea").innerHTML = html;
-//       window.quizReviewData = result.reviewData;
-//     });
-// }
-
-// function submitQuizInline(e, lessonId) {
-//   e.preventDefault();
-
-//   const formData = new FormData(e.target);
-//   const answers = {};
-//   for (let [key, value] of formData.entries()) {
-//     answers[key] = value;
-//   }
-
-//   fetch(`/student/lessons/${lessonId}/quiz/submit`, {
-//     method: "POST",
-//     headers: { "Content-Type": "application/json" },
-//     body: JSON.stringify(answers)
-//   })
-//   .then(res => res.json())
-//   .then(result => {
-//     if (!result.success) {
-//       alert("Quiz submission failed.");
-//       return;
-//     }
-
-//     const quizContainer = document.getElementById(`quiz-area-${lessonId}`);
-//     quizContainer.innerHTML = `
-//       <h4>Your Score: ${result.score}%</h4>
-//       <p>${result.passed ? "✅ Passed" : "❌ Failed"}</p>
-//       <button onclick="reviewQuizInline(${lessonId})">Review Quiz</button>
-//       <div class="ai-feedback"><strong>🤖 AI Feedback:</strong> ${result.feedback}</div>
-//     `;
-
-//     // Save review data for reviewQuizInline
-//     window.quizReviewData = result.reviewData;
-//     window.currentReviewLesson = lessonId;
-
-//     // Also push the AI summary into chatbox
-//     pushMsg("AI Quiz Feedback: " + result.feedback, "bot");
-//   })
-//   .catch(err => {
-//     console.error("❌ Error submitting quiz:", err);
-//     alert("Error submitting quiz. Please try again.");
-//   });
-// }
-
-
-
-
 
 </script>
 
@@ -1136,3 +1083,37 @@ function reviewQuizInline(lessonId) {
 
 
 </script>
+
+<script>
+document.addEventListener("DOMContentLoaded", () => {
+  const aiTutor = document.getElementById("ai-tutor");
+  const header = aiTutor.querySelector(".ai-tutor-header");
+
+  let isDragging = false;
+  let offsetX = 0;
+  let offsetY = 0;
+
+  header.addEventListener("mousedown", (e) => {
+    isDragging = true;
+    offsetX = e.clientX - aiTutor.offsetLeft;
+    offsetY = e.clientY - aiTutor.offsetTop;
+    aiTutor.style.transition = "none"; // disable smooth snap
+    document.body.style.userSelect = "none"; // prevent text selection
+  });
+
+  document.addEventListener("mousemove", (e) => {
+    if (!isDragging) return;
+    aiTutor.style.left = e.clientX - offsetX + "px";
+    aiTutor.style.top = e.clientY - offsetY + "px";
+    aiTutor.style.right = "auto"; // stop sticking to right when moved
+    aiTutor.style.bottom = "auto";
+    aiTutor.style.position = "fixed";
+  });
+
+  document.addEventListener("mouseup", () => {
+    isDragging = false;
+    document.body.style.userSelect = "auto"; // re-enable selection
+  });
+});
+</script>
+

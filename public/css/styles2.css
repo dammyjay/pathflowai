@@ -1246,13 +1246,16 @@ canvas {
     border-radius: 5px;
     font-size: 14px;
 }
-
 .ai-tutor {
     position: fixed;
     bottom: 10px;
     right: 10px;
-    width: 300px;
+    width: 320px;
+    /* default width */
     max-height: 500px;
+    min-height: 200px;
+    /* prevent collapsing too small */
+    min-width: 250px;
     background: #fff;
     border: 1px solid #ccc;
     border-radius: 8px;
@@ -1261,6 +1264,11 @@ canvas {
     box-shadow: 0 2px 10px rgba(0, 0, 0, 0.15);
     font-size: 14px;
     z-index: 1000;
+
+    resize: both;
+    /* ✅ allow dragging resize */
+    overflow: hidden;
+    /* keep contents inside */
 }
 
 .ai-tutor.collapsed {
@@ -1276,6 +1284,8 @@ canvas {
     display: flex;
     justify-content: space-between;
     align-items: center;
+    cursor: move;
+    /* hint draggable */
 }
 
 .ai-toggle {
@@ -1290,22 +1300,9 @@ canvas {
     flex: 1;
     padding: 6px;
     overflow-y: auto;
-    /* ✅ reduced */
-}
-
-.ai-input-row {
-    display: flex;
-    padding: 5px;
-    border-top: 1px solid #eee;
-}
-
-.ai-input-row input {
-    flex: 1;
-    padding: 4px;
-}
-
-.ai-input-row button {
-    margin-left: 5px;
+    min-height: 150px;
+    max-height: 100%;
+    /* adapt with resize */
 }
 
 /* ✅ User & Bot messages */
@@ -1318,52 +1315,19 @@ canvas {
     margin: 4px;
     max-width: 90%;
     text-align: right;
+    word-wrap: break-word;
 }
 
 .msg.bot {
     align-self: flex-start;
-    background: #f6f6f6;
+    background: #f1f0f0;
     border-radius: 12px 12px 12px 0;
-    padding: 6px;
-    margin: 4px;
+    padding: 8px;
+    margin: 6px;
     max-width: 90%;
     text-align: left;
     line-height: 1.4em;
-}
-
-.msg.bot {
-    background: #f1f0f0;
-    padding: 8px;
-    margin: 6px;
-    border-radius: 8px;
-    text-align: left;
-    line-height: 1.4em;
-}
-
-.msg.bot h3,
-.msg.bot h4 {
-    margin: 6px 0;
-    color: #0078d7;
-}
-
-.msg.bot ul,
-.msg.bot ol {
-    margin: 6px 0 6px 18px;
-}
-
-.msg.bot code {
-    background: #eee;
-    padding: 2px 4px;
-    border-radius: 4px;
-    font-family: monospace;
-}
-
-.msg.bot pre {
-    background: #272822;
-    color: #f8f8f2;
-    padding: 8px;
-    border-radius: 6px;
-    overflow-x: auto;
+    word-wrap: break-word;
 }
 
 /* ✅ Formatting inside bot messages */
@@ -1417,6 +1381,13 @@ canvas {
 
 /* Responsive design */
 @media (max-width: 768px) {
+    .ai-tutor {
+        width: 95%;        /* almost full width */
+        right: 2.5%;
+        bottom: 0;
+        max-height: 70vh; /* 70% of viewport */
+    }
+    
     .event-container {
         flex-direction: column;
         align-items: center;
