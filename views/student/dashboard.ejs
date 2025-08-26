@@ -710,6 +710,55 @@ function loadQuizInline(lessonId) {
 }
 
 
+// function submitQuizInline(e, lessonId) {
+//   e.preventDefault(); // stop normal form submission (avoids dashboard redirect)
+
+//   const formData = new FormData(e.target);
+//   const answers = {};
+//   for (let [key, value] of formData.entries()) {
+//     answers[key] = value;
+//   }
+
+//   fetch(`/student/lessons/${lessonId}/quiz/submit`, {
+//     method: "POST",
+//     headers: { "Content-Type": "application/json" },
+//     body: JSON.stringify(answers)
+//   })
+//     .then(res => res.json())
+//     .then(result => {
+//       const quizContainer = document.getElementById(`quiz-area-${lessonId}`) || document.getElementById("lessonMainArea");
+
+//       if (!result.success) {
+//         quizContainer.innerHTML = `<p class="error">Quiz submission failed. ${result.message || ""}</p>`;
+//         return;
+//       }
+
+//       // Replace the quiz area with the results
+//       quizContainer.innerHTML = `
+//         <h3>Quiz Results</h3>
+//         <p><strong>Score:</strong> ${result.score}%</p>
+//         <p><strong>Status:</strong> ${result.passed ? "✅ Passed" : "❌ Failed"}</p>
+//         <div class="ai-feedback"><strong>🤖 AI Feedback:</strong> ${result.feedback}</div>
+//         <button onclick="reviewQuizInline(${lessonId})">Review Quiz</button>
+//         <button onclick="toggleLesson(${lessonId})">⬅ Back to Lesson</button>
+//       `;
+
+//       // Save review data so reviewQuizInline can access it
+//       window.quizReviewData = result.reviewData;
+//       window.currentReviewLesson = lessonId;
+
+//       // Push AI summary feedback into chatbox too
+//       if (result.feedback) {
+//         pushMsg("AI Quiz Feedback: " + result.feedback, "bot");
+//       }
+//     })
+//     .catch(err => {
+//       console.error("❌ Error submitting quiz:", err);
+//       const quizContainer = document.getElementById(`quiz-area-${lessonId}`) || document.getElementById("lessonMainArea");
+//       quizContainer.innerHTML = `<p class="error">Error submitting quiz. Please try again.</p>`;
+//     });
+// }
+
 function submitQuizInline(e, lessonId) {
   e.preventDefault(); // stop normal form submission (avoids dashboard redirect)
 
@@ -726,26 +775,39 @@ function submitQuizInline(e, lessonId) {
   })
     .then(res => res.json())
     .then(result => {
-      const quizContainer = document.getElementById(`quiz-area-${lessonId}`) || document.getElementById("lessonMainArea");
+      const quizContainer =
+        document.getElementById(`quiz-area-${lessonId}`) ||
+        document.getElementById("lessonMainArea");
 
       if (!result.success) {
-        quizContainer.innerHTML = `<p class="error">Quiz submission failed. ${result.message || ""}</p>`;
+        quizContainer.innerHTML = `<p class="error">Quiz submission failed. ${
+          result.message || ""
+        }</p>`;
         return;
       }
 
-      // Replace the quiz area with the results
+      // Save review data globally so reviewQuizInline can access
+      window.quizReviewData = result.reviewData;
+      window.currentReviewLesson = lessonId;
+
+      // Show quick summary first
       quizContainer.innerHTML = `
         <h3>Quiz Results</h3>
         <p><strong>Score:</strong> ${result.score}%</p>
-        <p><strong>Status:</strong> ${result.passed ? "✅ Passed" : "❌ Failed"}</p>
-        <div class="ai-feedback"><strong>🤖 AI Feedback:</strong> ${result.feedback}</div>
-        <button onclick="reviewQuizInline(${lessonId})">Review Quiz</button>
+        <p><strong>Status:</strong> ${
+          result.passed ? "✅ Passed" : "❌ Failed"
+        }</p>
+        <div class="ai-feedback"><strong>🤖 AI Feedback Summary:</strong> ${
+          result.feedback
+        }</div>
+        <hr>
+        <h3>Detailed Review</h3>
+        <div id="quiz-review-${lessonId}"></div>
         <button onclick="toggleLesson(${lessonId})">⬅ Back to Lesson</button>
       `;
 
-      // Save review data so reviewQuizInline can access it
-      window.quizReviewData = result.reviewData;
-      window.currentReviewLesson = lessonId;
+      // Immediately render detailed review below summary
+      reviewQuizInline(lessonId);
 
       // Push AI summary feedback into chatbox too
       if (result.feedback) {
@@ -754,9 +816,47 @@ function submitQuizInline(e, lessonId) {
     })
     .catch(err => {
       console.error("❌ Error submitting quiz:", err);
-      const quizContainer = document.getElementById(`quiz-area-${lessonId}`) || document.getElementById("lessonMainArea");
+      const quizContainer =
+        document.getElementById(`quiz-area-${lessonId}`) ||
+        document.getElementById("lessonMainArea");
       quizContainer.innerHTML = `<p class="error">Error submitting quiz. Please try again.</p>`;
     });
+}
+
+function reviewQuizInline(lessonId) {
+  if (!window.quizReviewData || window.quizReviewData.length === 0) {
+    alert("No review data available.");
+    return;
+  }
+
+  let reviewHTML = "";
+  window.quizReviewData.forEach((q, idx) => {
+    reviewHTML += `
+      <div class="review-question">
+        <p><strong>Q${idx + 1}:</strong> ${q.question}</p>
+        <p><strong>Your Answer:</strong> ${q.yourAnswer || "No answer"}</p>
+        <p><strong>Correct Answer:</strong> ${q.correctAnswer}</p>
+        <p class="${q.isCorrect ? "correct" : "wrong"}">
+          ${q.isCorrect ? "✅ Correct" : "❌ Wrong"}
+        </p>
+        <div class="ai-feedback">
+          <em>AI Feedback:</em> ${q.feedback || "No feedback"}
+        </div>
+      </div>
+      <button onclick="toggleLesson(${lessonId})">⬅ Back to Lesson</button>
+      <hr>
+    `;
+  });
+
+  // Put review into the review area inside the results
+  const container = document.getElementById(`quiz-review-${lessonId}`);
+  if (container) {
+    container.innerHTML = reviewHTML;
+  } else {
+    console.error(
+      "❌ reviewQuizInline: No container found for lesson " + lessonId
+    );
+  }
 }
 
 
