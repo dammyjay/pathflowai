@@ -160,14 +160,27 @@
 </div>
 
 <!-- AI Tutor Widget (keep it outside lessonMainArea so it stays visible) -->
-<div id="ai-tutor" class="ai-tutor" style="display:none;">
+<!-- <div id="ai-tutor" class="ai-tutor" style="display:none;">
   <div class="ai-tutor-header">🤖 AI Tutor</div>
   <div id="ai-messages" class="ai-messages"></div>
   <div class="ai-input-row">
     <input id="ai-question" type="text" placeholder="Ask about your lesson…" />
     <button id="ai-send">Send</button>
   </div>
+</div> -->
+
+<div id="ai-tutor" class="ai-tutor" style="display:none;">
+  <div class="ai-tutor-header">
+    🤖 AI Tutor 
+    <button id="ai-toggle" class="ai-toggle">–</button>
+  </div>
+  <div id="ai-messages" class="ai-messages"></div>
+  <div class="ai-input-row">
+    <input id="ai-question" type="text" placeholder="Ask about your lesson…" />
+    <button id="ai-send">Send</button>
+  </div>
 </div>
+
 
 
 
@@ -463,6 +476,196 @@
 
 <!-- Lesson and quiz script -->
  
+<!-- <script>
+document.addEventListener("DOMContentLoaded", () => {
+  const sendBtn = document.getElementById("ai-send");
+  const input = document.getElementById("ai-question");
+  const messages = document.getElementById("ai-messages");
+
+  // helper: render message
+  function pushMsg(text, who = "user") {
+    const msg = document.createElement("div");
+    msg.className = "msg " + who;
+    msg.innerText = text;
+    messages.appendChild(msg);
+    messages.scrollTop = messages.scrollHeight;
+  }
+
+  // handle sending
+  async function sendQuestion(q) {
+    if (!q.trim()) return;
+
+    pushMsg(q, "user"); // show immediately
+    input.value = "";
+
+    try {
+      const res = await fetch("/student/ai/ask", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          question: q,
+          lessonId: window.currentLessonId || null
+        })
+      });
+      const data = await res.json();
+      if (data.ok) {
+        pushMsg(data.answer, "bot");
+      } else {
+        pushMsg("⚠️ Tutor is unavailable.", "bot");
+      }
+    } catch (err) {
+      console.error("AI send error:", err);
+      pushMsg("❌ Error contacting tutor.", "bot");
+    }
+  }
+
+  // click send
+  sendBtn.addEventListener("click", () => {
+    sendQuestion(input.value);
+  });
+
+  // press Enter
+  input.addEventListener("keydown", (e) => {
+    if (e.key === "Enter") {
+      e.preventDefault();
+      sendQuestion(input.value);
+    }
+  });
+
+  // ✅ Suggested questions buttons
+  const suggRow = document.createElement("div");
+  suggRow.className = "ai-suggestions";
+  document.querySelector("#ai-tutor .ai-input-row").before(suggRow);
+
+  window.showLessonSuggestions = function (suggestions = []) {
+    suggRow.innerHTML = ""; // clear old
+    suggestions.forEach((s) => {
+      const btn = document.createElement("button");
+      btn.className = "sugg-btn";
+      btn.innerText = s;
+      btn.onclick = () => sendQuestion(s);
+      suggRow.appendChild(btn);
+    });
+  };
+});
+
+document.addEventListener("DOMContentLoaded", () => {
+  const aiTutor = document.getElementById("ai-tutor");
+  const aiMessages = document.getElementById("ai-messages");
+  const toggleBtn = document.getElementById("ai-toggle");
+
+  toggleBtn.addEventListener("click", () => {
+    if (aiTutor.classList.contains("collapsed")) {
+      // expand
+      aiTutor.classList.remove("collapsed");
+      aiMessages.style.display = "block";
+      document.querySelector("#ai-tutor .ai-input-row").style.display = "flex";
+      toggleBtn.textContent = "–";
+    } else {
+      // collapse
+      aiTutor.classList.add("collapsed");
+      aiMessages.style.display = "none";
+      document.querySelector("#ai-tutor .ai-input-row").style.display = "none";
+      toggleBtn.textContent = "+";
+    }
+  });
+});
+
+</script> -->
+
+<script>
+document.addEventListener("DOMContentLoaded", () => {
+  const sendBtn = document.getElementById("ai-send");
+  const input = document.getElementById("ai-question");
+  const messages = document.getElementById("ai-messages");
+
+  // helper: render message (✅ allow HTML so answers can be styled)
+  function pushMsg(text, who = "user") {
+    const msg = document.createElement("div");
+    msg.className = "msg " + who;
+    msg.innerHTML = text; // ✅ allow headings, lists, code
+    messages.appendChild(msg);
+    messages.scrollTop = messages.scrollHeight;
+  }
+
+  // handle sending
+  async function sendQuestion(q) {
+    if (!q.trim()) return;
+
+    pushMsg(`<p>${q}</p>`, "user"); // show immediately
+    input.value = "";
+
+    try {
+      const res = await fetch("/student/ai/ask", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          question: q,
+          lessonId: window.currentLessonId || null
+        })
+      });
+      const data = await res.json();
+      if (data.ok) {
+        pushMsg(data.answer, "bot");
+      } else {
+        pushMsg("<em>⚠️ Tutor is unavailable.</em>", "bot");
+      }
+    } catch (err) {
+      console.error("AI send error:", err);
+      pushMsg("<em>❌ Error contacting tutor.</em>", "bot");
+    }
+  }
+
+  // click send
+  sendBtn.addEventListener("click", () => sendQuestion(input.value));
+
+  // press Enter
+  input.addEventListener("keydown", (e) => {
+    if (e.key === "Enter") {
+      e.preventDefault();
+      sendQuestion(input.value);
+    }
+  });
+
+  // ✅ Suggested questions buttons
+  const suggRow = document.createElement("div");
+  suggRow.className = "ai-suggestions";
+  document.querySelector("#ai-tutor .ai-input-row").before(suggRow);
+
+  window.showLessonSuggestions = function (suggestions = []) {
+    suggRow.innerHTML = ""; // clear old
+    suggestions.forEach((s) => {
+      const btn = document.createElement("button");
+      btn.className = "sugg-btn";
+      btn.innerText = s;
+      btn.onclick = () => sendQuestion(s);
+      suggRow.appendChild(btn);
+    });
+  };
+
+  // ✅ Collapse/expand chatbox
+  const aiTutor = document.getElementById("ai-tutor");
+  const aiMessages = document.getElementById("ai-messages");
+  const toggleBtn = document.getElementById("ai-toggle");
+
+  toggleBtn.addEventListener("click", () => {
+    if (aiTutor.classList.contains("collapsed")) {
+      aiTutor.classList.remove("collapsed");
+      aiMessages.style.display = "block";
+      document.querySelector("#ai-tutor .ai-input-row").style.display = "flex";
+      suggRow.style.display = "flex";
+      toggleBtn.textContent = "–";
+    } else {
+      aiTutor.classList.add("collapsed");
+      aiMessages.style.display = "none";
+      document.querySelector("#ai-tutor .ai-input-row").style.display = "none";
+      suggRow.style.display = "none";
+      toggleBtn.textContent = "+";
+    }
+  });
+});
+</script>
+
 
 <script>
 function toggleModule(moduleId) {
@@ -507,24 +710,63 @@ function toggleLessonMenu(lessonId) {
 //     });
 // }
 
+// function loadLessonPart(lessonId, part) {
+//   fetch(`/student/lessons/${lessonId}`)
+//     .then(res => res.json())
+//     .then(lesson => {
+//       let html = `<h2>${lesson.title}</h2>`;
+
+//       if (part === 'video' && lesson.video_url) {
+//         html += `<div class="lesson-video"><iframe src="${lesson.video_url}" frameborder="0" allowfullscreen></iframe></div>`;
+//       }
+
+//       if (part === 'content') {
+//         html += `<div class="lesson-text">${lesson.content || '<p>No content available.</p>'}</div>`;
+//         document.getElementById("ai-tutor").style.display = "flex"; // ✅ show AI tutor
+//       } else {
+//         document.getElementById("ai-tutor").style.display = "none"; // hide elsewhere
+//       }
+
+//       if (part === 'quiz') {
+//         loadQuizInMain(lessonId);
+//         return;
+//       }
+
+//       document.getElementById("lessonMainArea").innerHTML = html;
+//     });
+// }
+
 function loadLessonPart(lessonId, part) {
   fetch(`/student/lessons/${lessonId}`)
     .then(res => res.json())
     .then(lesson => {
+      window.currentLessonId = lessonId; // ✅ keep track
+
       let html = `<h2>${lesson.title}</h2>`;
 
-      if (part === 'video' && lesson.video_url) {
+      if (part === "video" && lesson.video_url) {
         html += `<div class="lesson-video"><iframe src="${lesson.video_url}" frameborder="0" allowfullscreen></iframe></div>`;
       }
 
-      if (part === 'content') {
-        html += `<div class="lesson-text">${lesson.content || '<p>No content available.</p>'}</div>`;
-        document.getElementById("ai-tutor").style.display = "flex"; // ✅ show AI tutor
+      if (part === "content") {
+        html += `<div class="lesson-text">${lesson.content || "<p>No content available.</p>"}</div>`;
+        document.getElementById("ai-tutor").style.display = "flex";
+
+        // ✅ Generate 2–3 suggested Qs
+        const suggestions = [
+          `Summarize this lesson in simple terms.`,
+          `What is the key concept in "${lesson.title}"?`,
+          `Can you give me an example based on this lesson?`
+        ];
+        if (window.showLessonSuggestions) {
+          window.showLessonSuggestions(suggestions);
+        }
+
       } else {
-        document.getElementById("ai-tutor").style.display = "none"; // hide elsewhere
+        document.getElementById("ai-tutor").style.display = "none";
       }
 
-      if (part === 'quiz') {
+      if (part === "quiz") {
         loadQuizInMain(lessonId);
         return;
       }
