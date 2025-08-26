@@ -1189,6 +1189,85 @@ canvas {
 .lesson-list li {
     margin: 5px 0;
 }
+
+.chatbox {
+    border: 1px solid #ddd;
+    border-radius: 10px;
+    padding: 15px;
+    height: 400px;
+    overflow-y: auto;
+    background: #fafafa;
+}
+
+.message {
+    margin: 10px 0;
+    padding: 10px 15px;
+    border-radius: 20px;
+    max-width: 70%;
+}
+
+.message.user {
+    background: #007bff;
+    color: white;
+    margin-left: auto;
+    text-align: right;
+}
+
+.message.ai {
+    background: #eee;
+    color: black;
+    margin-right: auto;
+    text-align: left;
+}
+
+.quiz-review {
+    margin-bottom: 15px;
+}
+
+.quiz-review p {
+    margin: 4px 0;
+}
+
+.quiz-review .correct {
+    color: green;
+    font-weight: bold;
+}
+
+.quiz-review .wrong {
+    color: red;
+    font-weight: bold;
+}
+
+.quiz-review .ai-feedback {
+    background: #eef6ff;
+    border-left: 4px solid #3b82f6;
+    padding: 6px 10px;
+    margin-top: 6px;
+    border-radius: 5px;
+    font-size: 14px;
+}
+
+.ai-msg.user {
+    align-self: flex-end;
+    background: #2563eb;
+    color: #fff;
+    border-radius: 12px 12px 0 12px;
+}
+
+.ai-msg.bot {
+    align-self: flex-start;
+    background: #f6f6f6;
+    border-radius: 12px 12px 12px 0;
+}
+
+.ai-feedback {
+    background: #f0fdf4;
+    border-left: 4px solid #22c55e;
+    padding: 8px 12px;
+    margin-top: 10px;
+    border-radius: 6px;
+    font-size: 14px;
+}
 /* Responsive design */
 @media (max-width: 768px) {
     .event-container {

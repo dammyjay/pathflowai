@@ -31,9 +31,34 @@
           <button class="btn-delete" type="submit" onclick="return confirm('Delete lesson?')">Delete</button>
         </form>
         <button class="btn-create" type="button" onclick="openQuizModal(<%= lesson.id %>)">Manage Quiz</button>
+        <!-- <form method="POST" action="/admin/lessons/<%= lesson.id %>/quiz/ai-generate">
+          <label>Questions:</label>
+          <input type="number" name="numQuestions" value="5" min="1" max="20">
+          <label>Difficulty:</label>
+          <select name="difficulty">
+            <option>easy</option>
+            <option selected>mixed</option>
+            <option>hard</option>
+          </select>
+          <button type="submit" class="btn-create">✨ AI Generate</button>
+        </form> -->
+      
+        <form class="ai-generate-form" data-lesson-id="<%= lesson.id %>">
+          <label>Questions:</label>
+          <input type="number" name="numQuestions" value="5" min="1" max="20">
+          <label>Difficulty:</label>
+          <select name="difficulty">
+            <option value="easy">Easy</option>
+            <option value="mixed" selected>Mixed</option>
+            <option value="hard">Hard</option>
+          </select>
+          <button type="submit" class="btn-create">✨ Preview AI Quiz</button>
+        </form>
 
+      
       </div>
     </div>
+    
   <% }) %>
 </div>
 
@@ -111,6 +136,8 @@
 
 
 
+
+
 <!-- QUIZ MODAL -->
 <div id="quizModal" class="modal" style="display:none;">
   <div class="modal-content">
@@ -183,6 +210,116 @@
   
   </div>
 </div>
+
+<div id="quizModal2" class="quiz-modal hidden">
+  <div class="quiz-modal-content">
+    <h2>AI Quiz Preview</h2>
+    <div id="quizPreview"></div>
+    <button id="saveQuizBtn">✅ Save to Database</button>
+    <button id="closeQuizBtn">❌ Cancel</button>
+  </div>
+</div>
+
+<style>
+  .quiz-modal { position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,.6); display:flex; justify-content:center; align-items:center; }
+  .quiz-modal.hidden { display:none; }
+  .quiz-modal-content { background:#fff; padding:20px; border-radius:10px; width:600px; max-height:80vh; overflow:auto; }
+</style>
+
+<script>
+  // const form = document.getElementById('ai-generate-form');
+  const modal = document.getElementById('quizModal2');
+  const previewBox = document.getElementById('quizPreview');
+  const saveBtn = document.getElementById('saveQuizBtn');
+  const closeBtn = document.getElementById('closeQuizBtn');
+  let previewData = [];
+
+ let currentLessonId = null; // <-- add global tracker
+
+document.querySelectorAll('.ai-generate-form').forEach(form => {
+  form.addEventListener('submit', async (e) => {
+    e.preventDefault();
+    const lessonId = form.dataset.lessonId;
+    currentLessonId = lessonId; // store for save
+    const formData = new FormData(form);
+
+    const res = await fetch(`/admin/lessons/${lessonId}/quiz/ai-preview`, {
+      method: 'POST',
+      body: formData
+    });
+
+    const data = await res.json();
+    if (data.preview) {
+      previewData = data.preview;
+      previewBox.innerHTML = previewData.map((q, i) => `
+        <div class="quiz-edit-block">
+          <label><strong>Q${i+1}:</strong></label>
+          <textarea class="quiz-question-input">${q.question}</textarea><br>
+
+          <label>Type:</label>
+          <select class="quiz-type-input">
+            <option value="multiple_choice" ${q.question_type === 'multiple_choice' ? 'selected' : ''}>Multiple Choice</option>
+            <option value="true_false" ${q.question_type === 'true_false' ? 'selected' : ''}>True/False</option>
+            <option value="short_answer" ${q.question_type === 'short_answer' ? 'selected' : ''}>Short Answer</option>
+          </select><br>
+
+          <label>Options:</label>
+          <textarea class="quiz-options-input">${q.options ? q.options.join("\n") : ""}</textarea><br>
+
+          <label>Answer:</label>
+          <input type="text" class="quiz-answer-input" value="${q.correct_option || ""}"><br>
+
+          <label>Explanation:</label>
+          <textarea class="quiz-expl-input">${q.explanation || ""}</textarea><br>
+          <hr>
+        </div>
+      `).join("");
+      modal.classList.remove('hidden');
+    } else {
+      alert(data.error || "Failed to generate quiz.");
+    }
+  });
+});
+
+  saveBtn.addEventListener('click', async () => {
+  if (!currentLessonId) {
+    alert("No lesson selected for saving.");
+    return;
+  }
+
+  const blocks = document.querySelectorAll('.quiz-edit-block');
+  const editedQuestions = Array.from(blocks).map(block => {
+    const question = block.querySelector('.quiz-question-input').value;
+    const question_type = block.querySelector('.quiz-type-input').value;
+    const optionsText = block.querySelector('.quiz-options-input')?.value || "";
+    const options = optionsText.split("\n").filter(x => x.trim() !== "");
+    const correct_option = block.querySelector('.quiz-answer-input').value;
+    const explanation = block.querySelector('.quiz-expl-input').value;
+
+    return { question, question_type, options, correct_option, explanation };
+  });
+
+  const res = await fetch(`/admin/lessons/${currentLessonId}/quiz/ai-save`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ questions: editedQuestions })
+  });
+
+  const data = await res.json();
+  if (data.ok) {
+    alert("Quiz saved successfully!");
+    modal.classList.add('hidden');
+    window.location.reload();
+  } else {
+    alert("Failed to save quiz.");
+  }
+});
+
+
+  closeBtn.addEventListener('click', () => {
+    modal.classList.add('hidden');
+  });
+</script>
 
 
 <script>
@@ -327,8 +464,6 @@ function deleteQuestion(id) {
     .catch(err => console.error(err));
 }
 </script>
-
-
 
 
 <script src="https://cdn.ckeditor.com/ckeditor5/41.4.2/classic/ckeditor.js"></script>

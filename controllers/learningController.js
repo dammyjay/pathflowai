@@ -1,6 +1,9 @@
 const pool = require("../models/db");
 const cloudinary = require("../utils/cloudinary");
 const fs = require("fs");
+// controllers/learningController.js
+const { askTutor } = require("../utils/ai");
+
 
 exports.updateCourse = async (req, res) => {
   const { id } = req.params;
@@ -1068,4 +1071,240 @@ exports.viewSingleCourse = async (req, res) => {
     res.status(500).send("Server error");
   }
 };
+
+
+
+async function ensureQuizForLesson(lessonId) {
+  // Find or create a row in `quizzes`
+  const q = await pool.query(`SELECT id FROM quizzes WHERE lesson_id = $1 LIMIT 1`, [lessonId]);
+  if (q.rows[0]) return q.rows[0].id;
+  const created = await pool.query(
+    `INSERT INTO quizzes (lesson_id, created_at) VALUES ($1, NOW()) RETURNING id`,
+    [lessonId]
+  );
+  return created.rows[0].id;
+}
+
+// POST /admin/lessons/:lessonId/quiz/ai-generate
+// exports.aiGenerateQuizForLesson = async (req, res) => {
+//   try {
+//     const { lessonId } = req.params;
+//     const { numQuestions = 5, difficulty = "mixed" } = req.body;
+
+//     const lq = await pool.query(
+//       `SELECT title, content FROM lessons WHERE id = $1 LIMIT 1`,
+//       [lessonId]
+//     );
+//     if (!lq.rows[0]) return res.status(404).send("Lesson not found");
+
+//     const prompt = `
+// Generate ${numQuestions} quiz questions from this lesson.
+// Return STRICT JSON with:
+// [
+//   {
+//     "question": "...",
+//     "question_type": "multiple_choice" | "short_answer",
+//     "options": ["A","B","C","D"] // required if multiple_choice
+//     "correct_option": "A" // exact matching string
+//     "explanation": "why the answer is correct" // brief
+//   },
+//   ...
+// ]
+
+// Difficulty: ${difficulty}
+// Lesson Title: ${lq.rows[0].title}
+// Lesson Content:
+// ${lq.rows[0].content || ""}
+// `;
+
+//     const raw = await askTutor({ question: prompt, lessonContext: "", userName: "Admin" });
+
+//     // Parse JSON safely
+//     let items = [];
+//     try {
+//       items = JSON.parse(raw);
+//     } catch {
+//       // Try to strip code fences or extra text
+//       const m = raw.match(/\[[\s\S]*\]/);
+//       items = m ? JSON.parse(m[0]) : [];
+//     }
+
+//     if (!Array.isArray(items) || items.length === 0) {
+//       return res.status(400).send("AI did not return valid questions.");
+//     }
+
+//     const quizId = await ensureQuizForLesson(lessonId);
+
+//     for (const it of items) {
+//       const type = it.question_type === "short_answer" ? "short_answer" : "multiple_choice";
+//       const options = type === "multiple_choice" ? it.options || [] : [];
+//       await pool.query(
+//         `INSERT INTO quiz_questions (quiz_id, question, question_type, options, correct_option, explanation)
+//          VALUES ($1,$2,$3,$4,$5,$6)`,
+//         [quizId, it.question, type, JSON.stringify(options), it.correct_option || "", it.explanation || null]
+//       );
+//     }
+
+//     res.redirect(`/admin/lesson/${lessonId}/quiz?generated=1`);
+//   } catch (e) {
+//     console.error("AI quiz generate error:", e.message);
+//     res.status(500).send("Failed to generate quiz.");
+//   }
+// };
+
+exports.aiGenerateQuizForLesson = async (req, res) => {
+  try {
+    const { lessonId } = req.params;
+    const { numQuestions = 5, difficulty = "mixed" } = req.body;
+
+    const lq = await pool.query(
+      `SELECT title, content FROM lessons WHERE id = $1 LIMIT 1`,
+      [lessonId]
+    );
+    if (!lq.rows[0]) return res.status(404).send("Lesson not found");
+
+    const prompt = {
+      question: `
+Generate ${numQuestions} quiz questions in JSON.
+Return ONLY JSON, no explanations outside JSON.
+[
+  {
+    "question": "string",
+    "question_type": "multiple_choice" | "short_answer",
+    "options": ["A","B","C","D"],
+    "correct_option": "string",
+    "explanation": "string"
+  }
+]
+
+Difficulty: ${difficulty}
+Lesson Title: ${lq.rows[0].title}
+Lesson Content: ${lq.rows[0].content || ""}
+`,
+    };
+
+    const raw = await askTutor(prompt);
+    let items = JSON.parse(raw); // ✅ guaranteed valid JSON
+
+    if (!Array.isArray(items) || items.length === 0) {
+      return res.status(400).send("AI did not return valid questions.");
+    }
+
+    const quizId = await ensureQuizForLesson(lessonId);
+
+    for (const it of items) {
+      const type =
+        it.question_type === "short_answer"
+          ? "short_answer"
+          : "multiple_choice";
+      const options = type === "multiple_choice" ? it.options || [] : [];
+      await pool.query(
+        `INSERT INTO quiz_questions (quiz_id, question, question_type, options, correct_option, explanation)
+         VALUES ($1,$2,$3,$4,$5,$6)`,
+        [
+          quizId,
+          it.question,
+          type,
+          JSON.stringify(options),
+          it.correct_option || "",
+          it.explanation || null,
+        ]
+      );
+    }
+
+    res.redirect(`/admin/lesson/${lessonId}/quiz?generated=1`);
+  } catch (e) {
+    console.error("AI quiz generate error:", e.message, e.stack);
+    res.status(500).send("Failed to generate quiz.");
+  }
+};
+
+// Generate quiz but do NOT save, just return JSON
+exports.aiPreviewQuizForLesson = async (req, res) => {
+  try {
+    const { lessonId } = req.params;
+    const { numQuestions = 5, difficulty = "mixed" } = req.body;
+
+    const lq = await pool.query(
+      `SELECT title, content FROM lessons WHERE id = $1 LIMIT 1`,
+      [lessonId]
+    );
+    if (!lq.rows[0]) return res.status(404).json({ error: "Lesson not found" });
+
+    const prompt = {
+      question: `
+Generate ${numQuestions} quiz questions in JSON.
+Return ONLY JSON in this format:
+[
+  {
+    "question": "string",
+    "question_type": "multiple_choice" | "short_answer",
+    "options": ["A","B","C","D"],
+    "correct_option": "string",
+    "explanation": "string"
+  }
+]
+
+Difficulty: ${difficulty}
+Lesson Title: ${lq.rows[0].title}
+Lesson Content: ${lq.rows[0].content || ""}
+`
+    };
+
+    const raw = await askTutor(prompt);
+    let items = JSON.parse(raw);
+
+    if (!Array.isArray(items) || items.length === 0) {
+      return res.status(400).json({ error: "AI did not return valid questions." });
+    }
+
+    // ✅ Just send preview JSON
+    res.json({ preview: items });
+  } catch (e) {
+    console.error("AI preview quiz error:", e.message);
+    res.status(500).json({ error: "Failed to preview quiz." });
+  }
+};
+
+
+exports.saveAIQuizForLesson = async (req, res) => {
+  try {
+    const { lessonId } = req.params;
+    const { questions } = req.body; // array from frontend
+
+    if (!questions || !Array.isArray(questions)) {
+      return res.status(400).json({ error: "Invalid quiz data" });
+    }
+
+    const quizId = await ensureQuizForLesson(lessonId);
+
+    for (const it of questions) {
+      const type =
+        it.question_type === "short_answer"
+          ? "short_answer"
+          : "multiple_choice";
+      const options = type === "multiple_choice" ? it.options || [] : [];
+      await pool.query(
+        `INSERT INTO quiz_questions (quiz_id, question, question_type, options, correct_option, explanation)
+         VALUES ($1,$2,$3,$4,$5,$6)`,
+        [
+          quizId,
+          it.question,
+          type,
+          JSON.stringify(options),
+          it.correct_option || "",
+          it.explanation || null,
+        ]
+      );
+    }
+
+    res.json({ ok: true });
+  } catch (e) {
+    console.error("Save AI quiz error:", e.message);
+    res.status(500).json({ error: "Failed to save quiz." });
+  }
+};
+
+
+
 

@@ -1,6 +1,7 @@
 const express = require("express");
 const router = express.Router();
 // const parser = require("../middlewares/upload");
+// const upload = require("../middlewares/upload");
 
 const adminController = require("../controllers/adminController");
 const companyController = require("../controllers/companyController");
@@ -219,6 +220,26 @@ router.post("/lessons/:id/delete", learningController.deleteLesson);
 
 // Get or create quiz for lesson
 router.get('/lesson/:lessonId/quiz', learningController.getOrCreateLessonQuiz);
+
+router.post(
+  "/lessons/:lessonId/quiz/ai-generate",
+  upload.none(),
+  learningController.aiGenerateQuizForLesson
+);
+
+// Preview AI-generated quiz (no DB save yet)
+router.post(
+  "/lessons/:lessonId/quiz/ai-preview",
+  upload.none(),
+  learningController.aiPreviewQuizForLesson
+);
+
+// Save confirmed quiz
+router.post(
+  "/lessons/:lessonId/quiz/ai-save",
+  upload.none(),
+  learningController.saveAIQuizForLesson
+);
 
 // Create question
 // router.post('/quiz-question/create', learningController.createQuizQuestion);

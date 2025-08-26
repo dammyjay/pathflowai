@@ -363,7 +363,14 @@ async function createTables() {
     );
 
     await pool.query(
-      `
+      `CREATE TABLE IF NOT EXISTS ai_tutor_logs (
+        id SERIAL PRIMARY KEY,
+        user_id INT NULL REFERENCES users2(id),
+        lesson_id INT NULL REFERENCES lessons(id),
+        question TEXT NOT NULL,
+        answer TEXT NOT NULL,
+        created_at TIMESTAMPTZ DEFAULT NOW()
+      );
       `
     );
 

@@ -73,4 +73,8 @@ router.post(
 router.get('/lessons/:id', studentController.getLesson);
 
 
+router.post("/ai/ask", ensureAuthenticated, studentController.askAITutor);
+
+
+
 module.exports = router;
