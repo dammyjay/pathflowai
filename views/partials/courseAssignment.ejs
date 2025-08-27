@@ -1,3 +1,5 @@
+
+
 <h3>Module Assignments</h3>
 
 <div class="assignment-header">
@@ -18,22 +20,15 @@
 <button onclick="openAssignmentModal()">+ Add Assignment</button>
 
 <!-- Assignment List -->
-
-
-<div class="article-grid">
+<div class="article-grid" id="assignmentList">
   <% assignments.forEach(assign => { %>
-    <div class="article-card">
+    <div class="article-card" data-id="<%= assign.id %>">
       <h3><%= assign.title %></h3>
       <p><strong>Module:</strong> <%= assign.module_title %></p>
       <p><%- assign.instructions.substring(0, 100) %>...</p>
       <div class="article-buttons">
-        <button class="btn-edit" onclick="openEditAssignmentModal(<%= JSON.stringify(lesson) %>)">Edit</button>
-        <form method="POST" action="/admin/assignments/<%= assign.id %>/delete" style="display:inline;">
-          <input type="hidden" name="course_id" value="<%= course.id %>">
-          <button class="btn-delete" type="submit" onclick="return confirm('Delete assignment?')">Delete</button>
-        </form>
-        <button class="btn-create" type="button" onclick="openQuizModal(<%= lesson.id %>)">Manage Quiz</button>
-
+        <button class="btn-edit" onclick='openEditAssignmentModal(<%- JSON.stringify(assign) %>)'>Edit</button>
+        <button class="btn-delete" type="button" onclick="deleteAssignment(<%= assign.id %>)">Delete</button>
       </div>
     </div>
   <% }) %>
@@ -84,6 +79,8 @@
   </form>
 </div>
 
+
+
 <script src="https://cdn.ckeditor.com/ckeditor5/41.4.2/classic/ckeditor.js"></script>
 <script>
 let createAssignmentEditor = null;
@@ -114,7 +111,12 @@ document.getElementById('createAssignmentForm').addEventListener('submit', async
   this.querySelector('textarea[name="instructions"]').value = content;
 
   const formData = new FormData(this);
-  const res = await fetch('/admin/assignments/create', { method: 'POST', body: formData });
+  // const res = await fetch('/admin/assignments/create', { method: 'POST', body: formData });
+  const res = await fetch('/admin/assignments/create', { 
+  method: 'POST', 
+  body: formData,
+  headers: { "X-Requested-With": "XMLHttpRequest" }
+});
 
   if (res.ok) {
     const newAssignment = await res.json();
@@ -175,7 +177,12 @@ document.getElementById('editAssignmentForm').addEventListener('submit', async f
   this.querySelector('textarea[name="instructions"]').value = content;
 
   const formData = new FormData(this);
-  const res = await fetch(`/admin/assignments/${id}/edit`, { method: 'POST', body: formData });
+  // const res = await fetch(`/admin/assignments/${id}/edit`, { method: 'POST', body: formData });
+  const res = await fetch(`/admin/assignments/${id}/edit`, { 
+  method: 'POST', 
+  body: formData,
+  headers: { "X-Requested-With": "XMLHttpRequest" }
+});
 
   if (res.ok) {
     const updatedAssignment = await res.json();
@@ -205,5 +212,8 @@ async function deleteAssignment(id) {
     alert('Error deleting assignment');
   }
 }
+
+
+
 </script>
 

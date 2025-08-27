@@ -1379,6 +1379,32 @@ canvas {
     background: #393838;
 }
 
+.submissions-list {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 12px;
+}
+
+.submission-card {
+    border: 1px solid #ccc;
+    padding: 10px;
+    border-radius: 6px;
+    width: 250px;
+    background: #f9f9f9;
+}
+
+.submission-card h3 {
+    margin: 5px 0;
+}
+
+.ai-feedback-box {
+    background: #f0fdf4;
+    border-left: 4px solid #22c55e;
+    padding: 8px;
+    border-radius: 6px;
+    margin-top: 10px;
+}
+
 /* Responsive design */
 @media (max-width: 768px) {
     .ai-tutor {

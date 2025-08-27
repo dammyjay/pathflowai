@@ -362,6 +362,7 @@ async function createTables() {
       `
     );
 
+    // table for AI tutor logs
     await pool.query(
       `CREATE TABLE IF NOT EXISTS ai_tutor_logs (
         id SERIAL PRIMARY KEY,
@@ -374,8 +375,19 @@ async function createTables() {
       `
     );
 
+    // table for assignment submissions
     await pool.query(
-      `
+      `CREATE TABLE IF NOT EXISTS assignment_submissions (
+          id SERIAL PRIMARY KEY,
+          assignment_id INT NOT NULL, 
+          student_id INT NOT NULL, 
+          description TEXT NOT NULL,
+          score INT,
+          ai_feedback TEXT,
+          created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+          file_url TEXT,
+          grade TEXT
+      );
       `
     );
 

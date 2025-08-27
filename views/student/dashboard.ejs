@@ -140,7 +140,20 @@
               </ul>
             </li>
           <% }) %>
+          <h3>Assignments</h3>
+          <% (moduleAssignments[module.id] || []).forEach(assign => { %>
+            <li><button class="no-bg" onclick="loadAssignment(<%= assign.id %>)">📑 <%= assign.title %></button></li>
+          <% }) %>
         </ul>
+
+        <!-- <h3>Assignments</h3>
+        <ul>
+          <% (moduleAssignments[module.id] || []).forEach(assign => { %>
+            <li onclick="loadAssignmentPart(<%= assign.id %>)">
+              📑 <%= assign.title %>
+            </li>
+          <% }) %>
+        </ul> -->
       </div>
     <% }) %>
   <% }) %>
@@ -157,6 +170,7 @@
 
  <div class="lesson-main-area" id="lessonMainArea">
   <p>Select a lesson to start learning.</p>
+
 </div>
 
 <!-- AI Tutor Widget (keep it outside lessonMainArea so it stays visible) -->
@@ -476,102 +490,6 @@
 
 <!-- Lesson and quiz script -->
  
-<!-- <script>
-document.addEventListener("DOMContentLoaded", () => {
-  const sendBtn = document.getElementById("ai-send");
-  const input = document.getElementById("ai-question");
-  const messages = document.getElementById("ai-messages");
-
-  // helper: render message
-  function pushMsg(text, who = "user") {
-    const msg = document.createElement("div");
-    msg.className = "msg " + who;
-    msg.innerText = text;
-    messages.appendChild(msg);
-    messages.scrollTop = messages.scrollHeight;
-  }
-
-  // handle sending
-  async function sendQuestion(q) {
-    if (!q.trim()) return;
-
-    pushMsg(q, "user"); // show immediately
-    input.value = "";
-
-    try {
-      const res = await fetch("/student/ai/ask", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          question: q,
-          lessonId: window.currentLessonId || null
-        })
-      });
-      const data = await res.json();
-      if (data.ok) {
-        pushMsg(data.answer, "bot");
-      } else {
-        pushMsg("⚠️ Tutor is unavailable.", "bot");
-      }
-    } catch (err) {
-      console.error("AI send error:", err);
-      pushMsg("❌ Error contacting tutor.", "bot");
-    }
-  }
-
-  // click send
-  sendBtn.addEventListener("click", () => {
-    sendQuestion(input.value);
-  });
-
-  // press Enter
-  input.addEventListener("keydown", (e) => {
-    if (e.key === "Enter") {
-      e.preventDefault();
-      sendQuestion(input.value);
-    }
-  });
-
-  // ✅ Suggested questions buttons
-  const suggRow = document.createElement("div");
-  suggRow.className = "ai-suggestions";
-  document.querySelector("#ai-tutor .ai-input-row").before(suggRow);
-
-  window.showLessonSuggestions = function (suggestions = []) {
-    suggRow.innerHTML = ""; // clear old
-    suggestions.forEach((s) => {
-      const btn = document.createElement("button");
-      btn.className = "sugg-btn";
-      btn.innerText = s;
-      btn.onclick = () => sendQuestion(s);
-      suggRow.appendChild(btn);
-    });
-  };
-});
-
-document.addEventListener("DOMContentLoaded", () => {
-  const aiTutor = document.getElementById("ai-tutor");
-  const aiMessages = document.getElementById("ai-messages");
-  const toggleBtn = document.getElementById("ai-toggle");
-
-  toggleBtn.addEventListener("click", () => {
-    if (aiTutor.classList.contains("collapsed")) {
-      // expand
-      aiTutor.classList.remove("collapsed");
-      aiMessages.style.display = "block";
-      document.querySelector("#ai-tutor .ai-input-row").style.display = "flex";
-      toggleBtn.textContent = "–";
-    } else {
-      // collapse
-      aiTutor.classList.add("collapsed");
-      aiMessages.style.display = "none";
-      document.querySelector("#ai-tutor .ai-input-row").style.display = "none";
-      toggleBtn.textContent = "+";
-    }
-  });
-});
-
-</script> -->
 
 <script>
 document.addEventListener("DOMContentLoaded", () => {
@@ -678,64 +596,6 @@ function toggleLessonMenu(lessonId) {
   el.style.display = (el.style.display === "none" || !el.style.display) ? "block" : "none";
 }
 
-// function loadLessonPart(lessonId, part) {
-//   fetch(`/student/lessons/${lessonId}`)
-//     .then(res => res.json())
-//     .then(lesson => {
-//       let html = `<h2>${lesson.title}</h2>`;
-
-//       if (part === 'video' && lesson.video_url) {
-//         html += `<div class="lesson-video"><iframe src="${lesson.video_url}" frameborder="0" allowfullscreen></iframe></div>`;
-//       }
-
-//       if (part === 'content') {
-//         // Wrap content in a div and add a style to make images responsive
-//         html += `<div class="lesson-text" style="overflow:auto;">${lesson.content || '<p>No content available.</p>'}</div>
-//         <style>
-//           .lesson-text img {
-//             max-width: 100%;
-//             height: auto;
-//             display: block;
-//             margin: 10px 0;
-//           }
-//         </style>`;
-//       }
-
-//       if (part === 'quiz') {
-//         loadQuizInMain(lessonId);
-//         return;
-//       }
-
-//       document.getElementById("lessonMainArea").innerHTML = html;
-//     });
-// }
-
-// function loadLessonPart(lessonId, part) {
-//   fetch(`/student/lessons/${lessonId}`)
-//     .then(res => res.json())
-//     .then(lesson => {
-//       let html = `<h2>${lesson.title}</h2>`;
-
-//       if (part === 'video' && lesson.video_url) {
-//         html += `<div class="lesson-video"><iframe src="${lesson.video_url}" frameborder="0" allowfullscreen></iframe></div>`;
-//       }
-
-//       if (part === 'content') {
-//         html += `<div class="lesson-text">${lesson.content || '<p>No content available.</p>'}</div>`;
-//         document.getElementById("ai-tutor").style.display = "flex"; // ✅ show AI tutor
-//       } else {
-//         document.getElementById("ai-tutor").style.display = "none"; // hide elsewhere
-//       }
-
-//       if (part === 'quiz') {
-//         loadQuizInMain(lessonId);
-//         return;
-//       }
-
-//       document.getElementById("lessonMainArea").innerHTML = html;
-//     });
-// }
-
 function loadLessonPart(lessonId, part) {
   fetch(`/student/lessons/${lessonId}`)
     .then(res => res.json())
@@ -806,6 +666,260 @@ function loadQuizInMain(lessonId) {
       document.getElementById("lessonMainArea").innerHTML = html;
     });
 }
+
+
+
+// async function loadAssignment(assignmentId) {
+//   try {
+//     const res = await fetch(`/student/assignments/${assignmentId}`);
+//     if (!res.ok) {
+//       const text = await res.text();
+//       console.error("Assignment fetch failed:", text);
+//       alert("Could not load assignment");
+//       return;
+//     }
+//     const data = await res.json();
+
+//     const lessonMain = document.getElementById("lessonMainArea");
+//     lessonMain.innerHTML = `
+//       <div class="assignment-container">
+//         <h2>📑 ${data.title}</h2>
+//         <p><strong>Course:</strong> ${data.course_title}</p>
+//         <p><strong>Module:</strong> ${data.module_title}</p>
+//         <div class="instructions">
+//           <strong>Instructions:</strong>
+//           <p>${data.instructions}</p>
+//         </div>
+//         <p><strong>Due Date:</strong> ${data.due_date || "No due date"}</p>
+
+//         <h3>Submit Your Work</h3>
+//         <form id="submitAssignmentForm" enctype="multipart/form-data">
+//           <input type="hidden" name="assignmentId" value="${assignmentId}" />
+
+//           <label>Description:</label><br>
+//           <textarea name="description" placeholder="Write your answer..." required></textarea><br><br>
+
+//           <label>Upload File (optional):</label>
+//           <input type="file" name="file"><br><br>
+
+//           <button type="submit">Submit Assignment</button>
+//         </form>
+//       </div>
+//     `;
+
+//     // Handle form submission
+//     document.getElementById("submitAssignmentForm")
+//       .addEventListener("submit", async (e) => {
+//         e.preventDefault();
+//         const formData = new FormData(e.target);
+
+//         const res2 = await fetch(`/student/assignments/${assignmentId}/submit`, {
+//           method: "POST",
+//           body: formData
+//         });
+
+//         const result = await res2.json();
+
+//         if (result.success) {
+//           // ✅ Show AI grading immediately
+//           lessonMain.innerHTML = `
+//             <div class="assignment-feedback">
+//               <h2>✅ Assignment Submitted Successfully!</h2>
+//               <p><strong>Assignment:</strong> ${data.title}</p>
+//               <p><strong>Status:</strong> Graded by AI</p>
+//               <hr>
+//               <h3>📊 AI Feedback</h3>
+//               <div class="feedback-box">
+//                 <p><strong>Score:</strong> ${result.score ?? "Pending"}</p>
+//                 <p><strong>Grade:</strong> ${result.grade ?? "N/A"}</p>
+//                 <div>
+//                   <strong>Comments:</strong>
+//                   <p>${result.feedback ?? "Feedback not available yet."}</p>
+//                 </div>
+//               </div>
+//               <button onclick="loadPastSubmissions()">📂 Review Past Submissions</button>
+//             </div>
+//           `;
+//         } else {
+//           alert(result.message || "❌ Submission failed.");
+//           if (result.message?.includes("already submitted")) {
+//             loadPastSubmissions(); // redirect to past submissions view
+//           }
+//         }
+//       });
+
+//   } catch (err) {
+//     console.error("Error loading assignment:", err);
+//     alert("Could not load assignment");
+//   }
+// }
+
+async function loadAssignment(assignmentId) {
+  try {
+    const res = await fetch(`/student/assignments/${assignmentId}`);
+    if (!res.ok) {
+      const text = await res.text();
+      console.error("Assignment fetch failed:", text);
+      alert("Could not load assignment");
+      return;
+    }
+    const data = await res.json();
+
+    const lessonMain = document.getElementById("lessonMainArea");
+
+    if (data.submitted) {
+      // ✅ Show submission instead of form
+      lessonMain.innerHTML = `
+        <div class="assignment-feedback">
+          <h2>📑 ${data.assignment.title}</h2>
+          <p><strong>Course:</strong> ${data.assignment.course_title}</p>
+          <p><strong>Module:</strong> ${data.assignment.module_title}</p>
+          <hr>
+          <h3>✅ You already submitted this assignment</h3>
+          <p><strong>Description:</strong> ${data.submission.description}</p>
+          ${data.submission.file_url ? `<p><a href="${data.submission.file_url}" target="_blank">📂 View File</a></p>` : ""}
+          <p><strong>Score:</strong> ${data.submission.score ?? "Pending"}</p>
+          <p><strong>Grade:</strong> ${data.submission.grade ?? "N/A"}</p>
+          <p><strong>AI Feedback:</strong> ${data.submission.feedback ?? "Pending"}</p>
+          <button onclick="loadPastSubmissions()">📂 Review Past Submissions</button>
+        </div>
+      `;
+    } else {
+      // ✅ Show form if not yet submitted
+      lessonMain.innerHTML = `
+        <div class="assignment-container">
+          <h2>📑 ${data.assignment.title}</h2>
+          <p><strong>Course:</strong> ${data.assignment.course_title}</p>
+          <p><strong>Module:</strong> ${data.assignment.module_title}</p>
+          <div class="instructions">
+            <strong>Instructions:</strong>
+            <p>${data.assignment.instructions}</p>
+          </div>
+          <p><strong>Due Date:</strong> ${data.assignment.due_date || "No due date"}</p>
+
+          <h3>Submit Your Work</h3>
+          <form id="submitAssignmentForm" enctype="multipart/form-data">
+            <input type="hidden" name="assignmentId" value="${assignmentId}" />
+            <label>Description:</label><br>
+            <textarea name="description" placeholder="Write your answer..." required></textarea><br><br>
+            <label>Upload File (optional):</label>
+            <input type="file" name="file"><br><br>
+            <button type="submit">Submit Assignment</button>
+            
+  <button onclick="loadPastSubmissions()">📚 Review Past Submissions</button>
+          </form>
+        </div>
+      `;
+
+      // ✅ Attach submit handler
+      document.getElementById("submitAssignmentForm")
+        .addEventListener("submit", async (e) => {
+          e.preventDefault();
+          const formData = new FormData(e.target);
+
+          const res2 = await fetch(`/student/assignments/${assignmentId}/submit`, {
+            method: "POST",
+            body: formData
+          });
+
+          const result = await res2.json();
+
+          if (result.success) {
+            lessonMain.innerHTML = `
+              <div class="assignment-feedback">
+                <h2>✅ Assignment Submitted Successfully!</h2>
+                <p><strong>Assignment:</strong> ${data.assignment.title}</p>
+                <p><strong>Status:</strong> Graded by AI</p>
+                <hr>
+                <h3>📊 AI Feedback</h3>
+                <div class="feedback-box">
+                  <p><strong>Score:</strong> ${result.score ?? "Pending"}</p>
+                  <p><strong>Grade:</strong> ${result.grade ?? "N/A"}</p>
+                  <div>
+                    <strong>Comments:</strong>
+                    <p>${result.feedback ?? "Feedback not available yet."}</p>
+                  </div>
+                </div>
+                <button onclick="loadPastSubmissions()">📂 Review Past Submissions</button>
+              </div>
+            `;
+          } else {
+            alert(result.message || "❌ Submission failed.");
+          }
+        });
+    }
+
+  } catch (err) {
+    console.error("Error loading assignment:", err);
+    alert("Could not load assignment");
+  }
+}
+
+
+async function loadPastSubmissions() {
+  try {
+    const res = await fetch("/student/assignments/mine");
+    const data = await res.json();
+    if (!data.success) {
+      alert(data.message || "Could not load submissions");
+      return;
+    }
+
+    const lessonMain = document.getElementById("lessonMainArea");
+    lessonMain.innerHTML = `
+      <h2>📚 My Assignment Submissions</h2>
+      <div class="submissions-list">
+        ${data.submissions.map(s => `
+          <div class="submission-card">
+            <h3>${s.assignment_title}</h3>
+            <p><strong>Course:</strong> ${s.course_title}</p>
+            <p><strong>Module:</strong> ${s.module_title}</p>
+            <p><strong>Submitted:</strong> ${new Date(s.submitted_at).toLocaleString()}</p>
+            <p><strong>Score:</strong> ${s.score ?? "Not graded yet"}</p>
+            <p><strong>Grade:</strong> ${s.grade ?? "-"}</p>
+            <button onclick="reviewSubmission(${s.id})">🔍 Review</button>
+          </div>
+        `).join("")}
+      </div>
+    `;
+  } catch (err) {
+    console.error("Error loading past submissions:", err);
+    alert("Could not load past submissions");
+  }
+}
+
+async function reviewSubmission(subId) {
+  try {
+    const res = await fetch(`/student/assignments/submission/${subId}`);
+    const data = await res.json();
+    if (!data.success) {
+      alert(data.message || "Could not load submission");
+      return;
+    }
+
+    const s = data.submission;
+    const lessonMain = document.getElementById("lessonMainArea");
+    lessonMain.innerHTML = `
+      <div class="submission-review">
+        <h2>📝 ${s.assignment_title}</h2>
+        <p><strong>Instructions:</strong> ${s.instructions}</p>
+        <p><strong>Your Answer:</strong> ${s.description}</p>
+        ${s.file_url ? `<p><a href="${s.file_url}" target="_blank">📂 View File</a></p>` : ""}
+        
+        <h3>✅ AI Feedback</h3>
+        <p><strong>Score:</strong> ${s.score ?? "Pending"}</p>
+        <p><strong>Grade:</strong> ${s.grade ?? "-"}</p>
+        <div class="ai-feedback-box">${s.feedback ?? "Not graded yet"}</div>
+
+        <button onclick="loadPastSubmissions()">⬅ Back to Submissions</button>
+      </div>
+    `;
+  } catch (err) {
+    console.error("Error reviewing submission:", err);
+    alert("Could not review submission");
+  }
+}
+
 
 </script>
 

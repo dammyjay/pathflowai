@@ -75,6 +75,42 @@ router.get('/lessons/:id', studentController.getLesson);
 
 router.post("/ai/ask", ensureAuthenticated, studentController.askAITutor);
 
+// router.get(
+//   "/student/assignments/:id",
+//   studentController.viewAssignment
+// );
+
+// router.post(
+//   "/student/assignments/:id/submit",
+//   upload.single("file"),
+//   studentController.submitAssignment
+// );
+
+router.get(
+  "/assignments/:id",
+  ensureAuthenticated, // 🔑 protect
+  studentController.viewAssignment
+);
+
+router.post(
+  "/assignments/:id/submit",
+  ensureAuthenticated, // 🔑 protect
+  upload.single("file"),
+  studentController.submitAssignment
+);
+
+// routes/student.js
+router.get(
+  "/assignments/mine",
+  ensureAuthenticated,
+  studentController.getMyAssignments
+);
+router.get(
+  "/assignments/submission/:id",
+  ensureAuthenticated,
+  studentController.getSubmissionById
+);
+
 
 
 module.exports = router;
