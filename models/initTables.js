@@ -391,6 +391,18 @@ async function createTables() {
       `
     );
 
+    await pool.query(`
+      CREATE TABLE IF NOT EXISTS quiz_submissions (
+      id SERIAL PRIMARY KEY,
+      quiz_id INT NOT NULL,
+      student_id INT NOT NULL,
+      score INT,
+      passed BOOLEAN,
+      review_data TEXT,
+      created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+    );
+    `);
+
     console.log("✅ All tables are updated and ready.");
   } catch (err) {
     console.error("❌ Error creating tables:", err.message);

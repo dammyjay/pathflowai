@@ -43,28 +43,14 @@ router.get(
 // Get quiz questions for a lesson
 router.get('/lessons/:id/quiz', studentController.getLessonQuiz);
 
-// Submit quiz answers
-// router.post('/lessons/:id/quiz/submit', studentController.submitLessonQuiz);
-
-// router.post(
-//   "/lessons/:id/quiz/submit",
-//   express.json(), // This parses JSON bodies
-//   studentController.submitLessonQuiz
-// );
-
-// router.post(
-//   "/lessons/:id/quiz/submit",
-//   express.json(),
-//   studentController.submitLessonQuiz
-// );
-
-// router.post("/lessons/:id/quiz/submit", studentController.submitLessonQuiz);
-
 router.post(
   "/lessons/:id/quiz/submit",
   express.json(),
   studentController.submitLessonQuiz
 );
+
+router.get("/quizzes/mine", studentController.getMyQuizzes);
+router.get("/quizzes/submission/:id", studentController.getQuizSubmissionById);
 
 
 

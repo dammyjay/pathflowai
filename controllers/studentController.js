@@ -4,8 +4,6 @@ const { askTutor } = require("../utils/ai");
 
 // GET: Student Dashboard
 
-
-
 // exports.getDashboard = async (req, res) => {
 //   const studentId = req.user.id;
 
@@ -1002,8 +1000,6 @@ exports.getDashboard = async (req, res) => {
   }
 };
 
-
-
 // GET: All Enrolled Courses
 exports.getEnrolledCourses = async (req, res) => {
   const studentId = req.user.id;
@@ -1175,7 +1171,6 @@ exports.awardBadge = async (req, res) => {
   }
 };
 
-
 // POST: Mark lesson complete, award XP, and check for badge
 exports.completeLesson = async (req, res) => {
   const userId = req.user.id;
@@ -1183,28 +1178,40 @@ exports.completeLesson = async (req, res) => {
 
   try {
     // 1. Mark lesson as completed (if not already)
-    await pool.query(`
+    await pool.query(
+      `
       INSERT INTO user_lesson_progress (user_id, lesson_id, completed_at)
       VALUES ($1, $2, NOW())
       ON CONFLICT DO NOTHING
-    `, [userId, lessonId]);
+    `,
+      [userId, lessonId]
+    );
 
     // 2. Award XP (say 10 XP per lesson)
     const xpGained = 10;
     const activity = `Completed lesson ${lessonId}`;
-    await pool.query("UPDATE users2 SET xp = COALESCE(xp, 0) + $1 WHERE id = $2", [xpGained, userId]);
+    await pool.query(
+      "UPDATE users2 SET xp = COALESCE(xp, 0) + $1 WHERE id = $2",
+      [xpGained, userId]
+    );
 
     // 3. Log XP history
-    await pool.query(`
+    await pool.query(
+      `
       INSERT INTO xp_history (user_id, xp, activity)
       VALUES ($1, $2, $3)
-    `, [userId, xpGained, activity]);
+    `,
+      [userId, xpGained, activity]
+    );
 
     // 4. Count total completed lessons
-    const result = await pool.query(`
+    const result = await pool.query(
+      `
       SELECT COUNT(*) FROM user_lesson_progress
       WHERE user_id = $1
-    `, [userId]);
+    `,
+      [userId]
+    );
 
     const completedCount = parseInt(result.rows[0].count);
 
@@ -1217,11 +1224,14 @@ exports.completeLesson = async (req, res) => {
 
     for (const badge of badgeThresholds) {
       if (completedCount >= badge.count) {
-        await pool.query(`
+        await pool.query(
+          `
           INSERT INTO user_badges (user_id, badge_name)
           VALUES ($1, $2)
           ON CONFLICT DO NOTHING
-        `, [userId, badge.name]);
+        `,
+          [userId, badge.name]
+        );
       }
     }
 
@@ -1231,7 +1241,6 @@ exports.completeLesson = async (req, res) => {
     res.status(500).json({ error: "Server error completing lesson" });
   }
 };
-
 
 // POST: Enroll in course using wallet balance
 
@@ -1270,7 +1279,9 @@ exports.enrollInCourse = async (req, res) => {
       const wallet = userRes.rows[0].wallet_balance;
 
       if (wallet < course.amount) {
-        return res.redirect("/student/dashboard?msg=Insufficient wallet balance");
+        return res.redirect(
+          "/student/dashboard?msg=Insufficient wallet balance"
+        );
       }
 
       // 4. Deduct wallet
@@ -1361,7 +1372,9 @@ exports.viewLesson = async (req, res) => {
     );
 
     if (lessonRes.rows.length === 0) {
-      return res.status(404).json({ success: false, message: "Lesson not found" });
+      return res
+        .status(404)
+        .json({ success: false, message: "Lesson not found" });
     }
 
     const lesson = lessonRes.rows[0];
@@ -1374,14 +1387,13 @@ exports.viewLesson = async (req, res) => {
       course_title: lesson.course_title,
       video_url: lesson.video_url,
       content: lesson.content,
-      has_quiz: !!lesson.quiz_id
+      has_quiz: !!lesson.quiz_id,
     });
   } catch (err) {
     console.error("Error loading lesson:", err);
     res.status(500).json({ success: false, message: "Server error" });
   }
 };
-
 
 exports.getModuleDetails = async (req, res) => {
   const moduleId = req.params.moduleId;
@@ -1426,15 +1438,15 @@ exports.getModuleDetails = async (req, res) => {
   }
 };
 
+
 // exports.getLessonQuiz = async (req, res) => {
-//   const { id } = req.params;
+//   const lessonId = req.params.id;
+
 //   try {
+//     // Get quiz id(s) for this lesson
 //     const quizRes = await pool.query(
-//       `SELECT id, question, question_type, options
-//        FROM quizzes
-//        WHERE lesson_id = $1
-//        ORDER BY id ASC`,
-//       [id]
+//       `SELECT id FROM quizzes WHERE lesson_id = $1`,
+//       [lessonId]
 //     );
 
 //     if (quizRes.rows.length === 0) {
@@ -1444,11 +1456,39 @@ exports.getModuleDetails = async (req, res) => {
 //       });
 //     }
 
-//     // Parse JSON options if stored as string
-//     const questions = quizRes.rows.map((q) => ({
-//       ...q,
-//       options: q.options ? JSON.parse(q.options) : [],
-//     }));
+//     const quizId = quizRes.rows[0].id;
+
+//     // Get questions for this quiz
+//     const questionsRes = await pool.query(
+//       `SELECT id, question, question_type, options
+//        FROM quiz_questions
+//        WHERE quiz_id = $1
+//        ORDER BY id ASC`,
+//       [quizId]
+//     );
+
+//     if (questionsRes.rows.length === 0) {
+//       return res.json({
+//         success: false,
+//         message: "No quiz questions found for this lesson",
+//       });
+//     }
+
+//     const questions = questionsRes.rows.map((q) => {
+//       let options = [];
+//       if (q.options) {
+//         if (Array.isArray(q.options)) {
+//           options = q.options;
+//         } else if (typeof q.options === "string") {
+//           // Split by comma and trim whitespace
+//           options = q.options.split(",").map((opt) => opt.trim());
+//         }
+//       }
+//       return {
+//         ...q,
+//         options,
+//       };
+//     });
 
 //     res.json({ success: true, questions });
 //   } catch (err) {
@@ -1457,63 +1497,68 @@ exports.getModuleDetails = async (req, res) => {
 //   }
 // };
 
-exports.getLessonQuiz = async (req, res) => {
-  const lessonId = req.params.id;
+// exports.getLessonQuiz = async (req, res) => {
+//   const lessonId = req.params.id;
+//   const studentId = req.user.id; // or req.session.student.id
 
-  try {
-    // Get quiz id(s) for this lesson
-    const quizRes = await pool.query(
-      `SELECT id FROM quizzes WHERE lesson_id = $1`,
-      [lessonId]
-    );
+//   try {
+//     // Get quiz id
+//     const quizRes = await pool.query(
+//       `SELECT id FROM quizzes WHERE lesson_id = $1`,
+//       [lessonId]
+//     );
 
-    if (quizRes.rows.length === 0) {
-      return res.json({
-        success: false,
-        message: "No quiz found for this lesson",
-      });
-    }
+//     if (quizRes.rows.length === 0) {
+//       return res.json({ success: false, message: "No quiz found" });
+//     }
 
-    const quizId = quizRes.rows[0].id;
+//     const quizId = quizRes.rows[0].id;
 
-    // Get questions for this quiz
-    const questionsRes = await pool.query(
-      `SELECT id, question, question_type, options
-       FROM quiz_questions
-       WHERE quiz_id = $1
-       ORDER BY id ASC`,
-      [quizId]
-    );
+//     // 🔍 Check if student already submitted
+//     const subRes = await pool.query(
+//       `SELECT id, score, passed, review_data, created_at
+//        FROM quiz_submissions
+//        WHERE quiz_id=$1 AND student_id=$2
+//        ORDER BY created_at DESC LIMIT 1`,
+//       [quizId, studentId]
+//     );
 
-    if (questionsRes.rows.length === 0) {
-      return res.json({
-        success: false,
-        message: "No quiz questions found for this lesson",
-      });
-    }
+//     if (subRes.rows.length > 0) {
+//       // Already submitted → return review instead of questions
+//       return res.json({
+//         success: true,
+//         submitted: true,
+//         review: subRes.rows[0],
+//       });
+//     }
 
-    const questions = questionsRes.rows.map((q) => {
-      let options = [];
-      if (q.options) {
-        if (Array.isArray(q.options)) {
-          options = q.options;
-        } else if (typeof q.options === "string") {
-          // Split by comma and trim whitespace
-          options = q.options.split(",").map(opt => opt.trim());
-        }
-      }
-      return {
-        ...q,
-        options,
-      };
-    });
+//     // Otherwise fetch questions
+//     const qRes = await pool.query(
+//       `SELECT id, question, question_type, options
+//        FROM quiz_questions
+//        WHERE quiz_id=$1 ORDER BY id ASC`,
+//       [quizId]
+//     );
 
-    res.json({ success: true, questions });
-  } catch (err) {
-    console.error("Error fetching quiz:", err);
-    res.status(500).json({ success: false, message: "Server error" });
-  }
-};
+//     if (qRes.rows.length === 0) {
+//       return res.json({ success: false, message: "No questions found" });
+//     }
+
+//     const questions = qRes.rows.map((q) => ({
+//       ...q,
+//       options: Array.isArray(q.options)
+//         ? q.options
+//         : typeof q.options === "string"
+//         ? q.options.split(",").map((o) => o.trim())
+//         : [],
+//     }));
+
+//     res.json({ success: true, submitted: false, questions });
+//   } catch (err) {
+//     console.error("Error fetching quiz:", err);
+//     res.status(500).json({ success: false, message: "Server error" });
+//   }
+// };
 
 
 // exports.submitLessonQuiz = async (req, res) => {
@@ -1556,7 +1601,7 @@ exports.getLessonQuiz = async (req, res) => {
 //       if (isCorrect) score++;
 
 //       reviewData.push({
-//         id: q.id,
+//         id: q.id, // real DB id
 //         question: q.question,
 //         yourAnswer,
 //         correctAnswer: q.correct_option,
@@ -1566,7 +1611,7 @@ exports.getLessonQuiz = async (req, res) => {
 
 //     const percent = Math.round((score / questions.length) * 100);
 
-//     // ✅ AI Prompt WITH lesson content
+//     // ✅ AI Prompt WITH lesson content + real IDs
 //     const feedbackPrompt = `
 // You are an AI tutor. Use the following LESSON CONTENT to explain quiz answers:
 
@@ -1576,8 +1621,9 @@ exports.getLessonQuiz = async (req, res) => {
 
 // ${reviewData
 //   .map(
-//     (r, i) =>
-//       `Q${i + 1}: ${r.question}
+//     (r) =>
+//       `QuestionId: ${r.id}
+// Question: ${r.question}
 // Student answered: ${r.yourAnswer || "No answer"}
 // Correct answer: ${r.correctAnswer}
 // Result: ${r.isCorrect ? "✅ Correct" : "❌ Wrong"}`
@@ -1586,13 +1632,14 @@ exports.getLessonQuiz = async (req, res) => {
 
 // TASK:
 // For EACH question (correct OR wrong):
+// - Use the QuestionId from above in the JSON.
 // - If correct → give a short reinforcement explanation from the lesson.
 // - If wrong → explain why their answer is incorrect AND what the correct answer means (2–3 sentences).
-// - Always base your explanation on the LESSON CONTENT.
+// - Always base explanations on the LESSON CONTENT.
 // - Be supportive and encouraging.
 
 // OUTPUT:
-// Return only JSON in this format:
+// Return only valid JSON in this format:
 // [
 //   { "questionId": 12, "feedback": "..." },
 //   { "questionId": 15, "feedback": "..." }
@@ -1614,7 +1661,7 @@ exports.getLessonQuiz = async (req, res) => {
 //       console.error("AI per-question feedback error:", err.message);
 //     }
 
-//     // ✅ Attach AI feedback
+//     // ✅ Attach AI feedback correctly by real ID
 //     reviewData.forEach((r) => {
 //       const fb = perQuestionFeedback.find((f) => f.questionId == r.id);
 //       r.feedback = fb
@@ -1624,6 +1671,13 @@ exports.getLessonQuiz = async (req, res) => {
 //         : "❌ Incorrect. Review the lesson content.";
 //     });
 
+//     await pool.query(
+//       `INSERT INTO quiz_submissions (quiz_id, student_id, score, passed, review_data)
+//    VALUES ($1,$2,$3,$4,$5)`,
+//       [quizId, studentId, percent, percent >= 50, JSON.stringify(reviewData)]
+//     );
+
+    
 //     res.json({
 //       success: true,
 //       score: percent,
@@ -1642,10 +1696,204 @@ exports.getLessonQuiz = async (req, res) => {
 //   }
 // };
 
+// 📌 Get all quiz submissions by the logged-in student
+
+// exports.getLessonQuiz = async (req, res) => {
+//   const lessonId = req.params.id;
+//   const studentId =
+//     req.session?.student?.id || req.user?.id || req.query.studentId;
+
+//   try {
+//     // ✅ Find quiz for this lesson
+//     const quizRes = await pool.query(
+//       `SELECT id FROM quizzes WHERE lesson_id = $1`,
+//       [lessonId]
+//     );
+//     if (quizRes.rows.length === 0) {
+//       return res.json({
+//         success: false,
+//         message: "No quiz found for this lesson",
+//       });
+//     }
+//     const quizId = quizRes.rows[0].id;
+
+//     // ✅ Check if student already submitted
+//     if (studentId) {
+//       const subRes = await pool.query(
+//         `SELECT score, passed, review_data, created_at
+//          FROM quiz_submissions
+//          WHERE quiz_id=$1 AND student_id=$2
+//          ORDER BY created_at DESC
+//          LIMIT 1`,
+//         [quizId, studentId]
+//       );
+
+//       if (subRes.rows.length > 0) {
+//         return res.json({
+//           success: true,
+//           alreadySubmitted: true,
+//           score: subRes.rows[0].score,
+//           passed: subRes.rows[0].passed,
+//           reviewData: subRes.rows[0].review_data,
+//           feedback:
+//             subRes.rows[0].score >= 80
+//               ? "🌟 Excellent work! You clearly understood this lesson."
+//               : subRes.rows[0].score >= 50
+//               ? "👍 Good attempt. Review the explanations for the wrong answers."
+//               : "📘 Don’t worry! Revisit the lesson content and try again.",
+//         });
+//       }
+//     }
+
+//     // ✅ Otherwise, return quiz questions
+//     const questionsRes = await pool.query(
+//       `SELECT id, question, options
+//        FROM quiz_questions
+//        WHERE quiz_id = $1
+//        ORDER BY id ASC`,
+//       [quizId]
+//     );
+
+//     const questions = questionsRes.rows.map((q) => {
+//       let options = [];
+//       if (q.options) {
+//         options = Array.isArray(q.options)
+//           ? q.options
+//           : q.options.split(",").map((o) => o.trim());
+//       }
+//       return { ...q, options };
+//     });
+
+//     res.json({ success: true, alreadySubmitted: false, questions });
+//   } catch (err) {
+//     console.error("Error fetching quiz:", err);
+//     res.status(500).json({ success: false, message: "Server error" });
+//   }
+// };
+
+exports.getLessonQuiz = async (req, res) => {
+  const lessonId = req.params.id;
+  const studentId = req.session?.student?.id || req.user?.id;
+
+  try {
+    // 1️⃣ Get quiz for this lesson
+    const quizRes = await pool.query(
+      `SELECT id FROM quizzes WHERE lesson_id = $1`,
+      [lessonId]
+    );
+    if (quizRes.rows.length === 0) {
+      return res.json({
+        success: false,
+        message: "No quiz found for this lesson",
+      });
+    }
+    const quizId = quizRes.rows[0].id;
+
+    // 2️⃣ Check if student already submitted
+    if (studentId) {
+      const subRes = await pool.query(
+        `SELECT score, passed, review_data, created_at
+         FROM quiz_submissions
+         WHERE quiz_id = $1 AND student_id = $2
+         ORDER BY created_at DESC
+         LIMIT 1`,
+        [quizId, studentId]
+      );
+
+      if (subRes.rows.length > 0) {
+        const sub = subRes.rows[0];
+        let reviewData = sub.review_data;
+
+        // 🔑 Ensure it's parsed into an array
+        if (typeof reviewData === "string") {
+          try {
+            reviewData = JSON.parse(reviewData);
+          } catch (err) {
+            console.error("❌ Could not parse review_data JSON:", err.message);
+            reviewData = [];
+          }
+        }
+
+        return res.json({
+          success: true,
+          alreadySubmitted: true,
+          score: sub.score,
+          passed: sub.passed,
+          reviewData, // ✅ always array now
+          feedback:
+            sub.score >= 80
+              ? "🌟 Excellent work! You clearly understood this lesson."
+              : sub.score >= 50
+              ? "👍 Good attempt. Review the explanations for the wrong answers."
+              : "📘 Don’t worry! Revisit the lesson content and try again.",
+        });
+      }
+
+    }
+
+    // 3️⃣ Otherwise, fetch quiz questions
+    const questionsRes = await pool.query(
+      `SELECT id, question, question_type, options
+       FROM quiz_questions
+       WHERE quiz_id = $1
+       ORDER BY id ASC`,
+      [quizId]
+    );
+
+    if (questionsRes.rows.length === 0) {
+      return res.json({
+        success: false,
+        message: "No quiz questions found for this lesson",
+      });
+    }
+
+    const questions = questionsRes.rows.map((q) => {
+      let options = [];
+      if (q.options) {
+        if (Array.isArray(q.options)) {
+          options = q.options;
+        } else if (typeof q.options === "string") {
+          options = q.options.split(",").map((opt) => opt.trim());
+        }
+      }
+      return { ...q, options };
+    });
+
+    return res.json({
+      success: true,
+      alreadySubmitted: false,
+      questions,
+    });
+  } catch (err) {
+    console.error("Error fetching quiz:", err);
+    res.status(500).json({ success: false, message: "Server error" });
+  }
+};
+
+
+
 exports.submitLessonQuiz = async (req, res) => {
   try {
-    const lessonId = req.params.id;
-    const answers = req.body;
+    const { lessonId, answers } = req.body;
+    const studentId =
+      req.session?.student?.id || req.user?.id || req.body.studentId;
+
+    if (!lessonId || !answers) {
+      return res
+        .status(400)
+        .json({
+          success: false,
+          message: "Lesson ID and answers are required.",
+        });
+    }
+    if (!studentId) {
+      return res
+        .status(400)
+        .json({
+          success: false,
+          message: "Student ID missing. Please log in again.",
+        });
+    }
 
     // ✅ Fetch lesson content
     const lessonRes = await pool.query(
@@ -1653,21 +1901,36 @@ exports.submitLessonQuiz = async (req, res) => {
       [lessonId]
     );
     if (lessonRes.rows.length === 0) {
-      return res.status(404).json({ error: "Lesson not found" });
+      return res
+        .status(404)
+        .json({ success: false, message: "Lesson not found" });
     }
     const lesson = lessonRes.rows[0];
+
+    // ✅ Find the quiz for this lesson
+    const quizRes = await pool.query(
+      `SELECT id FROM quizzes WHERE lesson_id=$1`,
+      [lessonId]
+    );
+    if (quizRes.rows.length === 0) {
+      return res.json({
+        success: false,
+        message: "No quiz found for this lesson",
+      });
+    }
+    const quizId = quizRes.rows[0].id;
 
     // ✅ Fetch quiz questions
     const qRes = await pool.query(
       `SELECT qq.id, qq.question, qq.options, qq.correct_option
        FROM quiz_questions qq
-       JOIN quizzes q ON q.id = qq.quiz_id
-       WHERE q.lesson_id = $1`,
-      [lessonId]
+       WHERE qq.quiz_id = $1
+       ORDER BY qq.id ASC`,
+      [quizId]
     );
     const questions = qRes.rows;
     if (questions.length === 0) {
-      return res.json({ success: false, message: "No quiz found." });
+      return res.json({ success: false, message: "No quiz questions found" });
     }
 
     // ✅ Score student answers
@@ -1682,7 +1945,7 @@ exports.submitLessonQuiz = async (req, res) => {
       if (isCorrect) score++;
 
       reviewData.push({
-        id: q.id, // real DB id
+        id: q.id,
         question: q.question,
         yourAnswer,
         correctAnswer: q.correct_option,
@@ -1692,7 +1955,7 @@ exports.submitLessonQuiz = async (req, res) => {
 
     const percent = Math.round((score / questions.length) * 100);
 
-    // ✅ AI Prompt WITH lesson content + real IDs
+    // ✅ AI Prompt WITH lesson content
     const feedbackPrompt = `
 You are an AI tutor. Use the following LESSON CONTENT to explain quiz answers:
 
@@ -1702,22 +1965,23 @@ Now here is a student's quiz attempt for the lesson "${lesson.title}":
 
 ${reviewData
   .map(
-    (r) =>
-      `QuestionId: ${r.id}
+    (r) => `
+QuestionId: ${r.id}
 Question: ${r.question}
 Student answered: ${r.yourAnswer || "No answer"}
 Correct answer: ${r.correctAnswer}
-Result: ${r.isCorrect ? "✅ Correct" : "❌ Wrong"}`
+Result: ${r.isCorrect ? "✅ Correct" : "❌ Wrong"}
+`
   )
   .join("\n\n")}
 
 TASK:
 For EACH question (correct OR wrong):
 - Use the QuestionId from above in the JSON.
-- If correct → give a short reinforcement explanation from the lesson.
-- If wrong → explain why their answer is incorrect AND what the correct answer means (2–3 sentences).
-- Always base explanations on the LESSON CONTENT.
-- Be supportive and encouraging.
+- If correct → give a short reinforcement explanation.
+- If wrong → explain why their answer is incorrect AND what the correct answer means.
+- Base explanations on the LESSON CONTENT.
+- Be supportive.
 
 OUTPUT:
 Return only valid JSON in this format:
@@ -1730,19 +1994,15 @@ Return only valid JSON in this format:
     let perQuestionFeedback = [];
     try {
       const raw = await askTutor({ question: feedbackPrompt });
-
-      // Extract JSON safely
       const jsonMatch = raw.match(/\[[\s\S]*\]/);
       if (jsonMatch) {
         perQuestionFeedback = JSON.parse(jsonMatch[0]);
-      } else {
-        console.warn("⚠️ AI returned non-JSON, raw:", raw);
       }
     } catch (err) {
-      console.error("AI per-question feedback error:", err.message);
+      console.error("AI feedback error:", err.message);
     }
 
-    // ✅ Attach AI feedback correctly by real ID
+    // ✅ Attach AI feedback
     reviewData.forEach((r) => {
       const fb = perQuestionFeedback.find((f) => f.questionId == r.id);
       r.feedback = fb
@@ -1751,6 +2011,13 @@ Return only valid JSON in this format:
         ? "✅ Correct! Great understanding."
         : "❌ Incorrect. Review the lesson content.";
     });
+
+    // ✅ Save submission
+    await pool.query(
+      `INSERT INTO quiz_submissions (quiz_id, student_id, score, passed, review_data)
+       VALUES ($1,$2,$3,$4,$5)`,
+      [quizId, studentId, percent, percent >= 50, JSON.stringify(reviewData)]
+    );
 
     res.json({
       success: true,
@@ -1771,26 +2038,75 @@ Return only valid JSON in this format:
 };
 
 
+exports.getMyQuizzes = async (req, res) => {
+  try {
+    const submissions = await pool.query(
+      `SELECT qs.id, qs.quiz_id, qs.score, qs.passed, qs.review_data, qs.created_at,
+              l.id AS lesson_id, l.title AS lesson_title,
+              m.title AS module_title, c.title AS course_title
+       FROM quiz_submissions qs
+       JOIN quizzes q ON qs.quiz_id = q.id
+       JOIN lessons l ON q.lesson_id = l.id
+       JOIN modules m ON l.module_id = m.id
+       JOIN courses c ON m.course_id = c.id
+       WHERE qs.student_id = $1
+       ORDER BY qs.created_at DESC`,
+      [req.user.id]
+    );
+
+    res.json({ success: true, submissions: submissions.rows });
+  } catch (err) {
+    console.error("Fetch quizzes error:", err.message);
+    res.status(500).json({ success: false, message: "Failed to fetch quizzes" });
+  }
+};
+
+// 📌 Get single quiz submission by ID
+exports.getQuizSubmissionById = async (req, res) => {
+  try {
+    const { id } = req.params;
+    const sub = await pool.query(
+      `SELECT qs.*, 
+              l.title AS lesson_title, l.content AS lesson_content,
+              m.title AS module_title, c.title AS course_title
+       FROM quiz_submissions qs
+       JOIN quizzes q ON qs.quiz_id = q.id
+       JOIN lessons l ON q.lesson_id = l.id
+       JOIN modules m ON l.module_id = m.id
+       JOIN courses c ON m.course_id = c.id
+       WHERE qs.id = $1 AND qs.student_id = $2`,
+      [id, req.user.id]
+    );
+
+    if (sub.rows.length === 0) {
+      return res.status(404).json({ success: false, message: "Quiz submission not found" });
+    }
+
+    res.json({ success: true, submission: sub.rows[0] });
+  } catch (err) {
+    console.error("Fetch quiz submission error:", err.message);
+    res.status(500).json({ success: false, message: "Failed to load quiz submission" });
+  }
+};
+
 
 exports.getLesson = async (req, res) => {
   try {
     const lessonId = req.params.id;
     const lesson = await Lesson.findByPk(lessonId); // or your DB query
-    if (!lesson) return res.status(404).json({ error: 'Lesson not found' });
+    if (!lesson) return res.status(404).json({ error: "Lesson not found" });
 
     res.json({
       id: lesson.id,
       title: lesson.title,
       video_url: lesson.video_url,
       content: lesson.content,
-      has_quiz: !!lesson.quiz_id
+      has_quiz: !!lesson.quiz_id,
     });
   } catch (err) {
     res.status(500).json({ error: err.message });
   }
 };
-
-
 
 // POST /student/ai/ask
 exports.askAITutor = async (req, res) => {
@@ -1806,7 +2122,9 @@ exports.askAITutor = async (req, res) => {
         [lessonId]
       );
       if (ctx.rows[0]) {
-        lessonContext = `Title: ${ctx.rows[0].title}\n\n${ctx.rows[0].content || ""}`;
+        lessonContext = `Title: ${ctx.rows[0].title}\n\n${
+          ctx.rows[0].content || ""
+        }`;
       }
     }
 
@@ -1826,7 +2144,6 @@ exports.askAITutor = async (req, res) => {
     res.status(500).json({ ok: false, error: "Tutor is unavailable." });
   }
 };
-
 
 // exports.viewAssignment = async (req, res) => {
 //   try {
@@ -1867,7 +2184,7 @@ exports.askAITutor = async (req, res) => {
 exports.viewAssignment = async (req, res) => {
   try {
     const assignmentId = parseInt(req.params.id);
-    const studentId = req.session.student?.id; // adjust if you use JWT or req.user
+    const studentId = req.session.user?.id; // adjust if you use JWT or req.user
 
     if (isNaN(assignmentId)) {
       return res
@@ -1894,11 +2211,11 @@ exports.viewAssignment = async (req, res) => {
 
     // ✅ Check if student already submitted
     const subRes = await pool.query(
-      `SELECT id, description, file_url, score, grade, feedback, created_at
-       FROM assignment_submissions
-       WHERE assignment_id = $1 AND student_id = $2
-       ORDER BY created_at DESC LIMIT 1`,
-      [assignmentId, studentId]
+      `SELECT id, description, file_url, score, grade, ai_feedback, created_at
+      FROM assignment_submissions
+      WHERE assignment_id = $1 AND student_id = $2
+      ORDER BY created_at DESC LIMIT 1`,
+          [assignmentId, studentId]
     );
 
     if (subRes.rows.length > 0) {
@@ -1937,201 +2254,7 @@ exports.viewAssignment = async (req, res) => {
   }
 };
 
-
 // ✅ Student submits an assignment
-// exports.submitAssignment = async (req, res) => {
-//   try {
-//     const { assignmentId, description } = req.body;
-//     const studentId = req.user?.id || req.session.user?.id;
-
-//     if (!assignmentId || !description) {
-//       return res.status(400).json({ success: false, message: "Assignment ID and description are required." });
-//     }
-
-//     // ✅ Fetch assignment instructions from module_assignment
-//     const aRes = await pool.query(
-//       `SELECT id, title, instructions
-//        FROM module_assignments
-//        WHERE id = $1`,
-//       [assignmentId]
-//     );
-
-//     if (aRes.rows.length === 0) {
-//       return res.status(404).json({ success: false, message: "Assignment not found." });
-//     }
-
-//     const assignment = aRes.rows[0];
-
-//     // ✅ Build AI grading prompt
-//     const gradingPrompt = `
-// You are an AI tutor grading a student's assignment.
-
-// Assignment Title: "${assignment.title}"
-// Assignment Instructions:
-// ${assignment.instructions}
-
-// Student Submission:
-// ${description}
-
-// TASK:
-// 1. Compare the student's submission to the assignment instructions.
-// 2. Grade fairly on a scale of 0 to 100.
-// 3. Provide detailed feedback:
-//    - What was done well.
-//    - What was missing or incorrect.
-//    - Suggestions for improvement.
-// 4. Be supportive and encouraging.
-
-// OUTPUT:
-// Return valid JSON in this format:
-// {
-//   "score": 85,
-//   "feedback": "Your submission covered the basics of X, but you missed Y. Great effort overall!"
-// }
-// `;
-
-//     // ✅ Ask AI for grading
-//     let score = null;
-//     let feedbackText = "Feedback unavailable.";
-//     try {
-//       const raw = await askTutor({ question: gradingPrompt });
-
-//       const jsonMatch = raw.match(/\{[\s\S]*\}/);
-//       if (jsonMatch) {
-//         const parsed = JSON.parse(jsonMatch[0]);
-//         score = parsed.score || null;
-//         feedbackText = parsed.feedback || feedbackText;
-//       } else {
-//         console.warn("⚠️ AI returned non-JSON:", raw);
-//       }
-//     } catch (err) {
-//       console.error("AI grading error:", err.message);
-//     }
-
-//     // ✅ Save submission into DB
-//     const insertRes = await pool.query(
-//       `INSERT INTO assignment_submissions
-//        (assignment_id, student_id, description, score, ai_feedback)
-//        VALUES ($1, $2, $3, $4, $5)
-//        RETURNING *`,
-//       [assignmentId, studentId, description, score, feedbackText]
-//     );
-
-//     res.json({
-//       success: true,
-//       message: "Assignment submitted successfully.",
-//       submission: insertRes.rows[0]
-//     });
-//   } catch (err) {
-//     console.error("Assignment submit error:", err.message);
-//     res.status(500).json({ success: false, message: "Failed to submit assignment." });
-//   }
-// };
-
-// StudentController.js
-// exports.submitAssignment = async (req, res) => {
-//   try {
-//     const { assignmentId, description } = req.body;
-//     if (!assignmentId || !description) {
-//       return res.status(400).json({ success: false, message: "Assignment ID and description are required." });
-//     }
-
-//     // Handle optional file
-//     let fileUrl = null;
-//     if (req.file) {
-//       fileUrl = `/uploads/${req.file.filename}`; // adjust if Cloudinary or other storage
-//     }
-
-//     // ✅ Get assignment instructions
-//     const aRes = await pool.query(
-//       `SELECT ma.id, ma.title, ma.instructions, m.title AS module_title, c.title AS course_title
-//        FROM module_assignment ma
-//        JOIN modules m ON ma.module_id = m.id
-//        JOIN courses c ON m.course_id = c.id
-//        WHERE ma.id = $1`,
-//       [assignmentId]
-//     );
-//     if (aRes.rows.length === 0) {
-//       return res.status(404).json({ success: false, message: "Assignment not found." });
-//     }
-//     const assignment = aRes.rows[0];
-
-//     // ✅ Store submission in DB
-//     const subRes = await pool.query(
-//       `INSERT INTO assignment_submissions (assignment_id, student_id, description, file_url)
-//        VALUES ($1, $2, $3, $4)
-//        RETURNING id`,
-//       [assignmentId, req.user.id, description, fileUrl]
-//     );
-//     const submissionId = subRes.rows[0].id;
-
-//     // ✅ AI prompt to grade the assignment
-//     const gradingPrompt = `
-// You are an AI tutor. Grade the student's assignment based on the assignment instructions.
-
-// Assignment Title: "${assignment.title}"
-// Instructions: "${assignment.instructions}"
-
-// Student Submission:
-// "${description}"
-
-// TASK:
-// 1. Provide a score between 0–100.
-// 2. Suggest a grade (A, B, C, D, F).
-// 3. Give a detailed but encouraging feedback (3–6 sentences).
-// 4. Highlight both strengths and areas for improvement.
-
-// Return only valid JSON like this:
-// {
-//   "score": 85,
-//   "grade": "B+",
-//   "feedback": "Your analysis was strong, especially in section 1..."
-// }
-// `;
-
-//     let score = null;
-//     let grade = null;
-//     let ai_feedback = null;
-
-//     try {
-//       const raw = await askTutor({ question: gradingPrompt });
-//       const jsonMatch = raw.match(/\{[\s\S]*\}/);
-//       if (jsonMatch) {
-//         const parsed = JSON.parse(jsonMatch[0]);
-//         score = parsed.score || null;
-//         grade = parsed.grade || null;
-//         ai_feedback = parsed.feedback || null;
-//       } else {
-//         ai_feedback = "⚠️ AI could not generate feedback.";
-//       }
-//     } catch (err) {
-//       console.error("AI grading error:", err.message);
-//       ai_feedback = "⚠️ Error while grading assignment.";
-//     }
-
-//     // ✅ Update DB with AI grading
-//     await pool.query(
-//       `UPDATE assignment_submissions
-//        SET score=$1, grade=$2, feedback=$3
-//        WHERE id=$4`,
-//       [score, grade, ai_feedback, submissionId]
-//     );
-
-//     // ✅ Return response to frontend
-//     res.json({
-//       success: true,
-//       message: "Assignment submitted successfully",
-//       score,
-//       grade,
-//       ai_feedback
-//     });
-
-//   } catch (err) {
-//     console.error("Assignment submit error:", err.message);
-//     res.status(500).json({ success: false, message: "Failed to submit assignment." });
-//   }
-// };
-
 exports.submitAssignment = async (req, res) => {
   try {
     const assignmentId = req.params.assignmentId || req.body.assignmentId;
@@ -2197,34 +2320,45 @@ Return only JSON:
 {
   "score": 85,
   "grade": "B",
-  "ai_feedback": "..."
+  "feedback": "..."
 }
 `;
 
     let score = null,
       grade = null,
-      feedback = null;
+      feedbackText = null;
 
     try {
       const raw = await askTutor({ question: gradingPrompt });
+      console.log("AI Raw Response:", raw); // 🔍 debug what AI sends
+
       const jsonMatch = raw.match(/\{[\s\S]*\}/);
       if (jsonMatch) {
         const parsed = JSON.parse(jsonMatch[0]);
-        score = parsed.score;
-        grade = parsed.grade;
-        feedback = parsed.feedback;
+
+        score = parsed.score ?? null;
+        grade = parsed.grade ?? null;
+        feedbackText = parsed.feedback ?? null;
+      }
+
+      if (!feedbackText) {
+        // fallback if AI didn’t provide feedback
+        feedbackText =
+          "Your assignment was graded, but detailed feedback was not generated. Please try again or ask your tutor.";
       }
     } catch (err) {
       console.error("AI grading failed:", err.message);
-      feedback = "AI grading unavailable. Your assignment has been submitted.";
+      feedbackText =
+        "AI grading unavailable. Your assignment has been submitted.";
     }
+
 
     // ✅ Update submission with grading
     await pool.query(
       `UPDATE assignment_submissions
        SET score=$1, grade=$2, ai_feedback=$3
        WHERE id=$4`,
-      [score, grade, feedback, submission.id]
+      [score, grade, feedbackText, submission.id]
     );
 
     res.json({
@@ -2233,7 +2367,7 @@ Return only JSON:
       submissionId: submission.id,
       score,
       grade,
-      feedback,
+      feedbackText,
     });
   } catch (err) {
     console.error("Assignment submit error:", err.message);
@@ -2243,46 +2377,47 @@ Return only JSON:
   }
 };
 
-
 // StudentController.js
 exports.getMyAssignments = async (req, res) => {
   try {
     const submissions = await pool.query(
       `SELECT s.id, s.assignment_id, s.description, s.file_url, 
-              s.score, s.grade, s.feedback, s.submitted_at,
-              ma.title AS assignment_title, ma.instructions,
-              m.title AS module_title, c.title AS course_title
-       FROM assignment_submissions s
-       JOIN module_assignment ma ON s.assignment_id = ma.id
-       JOIN modules m ON ma.module_id = m.id
-       JOIN courses c ON m.course_id = c.id
-       WHERE s.student_id = $1
-       ORDER BY s.submitted_at DESC`,
+          s.score, s.grade, s.ai_feedback, s.submitted_at,
+          ma.title AS assignment_title, ma.instructions,
+          m.title AS module_title, c.title AS course_title
+   FROM assignment_submissions s
+   JOIN module_assignments ma ON s.assignment_id = ma.id
+   JOIN modules m ON ma.module_id = m.id
+   JOIN courses c ON m.course_id = c.id
+   WHERE s.student_id = $1
+   ORDER BY s.submitted_at DESC`,
       [req.user.id]
     );
 
     res.json({ success: true, submissions: submissions.rows });
   } catch (err) {
     console.error("Fetch submissions error:", err.message);
-    res.status(500).json({ success: false, message: "Failed to fetch submissions" });
+    res
+      .status(500)
+      .json({ success: false, message: "Failed to fetch submissions" });
   }
 };
-
 
 exports.getSubmissionById = async (req, res) => {
   try {
     const { id } = req.params;
     const sub = await pool.query(
       `SELECT s.*, 
-              ma.title AS assignment_title, ma.instructions,
-              m.title AS module_title, c.title AS course_title
-       FROM assignment_submissions s
-       JOIN module_assignment ma ON s.assignment_id = ma.id
-       JOIN modules m ON ma.module_id = m.id
-       JOIN courses c ON m.course_id = c.id
-       WHERE s.id = $1 AND s.student_id = $2`,
+          ma.title AS assignment_title, ma.instructions,
+          m.title AS module_title, c.title AS course_title
+   FROM assignment_submissions s
+   JOIN module_assignments ma ON s.assignment_id = ma.id
+   JOIN modules m ON ma.module_id = m.id
+   JOIN courses c ON m.course_id = c.id
+   WHERE s.id = $1 AND s.student_id = $2`,
       [id, req.user.id]
     );
+
 
     if (sub.rows.length === 0) {
       return res
@@ -2298,9 +2433,3 @@ exports.getSubmissionById = async (req, res) => {
       .json({ success: false, message: "Failed to load submission" });
   }
 };
-
-
-
-
-
-
