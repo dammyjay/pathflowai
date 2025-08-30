@@ -403,6 +403,50 @@ async function createTables() {
     );
     `);
 
+    // junction table for unlocked lessons
+    await pool.query(
+      `CREATE TABLE IF NOT EXISTS unlocked_lessons (
+        student_id INT NOT NULL,
+        lesson_id INT NOT NULL,
+        PRIMARY KEY(student_id, lesson_id)
+      );
+      `
+    );
+
+    // junction table for unlocked modules
+    await pool.query(
+      `
+      CREATE TABLE IF NOT EXISTS unlocked_modules (
+        student_id INT NOT NULL,
+        module_id INT NOT NULL,
+        PRIMARY KEY(student_id, module_id)
+      );
+      `
+    );
+
+    await pool.query(
+      `
+      CREATE TABLE IF NOT EXISTS unlocked_assignments (
+        student_id INT NOT NULL,
+        assignment_id INT NOT NULL,
+        PRIMARY KEY(student_id, assignment_id)
+      );
+      `
+    );
+
+    await pool.query(
+      `
+      `
+    );
+    await pool.query(
+      `
+      `
+    );
+    await pool.query(
+      `
+      `
+    );
+
     console.log("✅ All tables are updated and ready.");
   } catch (err) {
     console.error("❌ Error creating tables:", err.message);
