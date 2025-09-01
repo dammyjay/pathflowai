@@ -180,11 +180,29 @@
                       <%= module.unlocked ? "onclick='loadAssignment(" + assign.id + ")'" : "disabled style='opacity:0.5; cursor:not-allowed;'" %>>
                 <%= module.unlocked ? "📑" : "🔒" %> <%= assign.title %>
               </button> -->
-              <button 
+              <!-- <button 
                 class="no-bg"
                 data-id="<%= assign.id %>"
                 <%= assign.unlocked 
                       ? 'onclick="loadAssignment(this.dataset.id)"' 
+                      : 'disabled style="opacity:0.5; cursor:not-allowed;"' %>>
+                <%= assign.unlocked ? "📑" : "🔒" %> <%= assign.title %>
+              </button> -->
+
+              <!-- <button 
+                class="no-bg"
+                data-id="<%= assign.id %>"
+                <%= assign.unlocked 
+                      ? 'onclick="loadAssignment(Number(this.dataset.id))"' 
+                      : 'disabled style="opacity:0.5; cursor:not-allowed;"' %>>
+                <%= assign.unlocked ? "📑" : "🔒" %> <%= assign.title %>
+              </button> -->
+
+              <button 
+                class="no-bg assignment-btn"
+                data-id="<%= assign.id %>"
+                <%= assign.unlocked 
+                      ? '' 
                       : 'disabled style="opacity:0.5; cursor:not-allowed;"' %>>
                 <%= assign.unlocked ? "📑" : "🔒" %> <%= assign.title %>
               </button>
@@ -826,6 +844,21 @@ async function loadAssignment(assignmentId) {
     alert("Could not load assignment");
   }
 }
+
+document.addEventListener("DOMContentLoaded", () => {
+  // Assignment button event binding
+  document.querySelectorAll(".assignment-btn").forEach(btn => {
+    btn.addEventListener("click", () => {
+      const id = Number(btn.dataset.id);
+      if (!isNaN(id)) {
+        loadAssignment(id);
+      } else {
+        console.error("Invalid assignment id:", btn.dataset.id);
+      }
+    });
+  });
+});
+
 
 async function loadPastSubmissions() {
   try {
