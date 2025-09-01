@@ -63,7 +63,7 @@
 </div>
 
 <!-- CREATE LESSON MODAL -->
-<div id="lessonModal" class="modal" style="display:none;">
+<div id="lessonModal" class="modal">
   <form method="POST" action="/admin/lessons/create" enctype="multipart/form-data" class="modal-content">
     <h2>Create Lesson</h2>
     <input type="hidden" name="course_id" value="<%= course.id %>">
@@ -146,37 +146,6 @@
     <div id="quizQuestions"></div>
 
     <hr>
-
-    <!-- <form method="POST" action="/admin/quiz-question/create">
-      <input type="hidden" name="quiz_id" id="quiz_id">
-
-      <label>Question</label>
-      <textarea name="question" required></textarea>
-
-      <label>Question Type</label>
-      <select name="question_type" id="question_type" onchange="toggleOptions()">
-        <option value="multiple_choice">Multiple Choice</option>
-        <option value="true_false">True/False</option>
-        <option value="short_answer">Short Answer</option>
-      </select>
-
-      <div id="options_container">
-        <label>Options</label>
-        <input type="text" name="options" placeholder="Option 1">
-        <input type="text" name="options" placeholder="Option 2">
-        <input type="text" name="options" placeholder="Option 3">
-        <input type="text" name="options" placeholder="Option 4">
-      </div>
-
-      <label>Correct Answer</label>
-      <input type="text" name="correct_option" required>
-
-      <div class="modal-actions">
-        <button type="submit">Add Question</button>
-        <button type="button" onclick="closeQuizModal()">Close</button>
-      </div>
-    </form> -->
-    
     <form id="quizForm">
   <input type="hidden" name="quiz_id" id="quiz_id">
 
@@ -466,8 +435,25 @@ function deleteQuestion(id) {
 </script>
 
 
-<script src="https://cdn.ckeditor.com/ckeditor5/41.4.2/classic/ckeditor.js"></script>
-<script>
+<!-- <script src="https://cdn.ckeditor.com/ckeditor5/41.4.2/classic/ckeditor.js"></script> -->
+
+
+<!-- <script>
+// let createLessonEditor = null;
+// let editLessonEditor = null;
+
+// // Create Modal
+// function openLessonModal() {
+//   document.getElementById('lessonModal').style.display = 'block';
+
+//   // Initialize CKEditor if not already done
+//   if (!createLessonEditor) {
+//     ClassicEditor.create(document.querySelector('#createLessonContent'))
+//       .then(editor => createLessonEditor = editor)
+//       .catch(error => console.error('Create Lesson CKEditor error:', error));
+//   }
+// }
+
 let createLessonEditor = null;
 let editLessonEditor = null;
 
@@ -475,13 +461,20 @@ let editLessonEditor = null;
 function openLessonModal() {
   document.getElementById('lessonModal').style.display = 'block';
 
-  // Initialize CKEditor if not already done
   if (!createLessonEditor) {
     ClassicEditor.create(document.querySelector('#createLessonContent'))
-      .then(editor => createLessonEditor = editor)
+      .then(editor => {
+        createLessonEditor = editor;
+
+        // Sync content on submit
+        document.querySelector('#lessonModal form').addEventListener('submit', function (e) {
+          document.querySelector('#createLessonContent').value = createLessonEditor.getData();
+        });
+      })
       .catch(error => console.error('Create Lesson CKEditor error:', error));
   }
 }
+
 
 function closeLessonModal() {
   document.getElementById('lessonModal').style.display = 'none';
@@ -565,4 +558,65 @@ function closeEditLessonModal() {
 function closeEditLessonModal() {
   document.getElementById('editLessonModal').style.display = 'none';
 }
+</script> -->
+
+<script src="https://cdn.ckeditor.com/ckeditor5/41.4.2/classic/ckeditor.js"></script>
+
+
+<script>
+  let createLessonEditor = null;
+let editLessonEditor = null;
+
+/* ---------------- CREATE LESSON ---------------- */
+function openLessonModal() {
+  document.getElementById('lessonModal').style.display = 'block';
+
+  if (!createLessonEditor) {
+    ClassicEditor.create(document.querySelector('#createLessonContent'))
+      .then(editor => {
+        createLessonEditor = editor;
+        // sync before submit
+        document.querySelector('#lessonModal form')
+          .addEventListener('submit', function (e) {
+            document.querySelector('#createLessonContent').value =
+              createLessonEditor.getData();
+          });
+      })
+      .catch(error => console.error('CKEditor create error:', error));
+  }
+}
+
+function closeLessonModal() {
+  document.getElementById('lessonModal').style.display = 'none';
+}
+
+/* ---------------- EDIT LESSON ---------------- */
+function openEditLessonModal(lesson) {
+  document.getElementById('editLessonForm').action = '/admin/lessons/' + lesson.id + '/edit';
+  document.getElementById('editLessonTitle').value = lesson.title;
+  document.getElementById('editLessonCourseId').value = lesson.course_id;
+  document.getElementById('editLessonModal').style.display = 'block';
+
+  if (!editLessonEditor) {
+    ClassicEditor.create(document.querySelector('#editLessonContent'))
+      .then(editor => {
+        editLessonEditor = editor;
+        editor.setData(lesson.content || '');
+        // sync before submit
+        document.getElementById('editLessonForm')
+          .addEventListener('submit', function (e) {
+            document.querySelector('#editLessonContent').value =
+              editLessonEditor.getData();
+          });
+      })
+      .catch(error => console.error('CKEditor edit error:', error));
+  } else {
+    editLessonEditor.setData(lesson.content || '');
+  }
+}
+
+function closeEditLessonModal() {
+  document.getElementById('editLessonModal').style.display = 'none';
+}
+
 </script>

@@ -124,6 +124,14 @@
         <button class="module-toggle no-bg" onclick="toggleModule(<%= module.id %>)">
           📦 <%= module.title %> ▾
         </button>
+
+        <!-- <button 
+          class="module-toggle no-bg"
+          <%= module.unlocked 
+                ? "onclick='toggleModule(" + module.id + ")'" 
+                : "disabled style=\"opacity:0.5; cursor:not-allowed;\"" %>>
+          <%= module.unlocked ? "📦" : "🔒" %> <%= module.title %> ▾
+        </button> -->
         <ul id="module-<%= module.id %>" class="lesson-list" style="display:none;">
           <% (moduleLessons[module.id] || []).forEach(lesson => { %>
             <li>
