@@ -170,24 +170,50 @@
         //   }
         // };
 
+        // document.getElementById("signup-form").onsubmit = async (e) => {
+        //   e.preventDefault();
+        //   const formData = new FormData(e.target); // Don't convert it to JSON
+
+        //   const res = await fetch("/signup", {
+        //     method: "POST",
+        //     body: formData, // ✅ Send raw FormData
+        //   });
+
+        //   const text = await res.text();
+        //   console.log("Signup response:", text);
+        //   if (res.ok) {
+        //     document.getElementById("otp-modal").style.display = "block";
+        //     document.getElementById("signup-form").style.display = "none"; // Hide the signup form
+        //   } else {
+        //     alert("Signup failed: " + (await res.text()));
+        //   }
+        // };
+
         document.getElementById("signup-form").onsubmit = async (e) => {
           e.preventDefault();
-          const formData = new FormData(e.target); // Don't convert it to JSON
+          const formData = new FormData(e.target);
 
-          const res = await fetch("/signup", {
-            method: "POST",
-            body: formData, // ✅ Send raw FormData
-          });
+          try {
+            const res = await fetch("/signup", {
+              method: "POST",
+              body: formData,
+            });
 
-          const text = await res.text();
-          console.log("Signup response:", text);
-          if (res.ok) {
-            document.getElementById("otp-modal").style.display = "block";
-            document.getElementById("signup-form").style.display = "none"; // Hide the signup form
-          } else {
-            alert("Signup failed: " + (await res.text()));
+            const text = await res.text(); // read body ONCE
+            console.log("Signup response:", text);
+
+            if (res.ok) {
+              document.getElementById("otp-modal").style.display = "block";
+              document.getElementById("signup-form").style.display = "none";
+            } else {
+              alert("Signup failed: " + text);
+            }
+          } catch (err) {
+            console.error("Signup failed:", err);
+            alert("Something went wrong. Please try again.");
           }
         };
+
 
         async function verifyOtp() {
           const otp = document.getElementById("otp-input").value;
