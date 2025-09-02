@@ -191,22 +191,108 @@ exports.getLessonsPage = async (req, res) => {
 // -------------------- QUIZZES --------------------
 
 // CREATE LESSON
+// exports.createLesson = async (req, res) => {
+//   try {
+//     const { title, content, module_id, course_id } = req.body;
+//     let videoUrl = null;
+
+//     if (req.file) {
+//       const result = await cloudinary.uploader.upload(req.file.path, {
+//         folder: "lessons"
+//       });
+//       videoUrl = result.secure_url;
+//       if (fs.existsSync(req.file.path)) fs.unlinkSync(req.file.path);
+//     }
+
+//     await pool.query(
+//       `INSERT INTO lessons (title, content, module_id, video_url) VALUES ($1, $2, $3, $4)`,
+//       [title, content, module_id, videoUrl]
+//     );
+
+//     res.redirect(`/admin/courses/${course_id}?tab=lessons`);
+//   } catch (err) {
+//     console.error("Create Lesson Error:", err.message);
+//     res.status(500).send("Error creating lesson");
+//   }
+// };
+
+// EDIT LESSON
+// exports.editLesson = async (req, res) => {
+//   const { id } = req.params;
+//   const { title, content, course_id } = req.body;
+//   let videoUrl = null;
+
+//   try {
+//     if (req.file) {
+//       const result = await cloudinary.uploader.upload(req.file.path, {
+//         folder: "lessons"
+//       });
+//       videoUrl = result.secure_url;
+//       if (fs.existsSync(req.file.path)) fs.unlinkSync(req.file.path);
+//     }
+
+//     await pool.query(
+//       `UPDATE lessons SET title=$1, content=$2, video_url=COALESCE($3, video_url) WHERE id=$4`,
+//       [title, content, videoUrl, id]
+//     );
+
+//     res.redirect(`/admin/courses/${course_id}?tab=lessons`);
+//   } catch (err) {
+//     console.error("Edit Lesson Error:", err.message);
+//     res.status(500).send("Error editing lesson");
+//   }
+// };
+
+// CREATE LESSON
+// exports.createLesson = async (req, res) => {
+//   try {
+//     const { title, content, module_id, course_id, video_url } = req.body;
+
+//     await pool.query(
+//       `INSERT INTO lessons (title, content, module_id, video_url) 
+//        VALUES ($1, $2, $3, $4)`,
+//       [title, content, module_id, video_url || null]
+//     );
+
+//     res.redirect(`/admin/courses/${course_id}?tab=lessons`);
+//   } catch (err) {
+//     console.error("Create Lesson Error:", err.message);
+//     res.status(500).send("Error creating lesson");
+//   }
+// };
+
+// EDIT LESSON
+// exports.editLesson = async (req, res) => {
+//   const { id } = req.params;
+//   const { title, content, course_id, video_url } = req.body;
+
+//   try {
+//     await pool.query(
+//       `UPDATE lessons 
+//        SET title=$1, content=$2, video_url=$3 
+//        WHERE id=$4`,
+//       [title, content, video_url || null, id]
+//     );
+
+//     res.redirect(`/admin/courses/${course_id}?tab=lessons`);
+//   } catch (err) {
+//     console.error("Edit Lesson Error:", err.message);
+//     res.status(500).send("Error editing lesson");
+//   }
+// };
+
+
+// DELETE LESSON
+
+// CREATE LESSON
 exports.createLesson = async (req, res) => {
   try {
-    const { title, content, module_id, course_id } = req.body;
-    let videoUrl = null;
-
-    if (req.file) {
-      const result = await cloudinary.uploader.upload(req.file.path, {
-        folder: "lessons"
-      });
-      videoUrl = result.secure_url;
-      if (fs.existsSync(req.file.path)) fs.unlinkSync(req.file.path);
-    }
+    const { title, content, module_id, course_id, video_url } = req.body;
 
     await pool.query(
-      `INSERT INTO lessons (title, content, module_id, video_url) VALUES ($1, $2, $3, $4)`,
-      [title, content, module_id, videoUrl]
+      `INSERT INTO lessons (title, content, module_id, video_url)
+       VALUES ($1, $2, $3, $4)`,
+      [title, content, module_id, video_url]
     );
 
     res.redirect(`/admin/courses/${course_id}?tab=lessons`);
@@ -219,21 +305,14 @@ exports.createLesson = async (req, res) => {
 // EDIT LESSON
 exports.editLesson = async (req, res) => {
   const { id } = req.params;
-  const { title, content, course_id } = req.body;
-  let videoUrl = null;
+  const { title, content, course_id, video_url } = req.body;
 
   try {
-    if (req.file) {
-      const result = await cloudinary.uploader.upload(req.file.path, {
-        folder: "lessons"
-      });
-      videoUrl = result.secure_url;
-      if (fs.existsSync(req.file.path)) fs.unlinkSync(req.file.path);
-    }
-
     await pool.query(
-      `UPDATE lessons SET title=$1, content=$2, video_url=COALESCE($3, video_url) WHERE id=$4`,
-      [title, content, videoUrl, id]
+      `UPDATE lessons
+       SET title=$1, content=$2, video_url=$3
+       WHERE id=$4`,
+      [title, content, video_url, id]
     );
 
     res.redirect(`/admin/courses/${course_id}?tab=lessons`);
@@ -243,7 +322,7 @@ exports.editLesson = async (req, res) => {
   }
 };
 
-// DELETE LESSON
+
 exports.deleteLesson = async (req, res) => {
   const { id } = req.params;
   const { course_id } = req.body;

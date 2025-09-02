@@ -21,8 +21,8 @@ const layout = require("express-ejs-layouts");
 // app.use(express.json());
 // app.use(bodyParser.urlencoded({ extended: false }));
 
-app.use(express.json());
-app.use(express.urlencoded({ extended: true }));
+app.use(express.json({ limit: "10mb" }));
+app.use(express.urlencoded({ extended: true, limit: "10mb" }));
 
 
 // Set EJS as view engine
@@ -39,7 +39,7 @@ app.use(layout);
 app.set("view engine", "ejs");
 app.set("view cache", false);
 app.use(express.static(path.join(__dirname, "public")));
-app.use(bodyParser.urlencoded({ extended: false }));
+// app.use(bodyParser.urlencoded({ extended: false }));
 app.use(
   session({
     secret: process.env.SESSION_SECRET,

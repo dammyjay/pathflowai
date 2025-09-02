@@ -200,14 +200,26 @@ router.post("/modules/delete/:id", learningController.deleteModule);
 // router.post("/admin/lessons/:id/edit", learningController.editLesson);
 // router.post("/admin/lessons/:id/delete", learningController.deleteLesson);
 
+// router.post(
+//   "/lessons/create",
+//   upload.single("video_url"),
+//   learningController.createLesson
+// );
+
+// router.post(
+//   "/lessons/:id/edit",
+//   upload.single("video_url"),
+//   learningController.editLesson
+// );
+
 router.post(
   "/lessons/create",
-  upload.single("video_url"),
+  upload.none(),
   learningController.createLesson
 );
 router.post(
   "/lessons/:id/edit",
-  upload.single("video_url"),
+  upload.none(),
   learningController.editLesson
 );
 router.post("/lessons/:id/delete", learningController.deleteLesson);

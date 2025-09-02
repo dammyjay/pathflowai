@@ -548,7 +548,7 @@
 
 <!-- Lesson and quiz script -->
  
-
+<script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
 <script>
 document.addEventListener("DOMContentLoaded", () => {
   const sendBtn = document.getElementById("ai-send");
@@ -582,7 +582,8 @@ document.addEventListener("DOMContentLoaded", () => {
       });
       const data = await res.json();
       if (data.ok) {
-        pushMsg(data.answer, "bot");
+        const html = marked.parse(data.answer); // ✅ Convert Markdown → HTML
+        pushMsg(html, "bot");
       } else {
         pushMsg("<em>⚠️ Tutor is unavailable.</em>", "bot");
       }
@@ -683,9 +684,43 @@ function loadLessonPart(lessonId, part) {
 
       let html = `<h2>${lesson.title}</h2>`;
 
+      // if (part === "video" && lesson.video_url) {
+      //   html += `<div class="lesson-video"><iframe src="${lesson.video_url}" frameborder="0" allowfullscreen></iframe></div>`;
+      // }
+
       if (part === "video" && lesson.video_url) {
-        html += `<div class="lesson-video"><iframe src="${lesson.video_url}" frameborder="0" allowfullscreen></iframe></div>`;
+        let embedUrl = lesson.video_url.trim();
+
+        // ✅ YouTube full link (watch?v=...)
+        if (embedUrl.includes("youtube.com/watch?v=")) {
+          const videoId = embedUrl.split("v=")[1].split("&")[0];
+          embedUrl = `https://www.youtube.com/embed/${videoId}`;
+        }
+
+        // ✅ YouTube short link (youtu.be/...)
+        else if (embedUrl.includes("youtu.be/")) {
+          const videoId = embedUrl.split("youtu.be/")[1].split("?")[0];
+          embedUrl = `https://www.youtube.com/embed/${videoId}`;
+        }
+
+        // ✅ Vimeo link
+        else if (embedUrl.includes("vimeo.com/")) {
+          const videoId = embedUrl.split("vimeo.com/")[1].split("?")[0];
+          embedUrl = `https://player.vimeo.com/video/${videoId}`;
+        }
+
+        html += `
+          <div class="lesson-video">
+            <iframe 
+              src="${embedUrl}" 
+              frameborder="0" 
+              allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" 
+              allowfullscreen>
+            </iframe>
+          </div>
+        `;
       }
+
 
       if (part === "content") {
         html += `<div class="lesson-text">${lesson.content || "<p>No content available.</p>"}</div>` +

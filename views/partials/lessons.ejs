@@ -10,8 +10,8 @@
     </select>
   </form>
 
-  
 </div>
+
 
 <button onclick="openLessonModal()">+ Add Lesson</button> <br>
 
@@ -63,7 +63,7 @@
 </div>
 
 <!-- CREATE LESSON MODAL -->
-<div id="lessonModal" class="modal">
+<!-- <div id="lessonModal" class="modal">
   <form method="POST" action="/admin/lessons/create" enctype="multipart/form-data" class="modal-content">
     <h2>Create Lesson</h2>
     <input type="hidden" name="course_id" value="<%= course.id %>">
@@ -71,7 +71,7 @@
     <input type="text" name="title" required>
 
     <label>Content</label>
-    <textarea name="content" id="createLessonContent" required></textarea>
+    <textarea name="content" id="createLessonContent"></textarea>
 
     <label>Module</label>
     <select name="module_id" required>
@@ -88,7 +88,36 @@
       <button type="button" onclick="closeLessonModal()">Cancel</button>
     </div>
   </form>
-</div>
+</div> -->
+
+<!-- CREATE LESSON MODAL -->
+<!-- <div id="lessonModal" class="modal">
+  <form method="POST" action="/admin/lessons/create" enctype="multipart/form-data" class="modal-content">
+    <h2>Create Lesson</h2>
+    <input type="hidden" name="course_id" value="<%= course.id %>">
+
+    <label>Title</label>
+    <input type="text" name="title" required>
+
+    <label>Content</label>
+    <textarea name="content" id="createLessonContent"></textarea>
+
+    <label>Module</label>
+    <select name="module_id" required>
+      <% modules.forEach(mod => { %>
+        <option value="<%= mod.id %>"><%= mod.title %></option>
+      <% }) %>
+    </select>
+
+    <label>Video</label>
+    <input type="file" name="video_url" accept="video/*">
+
+    <div class="modal-actions">
+      <button type="submit">Save</button>
+      <button type="button" onclick="closeLessonModal()">Cancel</button>
+    </div>
+  </form>
+</div> -->
 
 <!-- EDIT LESSON MODAL -->
 <!-- <div id="editLessonModal" class="modal" style="display:none;">
@@ -112,10 +141,9 @@
 </div> -->
 
 <!-- EDIT LESSON MODAL -->
-<div id="editLessonModal" class="modal" style="display:none;">
+<!-- <div id="editLessonModal" class="modal" style="display:none;">
   <form id="editLessonForm" method="POST" enctype="multipart/form-data" class="modal-content">
     <h2>Edit Lesson</h2>
-    <!-- Hidden course_id -->
     <input type="hidden" name="course_id" id="editLessonCourseId">
 
     <label>Title</label>
@@ -126,6 +154,58 @@
 
     <label>Video</label>
     <input type="file" name="video_url" accept="video/*">
+
+    <div class="modal-actions">
+      <button type="submit">Update</button>
+      <button type="button" onclick="closeEditLessonModal()">Cancel</button>
+    </div>
+  </form>
+</div> -->
+
+<!-- CREATE LESSON MODAL -->
+<div id="lessonModal" class="modal">
+  <form method="POST" action="/admin/lessons/create" class="modal-content">
+    <h2>Create Lesson</h2>
+    <input type="hidden" name="course_id" value="<%= course.id %>">
+
+    <label>Title</label>
+    <input type="text" name="title" required>
+
+    <label>Content</label>
+    <textarea name="content" id="createLessonContent"></textarea>
+
+    <label>Module</label>
+    <select name="module_id" required>
+      <% modules.forEach(mod => { %>
+        <option value="<%= mod.id %>"><%= mod.title %></option>
+      <% }) %>
+    </select>
+
+    <label>Video Link (YouTube/Vimeo)</label>
+    <input type="url" name="video_url" placeholder="https://www.youtube.com/...">
+
+    <div class="modal-actions">
+      <button type="submit">Save</button>
+      <button type="button" onclick="closeLessonModal()">Cancel</button>
+    </div>
+  </form>
+</div>
+
+
+<!-- EDIT LESSON MODAL -->
+<div id="editLessonModal" class="modal" style="display:none;">
+  <form id="editLessonForm" method="POST" class="modal-content">
+    <h2>Edit Lesson</h2>
+    <input type="hidden" name="course_id" id="editLessonCourseId">
+
+    <label>Title</label>
+    <input type="text" name="title" id="editLessonTitle" required>
+
+    <label>Content</label>
+    <textarea name="content" id="editLessonContent"></textarea>
+
+    <label>Video Link (YouTube/Vimeo)</label>
+    <input type="url" name="video_url" id="editLessonVideo" placeholder="https://www.youtube.com/...">
 
     <div class="modal-actions">
       <button type="submit">Update</button>
@@ -560,10 +640,10 @@ function closeEditLessonModal() {
 }
 </script> -->
 
-<script src="https://cdn.ckeditor.com/ckeditor5/41.4.2/classic/ckeditor.js"></script>
+<!-- <script src="https://cdn.ckeditor.com/ckeditor5/41.4.2/classic/ckeditor.js"></script> -->
 
 
-<script>
+<!-- <script>
   let createLessonEditor = null;
 let editLessonEditor = null;
 
@@ -572,7 +652,10 @@ function openLessonModal() {
   document.getElementById('lessonModal').style.display = 'block';
 
   if (!createLessonEditor) {
-    ClassicEditor.create(document.querySelector('#createLessonContent'))
+    // ClassicEditor.create(document.querySelector('#createLessonContent'))
+    ClassicEditor.create(document.querySelector('#createLessonContent'), {
+      removePlugins: ['CKFinderUploadAdapter', 'CKFinder', 'EasyImage', 'ImageUpload', 'MediaEmbed', 'FileRepository']
+    })
       .then(editor => {
         createLessonEditor = editor;
         // sync before submit
@@ -598,7 +681,10 @@ function openEditLessonModal(lesson) {
   document.getElementById('editLessonModal').style.display = 'block';
 
   if (!editLessonEditor) {
-    ClassicEditor.create(document.querySelector('#editLessonContent'))
+    // ClassicEditor.create(document.querySelector('#editLessonContent'))
+    ClassicEditor.create(document.querySelector('#editLessonContent'), {
+      removePlugins: ['CKFinderUploadAdapter', 'CKFinder', 'EasyImage', 'ImageUpload', 'MediaEmbed', 'FileRepository']
+    })
       .then(editor => {
         editLessonEditor = editor;
         editor.setData(lesson.content || '');
@@ -619,4 +705,146 @@ function closeEditLessonModal() {
   document.getElementById('editLessonModal').style.display = 'none';
 }
 
+</script> -->
+
+
+<!-- <script src="https://cdn.ckeditor.com/ckeditor5/41.4.2/classic/ckeditor.js"></script>
+<script>
+  let createLessonEditor = null;
+  let editLessonEditor = null;
+
+  /* ---------------- CREATE ---------------- */
+  function openLessonModal() {
+    document.getElementById('lessonModal').style.display = 'block';
+
+    if (!createLessonEditor) {
+      ClassicEditor.create(document.querySelector('#createLessonContent'), {
+        removePlugins: ['CKFinderUploadAdapter', 'CKFinder', 'EasyImage', 'ImageUpload', 'MediaEmbed', 'FileRepository']
+      })
+        .then(editor => {
+          createLessonEditor = editor;
+
+          // validate + sync before submit
+          document.querySelector('#lessonModal form').addEventListener('submit', function (e) {
+            const content = createLessonEditor.getData().trim();
+            if (!content) {
+              e.preventDefault();
+              alert("Please enter lesson content before saving.");
+              return;
+            }
+            document.querySelector('#createLessonContent').value = content;
+          });
+        })
+        .catch(err => console.error('CKEditor create error:', err));
+    }
+  }
+
+  function closeLessonModal() {
+    document.getElementById('lessonModal').style.display = 'none';
+  }
+
+  /* ---------------- EDIT ---------------- */
+  function openEditLessonModal(lesson) {
+    document.getElementById('editLessonForm').action = '/admin/lessons/' + lesson.id + '/edit';
+    document.getElementById('editLessonTitle').value = lesson.title;
+    document.getElementById('editLessonCourseId').value = lesson.course_id;
+    document.getElementById('editLessonModal').style.display = 'block';
+
+    if (!editLessonEditor) {
+      ClassicEditor.create(document.querySelector('#editLessonContent'), {
+        removePlugins: ['CKFinderUploadAdapter', 'CKFinder', 'EasyImage', 'ImageUpload', 'MediaEmbed', 'FileRepository']
+      })
+        .then(editor => {
+          editLessonEditor = editor;
+          editor.setData(lesson.content || '');
+
+          document.getElementById('editLessonForm').addEventListener('submit', function (e) {
+            const content = editLessonEditor.getData().trim();
+            if (!content) {
+              e.preventDefault();
+              alert("Content is required.");
+              return;
+            }
+            document.querySelector('#editLessonContent').value = content;
+          });
+        })
+        .catch(err => console.error('CKEditor edit error:', err));
+    } else {
+      editLessonEditor.setData(lesson.content || '');
+    }
+  }
+
+  function closeEditLessonModal() {
+    document.getElementById('editLessonModal').style.display = 'none';
+  }
+</script> -->
+
+<script src="https://cdn.ckeditor.com/ckeditor5/41.4.2/classic/ckeditor.js"></script>
+<script>
+  let createLessonEditor = null;
+  let editLessonEditor = null;
+
+  /* ---------------- CREATE LESSON ---------------- */
+  function openLessonModal() {
+    document.getElementById('lessonModal').style.display = 'block';
+
+    if (!createLessonEditor) {
+      ClassicEditor.create(document.querySelector('#createLessonContent'))
+        .then(editor => {
+          createLessonEditor = editor;
+
+          // ✅ sync editor data to hidden textarea before submit
+          document.querySelector('#lessonModal form').addEventListener('submit', function (e) {
+            const content = createLessonEditor.getData().trim();
+            if (!content) {
+              e.preventDefault();
+              alert("Please enter lesson content before saving.");
+              return;
+            }
+            document.querySelector('#createLessonContent').value = content;
+          });
+        })
+        .catch(error => console.error('CKEditor create error:', error));
+    }
+  }
+
+  function closeLessonModal() {
+    document.getElementById('lessonModal').style.display = 'none';
+  }
+
+  /* ---------------- EDIT LESSON ---------------- */
+  function openEditLessonModal(lesson) {
+    document.getElementById('editLessonForm').action = '/admin/lessons/' + lesson.id + '/edit';
+    document.getElementById('editLessonTitle').value = lesson.title;
+    document.getElementById('editLessonCourseId').value = lesson.course_id;
+    document.getElementById('editLessonModal').style.display = 'block';
+
+    if (!editLessonEditor) {
+      ClassicEditor.create(document.querySelector('#editLessonContent'))
+        .then(editor => {
+          editLessonEditor = editor;
+          editor.setData(lesson.content || '');
+
+          // ✅ sync editor data to hidden textarea before submit
+          document.getElementById('editLessonForm').addEventListener('submit', function (e) {
+            const content = editLessonEditor.getData().trim();
+            if (!content) {
+              e.preventDefault();
+              alert("Content is required.");
+              return;
+            }
+            document.querySelector('#editLessonContent').value = content;
+          });
+        })
+        .catch(error => console.error('CKEditor edit error:', error));
+    } else {
+      editLessonEditor.setData(lesson.content || '');
+    }
+  }
+
+  function closeEditLessonModal() {
+    document.getElementById('editLessonModal').style.display = 'none';
+  }
 </script>
+
+

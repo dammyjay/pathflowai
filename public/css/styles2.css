@@ -1043,6 +1043,7 @@ canvas {
 
 .learning-container {
     display: flex;
+    width: 100%;
 }
 
 /* Mini Lesson Sidebar */
@@ -1101,12 +1102,37 @@ canvas {
     min-height: calc(100vh - 60px);
 }
 
+.lesson-video {
+    margin-bottom: 20px;
+    width: 100%;
+}
+
 .lesson-video iframe {
     width: 100%;
     height: 350px;
     margin-bottom: 20px;
     border-radius: 5px;
 }
+
+/* .lesson-video {
+    position: relative;
+    width: 100%;
+    padding-bottom: 56.25%;
+    height: 0;
+    margin-bottom: 20px;
+    overflow: hidden;
+    border-radius: 10px;
+}
+
+.lesson-video iframe {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    border: none;
+    border-radius: 10px;
+} */
 
 /* Quiz Results Overlay */
 #quizResultsOverlay {
@@ -1318,7 +1344,7 @@ canvas {
     word-wrap: break-word;
 }
 
-.msg.bot {
+/* .msg.bot {
     align-self: flex-start;
     background: #f1f0f0;
     border-radius: 12px 12px 12px 0;
@@ -1328,10 +1354,10 @@ canvas {
     text-align: left;
     line-height: 1.4em;
     word-wrap: break-word;
-}
+} */
 
 /* ✅ Formatting inside bot messages */
-.msg.bot h3,
+/* .msg.bot h3,
 .msg.bot h4 {
     margin: 4px 0;
     color: #0078d7;
@@ -1350,6 +1376,104 @@ canvas {
 }
 
 .msg.bot pre {
+    background: #272822;
+    color: #f8f8f2;
+    padding: 8px;
+    border-radius: 6px;
+    overflow-x: auto;
+} */
+
+/* 🔹 Base chatbox styles (already good) */
+.ai-tutor {
+    position: fixed;
+    right: 24px;
+    bottom: 24px;
+    width: 380px;
+    max-width: 90vw;
+    background: #fff;
+    border: 1px solid #eee;
+    border-radius: 12px;
+    box-shadow: 0 10px 30px rgba(0, 0, 0, .08);
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+    z-index: 9999;
+}
+
+.ai-tutor-header {
+    background: #111827;
+    color: #fff;
+    padding: 10px 14px;
+    font-weight: 600;
+}
+
+.ai-messages {
+    height: 260px;
+    overflow-y: auto;
+    padding: 12px;
+    display: flex;
+    gap: 10px;
+    flex-direction: column;
+}
+
+.ai-msg {
+    padding: 10px 12px;
+    border-radius: 10px;
+    max-width: 85%;
+}
+
+.ai-msg.user {
+    align-self: flex-end;
+    background: #e5f0ff;
+}
+
+.ai-msg.bot {
+    align-self: flex-start;
+    background: #f6f6f6;
+}
+
+.ai-input-row {
+    display: flex;
+    gap: 6px;
+    padding: 10px;
+    border-top: 1px solid #eee;
+}
+
+.ai-input-row input,
+.ai-input-row select {
+    flex: 1;
+    padding: 8px 10px;
+}
+
+.ai-input-row button {
+    padding: 8px 12px;
+    border: none;
+    background: #2563eb;
+    color: #fff;
+    border-radius: 8px;
+    cursor: pointer;
+}
+
+/* 🔹 Markdown formatting for bot replies */
+.ai-msg.bot h3,
+.ai-msg.bot h4 {
+    margin: 4px 0;
+    color: #0078d7;
+}
+
+.ai-msg.bot ul,
+.ai-msg.bot ol {
+    margin: 4px 0 4px 18px;
+}
+
+.ai-msg.bot code {
+    background: #eee;
+    padding: 2px 4px;
+    border-radius: 4px;
+    font-family: monospace;
+}
+
+.ai-msg.bot pre {
     background: #272822;
     color: #f8f8f2;
     padding: 8px;
