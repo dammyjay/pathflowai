@@ -178,7 +178,7 @@ i {
     display: inline-block;
     margin-top: 24px;
     padding: 14px 32px;
-    background: #bfa046;
+    background: #05467e;
     color: #fff;
     font-size: 1.1rem;
     font-weight: bold;
@@ -191,7 +191,7 @@ i {
 }
 
 .cta-btn:hover {
-    background: #a38833;
+    background: #195a23;
     color: #fff; }
 
 .hero-overlay {
@@ -480,7 +480,7 @@ textarea {
 
 /* Buttons */
 button {
-    background-color: #bfa046;
+    background-color: #137727;
     /* gold */
     color: #fff;
     font-weight: 600;
@@ -495,11 +495,11 @@ button {
 }
 
 button:hover {
-    background-color: #a38833;
+    background-color: #0a4616;
     /* darker gold */
 }
 form button {
-    background-color: #bfa046;
+    background-color: #137727;
     /* gold */
     color: #fff;
     font-weight: 600;
@@ -806,7 +806,7 @@ form button {
 
 .video-buttons a,
 .video-buttons form button {
-    background-color: #bfa046;
+    background-color: #05467e;
     /* gold */
     color: white;
     padding: 7px 12px;
@@ -819,7 +819,7 @@ form button {
 
 .video-buttons a:hover,
 .video-buttons form button:hover {
-    background-color: #a38833;
+    background-color: #0c2e4c;
     /* darker gold */
 }
 
@@ -828,7 +828,7 @@ form button {
 
 header {
     
-    background: url('/images/hero2.jpg') center/cover no-repeat;
+    background: url('/images/hearder1.webp') center/cover no-repeat;
     z-index: 1;
     overflow: hidden;
     /* background-color: #4d3b00; */
@@ -841,6 +841,7 @@ header {
         align-items: center;
         justify-content: space-between;
         position: relative;
+
 }
 
 header::before {
@@ -850,7 +851,7 @@ header::before {
     left: 0;
     width: 100%;
     height: 100%;
-    background: rgba(43, 34, 11, 0.6);
+    background: rgba(43, 34, 11, 0.4);
     /* translucent gold overlay */
     z-index: -1;
 }
@@ -865,6 +866,14 @@ header::before {
 .logo-title img {
     height: 60px;
     margin-bottom: 0.5rem;
+}
+
+.logo-title p {
+    font-size: 1.5rem;
+    font-weight: bold;
+    margin: 0;
+    color: #fff;
+    text-shadow: 1px 1px 4px rgba(0, 0, 0, 0.7);
 }
 
 nav {
@@ -1023,7 +1032,7 @@ nav a:hover {
 
 .login-button {
     padding: 6px 12px;
-    background-color: #bfa046;
+    background-color: #05467e;
     /* gold */
     color: white;
     border-radius: 4px;
@@ -1033,7 +1042,7 @@ nav a:hover {
 }
 
 .login-button:hover {
-    background-color: #a38833;
+    background-color: #132f47;
     /* darker gold */
 }
 
@@ -1147,8 +1156,8 @@ nav a:hover {
 
 /* Footer Styles */
 .site-footer {
-    background-color: #222;
-    color: #ebc625;
+    background-color: #618796;
+    color: #000000;
     padding: 40px 20px 20px;
     font-size: 14px;
     width: 100%;
@@ -1203,7 +1212,7 @@ nav a:hover {
 }
 
 .subscribe-form button {
-    background-color: #bca405;
+    background-color: #05467e;
     color: #fff;
     padding: 10px;
     border: none;
@@ -1212,7 +1221,7 @@ nav a:hover {
 }
 
 .subscribe-form button:hover {
-    background-color: #00997a;
+    background-color: #183046;
 }
 
 .footer-bottom {
@@ -1226,7 +1235,7 @@ nav a:hover {
      cursor: pointer;
      margin-right: 15px;
      font-size: 24px;
-     color: #a36d09;
+     color: #05467e;
  }
 
  .interaction-buttons i:hover {

@@ -71,7 +71,7 @@ async function createTables() {
         reset_token TEXT,
         reset_token_expires TIMESTAMP,
         dob DATE,
-        wallet_balance NUMERIC DEFAULT 0
+        wallet_balance2 NUMERIC DEFAULT 0
       )`
     );
 
