@@ -1,23 +1,23 @@
 const { text } = require("body-parser");
 const nodemailer = require("nodemailer");
 
-const transporter = nodemailer.createTransport({
-  service: "gmail", // or use host/port if you use a different provider
-  auth: {
-    user: process.env.EMAIL_USER,
-    pass: process.env.EMAIL_PASS,
-  },
-});
-
 // const transporter = nodemailer.createTransport({
-//   host: "smtp.gmail.com",
-//   port: 587, // use TLS instead of SSL
-//   secure: false, // false for 587, true for 465
+//   service: "gmail", // or use host/port if you use a different provider
 //   auth: {
 //     user: process.env.EMAIL_USER,
 //     pass: process.env.EMAIL_PASS,
 //   },
 // });
+
+const transporter = nodemailer.createTransport({
+  host: "smtp.gmail.com",
+  port: 587, // use TLS instead of SSL
+  secure: false, // false for 587, true for 465
+  auth: {
+    user: process.env.EMAIL_USER,
+    pass: process.env.EMAIL_PASS,
+  },
+});
 
 const sendFaqAnswerEmail = async (to, question, answer) => {
   const mailOptions = {
