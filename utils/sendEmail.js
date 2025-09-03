@@ -54,7 +54,7 @@ const sendFaqAnswerEmail = async (to, question, answer) => {
 async function sendEmail(to, subject, message) {
   try {
     await transporter.sendMail({
-      from: `"JKT Hub" <${process.env.EMAIL_USER}>`, // ✅ unified sender
+      from: `"Pathflow AI" <${process.env.EMAIL_USER}>`, // ✅ unified sender
       to,
       subject,
       html: message,
