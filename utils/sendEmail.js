@@ -1,13 +1,13 @@
 const { text } = require("body-parser");
 const nodemailer = require("nodemailer");
 
-// const transporter = nodemailer.createTransport({
-//   service: "gmail", // or use host/port if you use a different provider
-//   auth: {
-//     user: process.env.EMAIL_USER,
-//     pass: process.env.EMAIL_PASS,
-//   },
-// });
+const transporter = nodemailer.createTransport({
+  service: "gmail", // or use host/port if you use a different provider
+  auth: {
+    user: process.env.EMAIL_USER,
+    pass: process.env.EMAIL_PASS,
+  },
+});
 
 // const transporter = nodemailer.createTransport({
 //   host: "smtp.gmail.com",
@@ -19,15 +19,15 @@ const nodemailer = require("nodemailer");
 //   },
 // });
 
-const transporter = nodemailer.createTransport({
-  host: "smtp.gmail.com",
-  port: 465, // or 587
-  secure: true, // true for port 465, false for port 587
-  auth: {
-    user: process.env.EMAIL_USER,
-    pass: process.env.EMAIL_PASS,
-  },
-});
+// const transporter = nodemailer.createTransport({
+//   host: "smtp.gmail.com",
+//   port: 465, // or 587
+//   secure: true, // true for port 465, false for port 587
+//   auth: {
+//     user: process.env.EMAIL_USER,
+//     pass: process.env.EMAIL_PASS,
+//   },
+// });
 
 const sendFaqAnswerEmail = async (to, question, answer) => {
   const mailOptions = {
