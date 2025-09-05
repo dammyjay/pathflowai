@@ -201,10 +201,14 @@
 
             const text = await res.text(); // read body ONCE
             console.log("Signup response:", text);
+            alert(text);
 
             if (res.ok) {
-              document.getElementById("otp-modal").style.display = "block";
-              document.getElementById("signup-form").style.display = "none";
+              // document.getElementById("otp-modal").style.display = "block";
+              // document.getElementById("signup-form").style.display = "none";
+                setTimeout(() => {
+                window.location.href = "/admin/login";
+              }, 1000);
             } else {
               alert("Signup failed: " + text);
             }

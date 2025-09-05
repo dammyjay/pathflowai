@@ -35,8 +35,28 @@ exports.signup = async (req, res) => {
   const created_at = new Date(); // Create timestamp in JS
   console.log("📷 Filename to save in DB:", profile_picture);
 
+  // await pool.query(
+  //   "INSERT INTO pending_users (fullname, email, phone, gender, password, otp_code, otp_expires, profile_picture,role,created_at, dob) VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11)",
+  //   // 'INSERT INTO pending_users (username, email, phone)
+  //   [
+  //     username,
+  //     email,
+  //     phone,
+  //     gender,
+  //     hashed,
+  //     otp,
+  //     expires,
+  //     profile_picture,
+  //     role,
+  //     created_at,
+  //     dob,
+  //   ]
+  // );
+  // await sendEmail(email, "Your OTP Code", `Your code is: ${otp}`);
+  // res.status(200).send("OTP sent to your email.");
+
   await pool.query(
-    "INSERT INTO pending_users (fullname, email, phone, gender, password, otp_code, otp_expires, profile_picture,role,created_at, dob) VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11)",
+    "INSERT INTO users2 (fullname, email, phone, gender, password, profile_picture,role,created_at, dob) VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9)",
     // 'INSERT INTO pending_users (username, email, phone)
     [
       username,
@@ -44,16 +64,14 @@ exports.signup = async (req, res) => {
       phone,
       gender,
       hashed,
-      otp,
-      expires,
       profile_picture,
       role,
       created_at,
       dob,
     ]
   );
-  await sendEmail(email, "Your OTP Code", `Your code is: ${otp}`);
-  res.status(200).send("OTP sent to your email.");
+  res.status(200).send("Signup success");
+
 };
 
 exports.verifyOtp = async (req, res) => {
