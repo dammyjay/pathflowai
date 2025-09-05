@@ -1,60 +1,103 @@
-const { text } = require("body-parser");
+// const { text } = require("body-parser");
+// const nodemailer = require("nodemailer");
+
+// const transporter = nodemailer.createTransport({
+//   service: "gmail", // or use host/port if you use a different provider
+//   auth: {
+//     user: process.env.EMAIL_USER,
+//     pass: process.env.EMAIL_PASS,
+//   },
+// });
+
+// // const transporter = nodemailer.createTransport({
+// //   host: "smtp.gmail.com",
+// //   port: 587, // use TLS instead of SSL
+// //   secure: false, // false for 587, true for 465
+// //   auth: {
+// //     user: process.env.EMAIL_USER,
+// //     pass: process.env.EMAIL_PASS,
+// //   },
+// // });
+
+// // const transporter = nodemailer.createTransport({
+// //   host: "smtp.gmail.com",
+// //   port: 465, // or 587
+// //   secure: true, // true for port 465, false for port 587
+// //   auth: {
+// //     user: process.env.EMAIL_USER,
+// //     pass: process.env.EMAIL_PASS,
+// //   },
+// // });
+
+// const sendFaqAnswerEmail = async (to, question, answer) => {
+//   const mailOptions = {
+//     // from: "Your Ministry" <${process.env.EMAIL_USERNAME}>,
+//     to,
+//     subject: "Your question has been answered",
+//     // html: <p><strong>Q:</strong> ${question}</p> <p><strong>A:</strong> ${answer}</p> <p>Thank you for reaching out to us.</p>
+//     text: `Q: ${question}\nA: ${answer}\n\nThank you for reaching out to us.`,
+//   };
+
+//   await transporter.sendMail(mailOptions);
+// };
+
+// // async function sendEmail(to, subject, message) {
+// //   await transporter.sendMail({
+// //     from: `"JKT Hub" <${process.env.EMAIL_USERNAME}>`,
+// //     to,
+// //     subject,
+// //     html: message,
+// //   });
+// // }
+
+// // Send generic email (used for OTP, newsletters, etc.)
+// async function sendEmail(to, subject, message) {
+//   try {
+//     await transporter.sendMail({
+//       from: `"Pathflow AI" <${process.env.EMAIL_USER}>`, // ✅ unified sender
+//       to,
+//       subject,
+//       html: message,
+//     });
+//     console.log(`✅ Email sent to ${to}`);
+//   } catch (err) {
+//     console.error("❌ Email sending failed:", err.message);
+//     throw err; // rethrow if you want signup to fail, or remove if optional
+//   }
+// }
+
+// module.exports = sendFaqAnswerEmail;
+// module.exports = sendEmail;
+    
 const nodemailer = require("nodemailer");
 
+// Use SendGrid SMTP on Railway
 const transporter = nodemailer.createTransport({
-  service: "gmail", // or use host/port if you use a different provider
+  host: "smtp.sendgrid.net",
+  port: 587,
   auth: {
-    user: process.env.EMAIL_USER,
-    pass: process.env.EMAIL_PASS,
+    user: "apikey", // must be literally "apikey"
+    pass: process.env.SENDGRID_API_KEY,
   },
 });
 
-// const transporter = nodemailer.createTransport({
-//   host: "smtp.gmail.com",
-//   port: 587, // use TLS instead of SSL
-//   secure: false, // false for 587, true for 465
-//   auth: {
-//     user: process.env.EMAIL_USER,
-//     pass: process.env.EMAIL_PASS,
-//   },
-// });
-
-// const transporter = nodemailer.createTransport({
-//   host: "smtp.gmail.com",
-//   port: 465, // or 587
-//   secure: true, // true for port 465, false for port 587
-//   auth: {
-//     user: process.env.EMAIL_USER,
-//     pass: process.env.EMAIL_PASS,
-//   },
-// });
-
+// FAQ email function
 const sendFaqAnswerEmail = async (to, question, answer) => {
   const mailOptions = {
-    // from: "Your Ministry" <${process.env.EMAIL_USERNAME}>,
+    from: `"Pathflow AI" <${process.env.EMAIL_FROM}>`,
     to,
     subject: "Your question has been answered",
-    // html: <p><strong>Q:</strong> ${question}</p> <p><strong>A:</strong> ${answer}</p> <p>Thank you for reaching out to us.</p>
     text: `Q: ${question}\nA: ${answer}\n\nThank you for reaching out to us.`,
   };
 
   await transporter.sendMail(mailOptions);
 };
 
-// async function sendEmail(to, subject, message) {
-//   await transporter.sendMail({
-//     from: `"JKT Hub" <${process.env.EMAIL_USERNAME}>`,
-//     to,
-//     subject,
-//     html: message,
-//   });
-// }
-
-// Send generic email (used for OTP, newsletters, etc.)
+// Generic email function
 async function sendEmail(to, subject, message) {
   try {
     await transporter.sendMail({
-      from: `"Pathflow AI" <${process.env.EMAIL_USER}>`, // ✅ unified sender
+      from: `"Pathflow AI" <${process.env.EMAIL_FROM}>`,
       to,
       subject,
       html: message,
@@ -62,10 +105,9 @@ async function sendEmail(to, subject, message) {
     console.log(`✅ Email sent to ${to}`);
   } catch (err) {
     console.error("❌ Email sending failed:", err.message);
-    throw err; // rethrow if you want signup to fail, or remove if optional
+    throw err;
   }
 }
 
-module.exports = sendFaqAnswerEmail;
-module.exports = sendEmail;
-    
+// ✅ export both functions
+module.exports = { sendFaqAnswerEmail, sendEmail };
